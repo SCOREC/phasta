@@ -516,7 +516,7 @@ c      write(*,*) 'KINEMATIC: ',ri(1,nflow*(isd-1)+iflow),this_kcy(1)
 c
              enddo
 c
-             ri(:,nflow*(nsd-1)+iflow) = ri(:,nflow*(nsd-1)+iflow) 
+             ri(:,nflow*nsd +iflow) = ri(:,nflow*nsd+iflow) 
      &                                 - pt50 * s * AiCY(:,iflow)             
            enddo
 c
