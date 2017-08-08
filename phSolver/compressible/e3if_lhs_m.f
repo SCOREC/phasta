@@ -162,7 +162,7 @@ c
       subroutine calc_egmass_fix_sign (
      &                        egmass
      &,                       shp0, shp1, shg0, shg1
-     &,                       Ai1
+     &,                       Ai0,Ai1
      &,                       Kij0, Kij1
      &,                       ni0, ni1, WdetJ0
      &,                       nshl0, nshl1
@@ -170,7 +170,7 @@ c
         real*8, dimension(:,:,:),   intent(inout) :: egmass
         real*8, dimension(:,:),     intent(in)    :: shp0, shp1
         real*8, dimension(:,:,:),   intent(in)    :: shg0, shg1
-        real*8, dimension(:,:,:,:), intent(in)    :: Ai1
+        real*8, dimension(:,:,:,:), intent(in)    :: Ai0,  Ai1
         real*8, dimension(:,:,:,:,:), intent(in) :: Kij0, Kij1
         real*8, dimension(:,:),     intent(in)    :: ni0, ni1
         real*8, dimension(:),       intent(in)    :: WdetJ0
@@ -178,9 +178,11 @@ c
 c
         integer :: i,j,i0,j0,il,jl,iflow,jflow,kflow,isd,jsd
         real*8 :: this_mu(npro,nflow,nflow)
-        real*8, dimension(npro) :: Ai1Na1ni0,Kij1Naj1ni0,Kij0Nbj0CNa1ni1,CNb0ni0CNa1ni1
+        real*8, dimension(npro) :: Ai1Na1ni0,Kij1Naj1ni0,Kij0Nbj0CNa1ni0,CNb0DCNa1
         real*8 :: factor
         character*4 code
+c.... added by Yu
+        real*8,dimension(npro) :: Ai0Na1ni0C
 c------------------------------------------------------------------------------
 c  calculation the linearization of RHS w.r.t primitive variables
 c  control variable:
@@ -222,15 +224,21 @@ c
 c
                 Ai1Na1ni0       = zero
                 Kij1Naj1ni0     = zero
-                Kij0Nbj0CNa1ni1 = zero
-                CNb0ni0CNa1ni1  = zero
+                Kij0Nbj0CNa1ni0 = zero
+                CNb0DCNa1  = zero
+                Ai0Na1ni0C = zero
 c
                 do isd = 1,nsd
                   Ai1Na1ni0 = Ai1Na1ni0 + Ai1(:,isd,iflow,jflow)*shp1(:,j)*ni0(:,isd)
+                  do kflow = 1,nflow
+                    Ai0Na1ni0C = Ai0Na1ni0C 
+     &                         + Ai0(:,isd,iflow,kflow)*shp1(:,j)*ni0(:,isd)
+     &                         * cmtrx(:,kflow,jflow)
+                  enddo
                   do jsd = 1,nsd
                     Kij1Naj1ni0 = Kij1Naj1ni0 + Kij1(:,isd,jsd,iflow,jflow)*shg1(:,j,jsd)*ni0(:,isd)
                     do kflow = 1,nflow
-                      Kij0Nbj0CNa1ni1 = Kij0Nbj0CNa1ni1 + Kij0(:,isd,jsd,iflow,kflow) 
+                      Kij0Nbj0CNa1ni0 = Kij0Nbj0CNa1ni0 + Kij0(:,isd,jsd,iflow,kflow) 
      &                                                  * shg0(:,i,jsd)
      &                                                  * cmtrx(:,kflow,jflow)
      &                                                  * shp1(:,j)
@@ -240,16 +248,16 @@ c
                 enddo
 !E! NOTE: Have to check this (penalty term...)
                 do kflow = 1,nflow
-                    CNb0ni0CNa1ni1 = CNb0ni0CNa1ni1 + cmtrx(:,iflow,kflow) * shp0(:,i)
+                    CNb0DCNa1 = CNb0DCNa1 + cmtrx(:,iflow,kflow) * shp0(:,i)
      &                                              * mu(:,kflow)
      &                                              * cmtrx(:,kflow,jflow) * shp1(:,j)
                 enddo
 c
                 egmass(:,il,jl) = egmass(:,il,jl)
      &          + ( 
-     &              pt50 * shp0(:,i) * ( factor*Ai1Na1ni0 - Kij1Naj1ni0)
-     &          -   factor * pt50 * s * Kij0Nbj0CNa1ni1
-     &          -   factor * e /length_h * CNb0ni0CNa1ni1
+     &              pt50 * shp0(:,i) * ( factor*( Ai1Na1ni0 + Ai0Na1ni0C ) - Kij1Naj1ni0)
+     &          -   factor * pt50 * s * Kij0Nbj0CNa1ni0
+     &          -   factor * e /length_h * CNb0DCNa1
      &            ) * WdetJ0
 c
               enddo

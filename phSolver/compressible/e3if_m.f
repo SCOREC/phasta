@@ -121,8 +121,9 @@ c
             call calc_cmtrx
             call calc_y_jump
 c
-            call kinematic_condition(ri0,Kij0)
-            call kinematic_condition(ri1,Kij1)
+c .... modified by Yu, adding
+            call kinematic_condition(ri0,Kij0,Ai0)
+            call kinematic_condition(ri1,Kij1,Ai1)
 c
 c ... kinematic condition term:
 c     set the mu coeff to the max of the 0,1 materials 
@@ -192,10 +193,10 @@ c               call calc_egmass_(egmass00,shp0,shp0,shg0,shg0,Ai0,Kij0,Kij0,nv0
 c               call calc_egmass_(egmass01,shp0,shp1,shg0,shg1,Ai1,Kij0,Kij1,nv0,nv1,WdetJif0,nshl0,nshl1)
 c               call calc_egmass_(egmass10,shp1,shp0,shg1,shg0,Ai0,Kij1,Kij0,nv1,nv0,WdetJif1,nshl1,nshl0)
 c               call calc_egmass_(egmass11,shp1,shp1,shg1,shg1,Ai1,Kij1,Kij1,nv1,nv1,WdetJif1,nshl1,nshl1)
-               call calc_egmass_fix_sign(egmass00,shp0,shp0,shg0,shg0,Ai0,Kij0,Kij0,nv0,nv0,WdetJif0,nshl0,nshl0,'same')
-               call calc_egmass_fix_sign(egmass01,shp0,shp1,shg0,shg1,Ai1,Kij0,Kij1,nv0,nv1,WdetJif0,nshl0,nshl1,'diff')
-               call calc_egmass_fix_sign(egmass10,shp1,shp0,shg1,shg0,Ai0,Kij1,Kij0,nv1,nv0,WdetJif1,nshl1,nshl0,'diff')
-               call calc_egmass_fix_sign(egmass11,shp1,shp1,shg1,shg1,Ai1,Kij1,Kij1,nv1,nv1,WdetJif1,nshl1,nshl1,'same')
+               call calc_egmass_fix_sign(egmass00,shp0,shp0,shg0,shg0,Ai0,Ai0,Kij0,Kij0,nv0,nv0,WdetJif0,nshl0,nshl0,'same')
+               call calc_egmass_fix_sign(egmass01,shp0,shp1,shg0,shg1,Ai0,Ai1,Kij0,Kij1,nv0,nv1,WdetJif0,nshl0,nshl1,'diff')
+               call calc_egmass_fix_sign(egmass10,shp1,shp0,shg1,shg0,Ai1,Ai0,Kij1,Kij0,nv1,nv0,WdetJif1,nshl1,nshl0,'diff')
+               call calc_egmass_fix_sign(egmass11,shp1,shp1,shg1,shg1,Ai1,Ai1,Kij1,Kij1,nv1,nv1,WdetJif1,nshl1,nshl1,'same')
 c
             endif
 c
@@ -467,15 +468,20 @@ c        end subroutine flux_jump
 c
 c
 c
-        subroutine kinematic_condition(ri,Kij)
+        subroutine kinematic_condition(ri,Kij,Ai)
 c
            real*8, dimension(:,:), intent(inout) :: ri
            real*8, dimension(:,:,:,:,:), intent(in) :: Kij
+c.... added by Yu
+           real*8, dimension(:,:,:,:), intent(in) :: Ai           
 c
            integer :: iflow,jflow,kflow,isd,jsd
            real*8 :: this_kcy(npro)
            real*8, dimension(npro,nflow,nflow,nsd,nsd) :: CKij
            real*8,dimension(npro,nflow,nsd) :: cy_jump, kcy
+c           
+c..... added by Yu
+           real*8,dimension(npro,nflow) :: AiCY
 c
            do iflow = 1,nflow
 c
@@ -490,14 +496,18 @@ c
            enddo
 c
            do iflow = 1,nflow
+             AiCY =  zero
              do isd = 1,nsd
 c
              this_kcy = zero
 c
              do jflow = 1,nflow
+               AiCY(:,iflow) = AiCY(:,iflow)
+     &                       + Ai(:,isd,iflow,jflow)*cy_jump(:,jflow,isd) 
                do jsd = 1,nsd
 !                 this_kcy = this_kcy + Kij(:,iflow,jflow,isd,jsd)*cy_jump(:,jflow,jsd)
-		this_kcy = this_kcy + Kij(:,jsd,isd,iflow,jflow)*cy_jump(:,jflow,jsd) !DOUBLE CHECK THIS
+		              this_kcy = this_kcy 
+     &                       + Kij(:,jsd,isd,iflow,jflow)*cy_jump(:,jflow,jsd) !DOUBLE CHECK THIS
                enddo
              enddo
 c
@@ -505,6 +515,9 @@ c
 c      write(*,*) 'KINEMATIC: ',ri(1,nflow*(isd-1)+iflow),this_kcy(1)
 c
              enddo
+c
+             ri(:,nflow*(nsd-1)+iflow) = ri(:,nflow*(nsd-1)+iflow) 
+     &                                 - pt50 * s * AiCY(:,iflow)             
            enddo
 c
         end subroutine kinematic_condition
