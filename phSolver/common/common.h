@@ -14,8 +14,8 @@ c
       use dgifinp_m
       use global_const_m
       use conpar_m
-	  use laymesh_m
-	  use snapmesh_m
+      use laymesh_m
+      use snapmesh_m
       use timdat_m
       use elmpar_m
       use blkdat_m

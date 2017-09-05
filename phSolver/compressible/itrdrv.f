@@ -267,6 +267,18 @@ c.........................................
         deallocate(vortG)
       endif
 c
+c.... correct layered mesh; the initial normal of growth
+c     curve may not align with the discretized normal
+c
+        if (lstep .eq. 0) then
+          call layered_mesh_correction( x,  xold,  iBC,  BC,
+     &                     colm,     rowp,    meshq,
+     &                     HBrg,     eBrg,    yBrg,
+     &                     Rcos,     Rsin,    iper,   ilwork,
+     &                     shp,      shgl,    shpb,   shglb,
+     &                     shpif)
+        endif
+c
 c.... loop through the time sequences
 c
         do 3000 itsq = 1, ntseq
@@ -514,7 +526,7 @@ c                        write(*,*) 'lhs=',lhs
      &                       iBC,           BC,
      &                       colm,          rowp,          lhsk,
      &                       res,
-     &                       BDiag,         hBrg,          eBrg,
+     &                       BDiag,         HBrg,          eBrg,
      &                       yBrg,          Rcos,          Rsin,
      &                       iper,          ilwork,
      &                       shp,           shgl,
@@ -661,7 +673,7 @@ c.... call to SolGMRElas ... For mesh-elastic solve
 c
                      call SolGMRElas (x,        disp,    iBC,    BC,
      &                                colm,     rowp,    meshq,
-     &                                hBrg,     eBrg,    yBrg,
+     &                                HBrg,     eBrg,    yBrg,
      &                                Rcos,     Rsin,    iper,   ilwork,
      &                                shp,      shgl,    shpb,   shglb,
      &                                shpif,    elasDy)
@@ -688,7 +700,7 @@ c... update disp based on new iBC and BC array
 c... solve the system based on new disp, iBC and BC array
                        call SolGMRElas (x,        disp,    iBC_snap, BC_snap,
      &                                  colm,     rowp,    meshq,
-     &                                  hBrg,     eBrg,    yBrg,
+     &                                  HBrg,     eBrg,    yBrg,
      &                                  Rcos,     Rsin,    iper,   ilwork,
      &                                  shp,      shgl,    shpb,   shglb,
      &                                  shpif,    elasDy)

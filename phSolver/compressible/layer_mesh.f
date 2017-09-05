@@ -143,4 +143,67 @@ c
         return
         end
 c
+c----------------------------------------------------------------------
+c
+c----------------------------------------------------------------------
+c
+       subroutine layered_mesh_correction( x,  xold,  iBC,  BC,
+     &                     colm,     rowp,    meshq,
+     &                     HBrg,     eBrg,    yBrg,
+     &                     Rcos,     Rsin,    iper,   ilwork,
+     &                     shp,      shgl,    shpb,   shglb,
+     &                     shpif)
+c
+        include "common.h"
+c
+        dimension x(numnp,nsd),     xold(numnp,nsd),
+     &            iBC(nshg),        BC(nshg,ndofBC),
+     &            ilwork(nlwork),   iper(nshg)
+c
+        dimension shp(MAXTOP,maxsh,MAXQPT),
+     &            shgl(MAXTOP,nsd,maxsh,MAXQPT),
+     &            shpb(MAXTOP,maxsh,MAXQPT),
+     &            shglb(MAXTOP,nsd,maxsh,MAXQPT)
+c
+        real*8, dimension(maxtop, maxsh, maxqpt) :: shpif
+c
+        dimension HBrg(Kspace+1,Kspace),   eBrg(Kspace+1),
+     &            yBrg(Kspace),            Rcos(Kspace),
+     &            Rsin(Kspace)
+c
+        integer  colm(nshg+1),        rowp(nnz*nshg)
+c
+        real*8   umesh(numnp,nsd),    meshq(numel),
+     &           disp(numnp, nsd),    elasDy(nshg,nelas)
+c
+          lhs = 1
+          iprec=lhs
+c
+          call itrBCElas(umesh,  disp,  iBC,
+     &                   BC(:,ndof+2:ndof+5),
+     &                   iper,   ilwork)
+c
+
+          call SolGMRElas (x,        disp,    iBC,    BC,
+     &                     colm,     rowp,    meshq,
+     &                     HBrg,     eBrg,    yBrg,
+     &                     Rcos,     Rsin,    iper,   ilwork,
+     &                     shp,      shgl,    shpb,   shglb,
+     &                     shpif,    elasDy)
+c
+          call itrCorrectElas(disp, elasDy)
+c
+          call itrBCElas(umesh,  disp,  iBC,
+     &                   BC(:,ndof+2:ndof+5),
+     &                   iper,   ilwork)
+c
+          x = x + disp
+          xold = x
+c
+          if (myrank .eq. 0) write(*,*) "layered mesh corrected"
+c
+c.... end
+c
+        return
+        end
 
