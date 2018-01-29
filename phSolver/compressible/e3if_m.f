@@ -19,6 +19,7 @@ c----------------------------------------
         use e3if_vi_m
         use if_global_m
         use e3if_dc_m ! DC operator for interface
+        use hack_normal_m
 c
         implicit none
 c
@@ -95,6 +96,12 @@ c... Normal Vectors
 c
             call calc_normal_vectors(nv0,area,WdetJif0,xl0,qwtif0,itpid,lcsyst0,intp0,npro)
             call calc_normal_vectors(nv1,area,WdetJif1,xl1,qwtif1,itpid,lcsyst1,intp1,npro)
+c... Hacking normal for sphere problem
+            call hack_normal(nv0, xl0, shp0, nshl0, nenl0)
+c
+            nv0 = -nv0 ! hacking, 0 is gas
+c                        
+            call hack_normal(nv1, xl1, shp1, nshl1, nenl1)
 c
 c... calculate the integration varibles
 c
