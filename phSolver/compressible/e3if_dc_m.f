@@ -56,8 +56,10 @@ c
 c
           real*8, dimension(npro,nflow) :: u_ref_0, u_ref_1 ! reference conservative
                                                             ! variables
+          real*8, dimension(npro,nflow) :: u_ref ! chosen reference conservative
+                                                 ! variables
           real*8, dimension(npro,nflow) :: temp0, temp1 ! local temporary array
-          integer :: iel                                                  
+          integer :: iel,iflow                                          
 c
           u_ref_0(:,1) = 1.000000000000000d0 ! hacking, rho_ref, gas phase
           u_ref_0(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
@@ -70,18 +72,22 @@ c
           u_ref_1(:,3) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
           u_ref_1(:,4) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
           u_ref_1(:,5) = 4.204805000000000d7! hacking, rho_ref*(ei + 0.5*v_ref^2)
+c... choosing unique u_ref for both phases
+          do iflow = 1,nflow
+            u_ref(:,iflow) = min(u_ref_0(:,iflow), u_ref_1(:,iflow))
+          enddo
 c... diag(U1_ref ... U5_ref) * flux_jump          
-          temp0(:,1) = ( one/u_ref_0 (:,1) )*f_jump(:,1)
-          temp0(:,2) = ( one/u_ref_0 (:,2) )*f_jump(:,2)
-          temp0(:,3) = ( one/u_ref_0 (:,3) )*f_jump(:,3)
-          temp0(:,4) = ( one/u_ref_0 (:,4) )*f_jump(:,4)
-          temp0(:,5) = ( one/u_ref_0 (:,5) )*f_jump(:,5)
+          temp0(:,1) = ( one/u_ref (:,1) )*f_jump(:,1)
+          temp0(:,2) = ( one/u_ref (:,2) )*f_jump(:,2)
+          temp0(:,3) = ( one/u_ref (:,3) )*f_jump(:,3)
+          temp0(:,4) = ( one/u_ref (:,4) )*f_jump(:,4)
+          temp0(:,5) = ( one/u_ref (:,5) )*f_jump(:,5)
 c
-          temp1(:,1) = ( one/u_ref_1 (:,1) )*f_jump(:,1)
-          temp1(:,2) = ( one/u_ref_1 (:,2) )*f_jump(:,2)
-          temp1(:,3) = ( one/u_ref_1 (:,3) )*f_jump(:,3)
-          temp1(:,4) = ( one/u_ref_1 (:,4) )*f_jump(:,4)
-          temp1(:,5) = ( one/u_ref_1 (:,5) )*f_jump(:,5)
+          temp1(:,1) = ( one/u_ref (:,1) )*f_jump(:,1)
+          temp1(:,2) = ( one/u_ref (:,2) )*f_jump(:,2)
+          temp1(:,3) = ( one/u_ref (:,3) )*f_jump(:,3)
+          temp1(:,4) = ( one/u_ref (:,4) )*f_jump(:,4)
+          temp1(:,5) = ( one/u_ref (:,5) )*f_jump(:,5)
 c... c^h for each phase
           do iel = 1,npro
             ch0(iel) = if_e_dc 
