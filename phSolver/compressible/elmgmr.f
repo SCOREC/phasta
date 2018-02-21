@@ -309,6 +309,7 @@ c
         use e3_solid_m
         use probe_m
         use ifbc_def_m
+        use debug_flux_m
 c
         include "common.h"
         include "mpif.h"
@@ -812,6 +813,14 @@ c...           and the 1 side goes to the second material in the solver.inp
 c
             ienif0 => mienif0(iblk)%p
             ienif1 => mienif1(iblk)%p
+#define debug_blk 1
+#if debug_blk==1
+            if ((iblk .eq.1).and.(myrank.eq.19)) then
+              debug_flag = 1
+            else
+              debug_flag = 7
+            endif
+#endif
 c
 c... set equations of state
 c

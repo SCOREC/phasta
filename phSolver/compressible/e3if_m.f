@@ -19,6 +19,9 @@ c----------------------------------------
         use e3if_vi_m
         use if_global_m
         use e3if_dc_m ! DC operator for interface
+c...debugging
+        use debug_flux_m
+c...end of debugging
 c
         implicit none
 c
@@ -63,6 +66,9 @@ c
 c
 c------------------- Begin loop over quadrature points ----------------------------
           do intp = 1, nqpt
+c...debugging
+             intp_flag = intp
+c...debugging
 c		
             ri0 = zero
             ri1 = zero
@@ -293,6 +299,9 @@ c
         end subroutine e3if_var
 c
         subroutine e3if_flux
+c...debugging
+          use debug_flux_m
+c...end of debugging
 c
           integer :: iel,iflow,isd,jsd,jflow,n
           real*8, dimension(nsd,nflow) :: f0, f1, fconv0, fconv1, fdiff0, fdiff1
@@ -302,6 +311,9 @@ c
           real*8 :: kappa0(nsd), kappa1(nsd), k0,k1 ! mean curvature
 c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
+c...debugging
+          real*8, dimension(nflow):: error_l, error_air
+c...end of debugging
 c
           element_loop: do iel = 1,npro
 c
@@ -363,6 +375,36 @@ c
       endif
 #endif
 c
+#define debug_flux 1
+#if debug_flux==1
+      if ( (iel .eq. 16) .and.(myrank .eq. 19) .and.(debug_flag .eq.1)) then
+        error_l = zero
+        error_air = zero
+c... prepare for momenum flux
+        f_mon_n0 = dot_product(f0n0(2:4),nv0(iel,:))
+        f_mon_n1 = dot_product(f1n1(2:4),nv1(iel,:))
+c... error in mass
+        error_l(1) = abs(f_jump(iel,1))/abs(f1n1(1))
+        error_air(1) = abs(f_jump(iel,1))/abs(f0n0(1))
+c... error in momenum
+        do iflow = 2,4
+          error_l(iflow) = abs(f_jump(iel,iflow))/abs(f_mon_n1)
+          error_air(iflow) = abs(f_jump(iel,iflow))/abs(f_mon_n0)
+        enddo
+c... error in energy
+        error_l(5) = abs(f_jump(iel,5))/abs(f1n1(5))
+        error_air(5) = abs(f_jump(iel,5))/abs(f0n0(5))
+c
+        write(*,*) 'qpt is',intp_flag
+        write(*,*) 'rank is',myrank
+        write(*,*) 'elm number is',iel
+        write(*,*) 'error_l is',error_l
+        write(*,*) 'error_air is',error_air
+c        write(*,*) 'ri0  : ',iel,ri0(iel,16:20)
+c        write(*,*) 'ri1  : ',iel,ri1(iel,16:20)
+      endif
+#endif
+
 c...UPWIND????
 c
 C      ri0(iel,16:20) = ri0(iel,16:20) + f1n0(1:5)
@@ -431,6 +473,7 @@ c
 10    format(a,5e24.16)
 11    format(a,i6,5e24.16)
 20    format(a,1e24.16)
+21    format(a,i6)
 500   format('[',i2,'] ',i3,x,5e24.16)
 c
         end subroutine e3if_flux
