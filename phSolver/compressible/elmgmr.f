@@ -283,7 +283,7 @@ c_______________________________________________________________
      &                     shpif,     shgif,
      &                     res,       rmes,      BDiag,
      &                     iper,      ilwork,    lhsK,  
-     &                     col,       row,       rerr,     umesh)
+     &                     col,       row,       rerr,     umesh, CFLworst)
 c
 c----------------------------------------------------------------------
 c
@@ -423,7 +423,7 @@ c
 c
         dimension ilwork(nlwork)
 c  
-        dimension umesh(numnp, nsd)
+        dimension umesh(numnp, nsd), CFLworst(numel)
 c
         real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
 
@@ -456,7 +456,7 @@ c of the diffusive flux vector, q, and lumped mass matrix, rmass
 c
         qres = zero
         rmass = zero
-        
+        CFLworst = zero
         do iblk = 1, nelblk
 c
 c.... set up the parameters
@@ -579,7 +579,7 @@ c
      &                 mater,               res,
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
-     &                 rerr,                umesh )
+     &                 rerr,                umesh , CFLworst(iel:iel+npro-1))
 c
           if(lhs.eq.1) then
 c

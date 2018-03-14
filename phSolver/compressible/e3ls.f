@@ -10,7 +10,7 @@
      &                     EGmass,    stiff,       WdetJ,
      &                     giju,      rTLS,        raLS,
      &                     A0inv,     dVdY,        rerrl,
-     &                     compK,     pres,        PTau)
+     &                     compK,     pres,        PTau, CFLworst)
 c                                                                
 c----------------------------------------------------------------------
 c
@@ -73,7 +73,7 @@ c
      &            EGmass(npro,nedof,nedof),shape(npro,nshl),
      &            shg(npro,nshl,nsd),      WdetJ(npro),
      &            PTau(npro,5,5),          T(npro),
-     &            pres(npro)
+     &            pres(npro),              CFLworst(npro)
 c
 c local arrays
 c
@@ -193,7 +193,7 @@ c.... in the first incarnation we will ONLY have a diagonal tau here
      &         con,             dxidx,          rLyi,  
      &         rLymi,           tau,            rk,
      &         giju,            rTLS,           raLS,
-     &         A0inv,           dVdY,           cv)	
+     &         A0inv,           dVdY,           cv, CFLworst)	
           
        else
 

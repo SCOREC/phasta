@@ -1,7 +1,7 @@
         subroutine e3 (yl,      ycl,     acl,     shp,
      &                 shgl,    xl,      rl,      rml,    xmudmi,
      &                 BDiagl,  ql,      sgn,     rlsl,   EGmass,
-     &                 rerrl,   ytargetl, uml)
+     &                 rerrl,   ytargetl, uml, CFLworst)
 c                                                                      
 c----------------------------------------------------------------------
 c
@@ -59,7 +59,7 @@ c
      &            BDiagl(npro,nshl,nflow,nflow),
      &            EGmass(npro,nedof,nedof),
 !     &            cv(npro),
-     &            ytargetl(npro,nshl,nflow)
+     &            ytargetl(npro,nshl,nflow), CFLworst(npro)
 c
         dimension dui(npro,ndof),            aci(npro,ndof)
 c
@@ -235,7 +235,7 @@ c
      &               EGmass,          stiff,         WdetJ,
      &               giju,            rTLS,          raLS,
      &               A0inv,           dVdY,          rerrl,
-     &               compK,           pres,          PTau)
+     &               compK,           pres,          PTau, CFLworst)
         ttim(16) = ttim(16) + secs(0.0)
 c        
 c....  Discontinuity capturing
@@ -308,7 +308,8 @@ c.... end of integration loop
 c
       enddo
 
-      ttim(6) = ttim(6) + secs(0.0)
+      CFLworst(:) = CFLworst(:)/ngauss
+
 c
 c.... return
 c

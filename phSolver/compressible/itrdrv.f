@@ -97,7 +97,7 @@ c.... For mesh-elastic solve
 c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
-     &         umeshold(numnp, nsd), xold(numnp,nsd)
+     &         umeshold(numnp, nsd), xold(numnp,nsd), CFLworst(numel)
 c
 c.... For surface mesh snapping
 c
@@ -166,7 +166,6 @@ c
             open (unit=iforce, file=fforce, status='unknown')
           endif
         endif
-c
 c
 c.... initialize
 c
@@ -499,7 +498,7 @@ c
 c                        write(*,*) 'lhs=',lhs
                     if(usingpetsc.eq.1) then
 #if (HAVE_PETSC)
-               call SolGMRp (y,             ac,            yold,
+               call SolGMRp iy,             ac,            yold,
      &                       x,
      &                       iBC,           BC,
      &                       colm,          rowp,          lhsk,
@@ -525,7 +524,7 @@ c                        write(*,*) 'lhs=',lhs
      &                       shp,           shgl,
      &                       shpb,          shglb,         
      &                       shpif,         shgif,
-     &                       solinc,        rerr,          umesh)
+     &                       solinc,        rerr,          umesh, CFLworst)
 c
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
@@ -964,6 +963,9 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                  meshq, 'd'//char(0), numel, 1,   lstep)
+                   call write_field(
+     &                myrank,'a'//char(0),'CFLworst'//char(0), 8,
+     &                CFLworst, 'd'//char(0), numel, 1,   lstep)
                  endif
 c
       if (solid_p%is_active) call write_restart_solid
@@ -994,6 +996,9 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                meshq, 'd'//char(0), numel, 1,   lstep)
+		 call write_field(
+     &                myrank,'a'//char(0),'CFLworst'//char(0), 8,
+     &                CFLworst, 'd'//char(0), numel, 1,   lstep)
                endif
 c
                   call write_field(

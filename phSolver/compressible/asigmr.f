@@ -2,7 +2,7 @@
      &                     shp,     shgl,    ien,     
      &                     mater,   res,     rmes,    
      &                     BDiag,   qres,    EGmass,   
-     &                     rerr,    umesh )
+     &                     rerr,    umesh, CFLworst )
 c
 c----------------------------------------------------------------------
 c
@@ -24,7 +24,7 @@ c
      &            ien(npro,nshl),  
      &            res(nshg,nflow),
      &            rmes(nshg,nflow),         BDiag(nshg,nflow,nflow),
-     &            qres(nshg,idflx)
+     &            qres(nshg,idflx),         CFLworst(npro)
       integer, intent(in) :: mater
 
 c
@@ -81,7 +81,7 @@ c
         call e3  (ycl,     ycl,     acl,     shp,
      &            shgl,    xl,      rl,      rml,   xmudmi,
      &            BDiagl,  ql,      sgn,     rlsl,  EGmass,
-     &            rerrl,   ytargetl, uml)
+     &            rerrl,   ytargetl, uml, CFLworst)
 
         ttim(31) = ttim(31) + secs(0.0)
 c
