@@ -42,6 +42,7 @@ c
       use probe_m
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
+      use interfaceflag
 c
         include "common.h"
         include "mpif.h"

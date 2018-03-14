@@ -26,10 +26,14 @@ c.... dynamic origin, x translation, rotation frequence
       integer   answer
 c
       if (elasFDC .gt. 0) then
-        write(*,*) "use Force-driven case:", elasFDC
+        if (myrank .eq. master) then
+          write(*,*) "use Force-driven case:", elasFDC
+        endif
         casenumber = elasFDC
       else
-        write(*,*) "Please use Force-driven as Mesh Elas Model"
+        if (myrank .eq. master) then
+          write(*,*) "Please use Force-driven as Mesh Elas Model"
+        endif
       endif
 c
 c.... Update BC value based on geom and iBC
@@ -68,6 +72,9 @@ c.... collect total force
         enddo ! end collect total force
 
         acc = totalForce(1) / objMass
+        if (myrank .eq. master) then
+          write(*,*) "projectile acceleration is:", acc
+        endif
 
         do i = 1,numnp
           if ( (ibits(iBC(i),14,3) .eq. 7) .and.
@@ -198,7 +205,9 @@ c
       if ( casenumber .eq. 6 ) then
         xtsl     = 2.0000000000000e-4
         dyn_org  = 2.6250000000000e-3 + DBLE(lstep) * xtsl
-        write(*,*) "current lstep:", lstep, "dyn_org:", dyn_org
+        if (myrank .eq. master) then
+          write(*,*) "current lstep:", lstep, "dyn_org:", dyn_org
+        endif
         rotf     = 90.0
         do i = 1,numnp
           if ( (ibits(iBC(i),14,3) .eq. 7) .and.
@@ -330,7 +339,9 @@ c
         xtsl     = 2.0000000000000e-4
         dyn_org  = 2.6250000000000e-3 + DBLE(lstep) * xtsl
         dyn_lnt  = 2.0000000000000e-3 * 0.9**lstep
-        write(*,*) "current lstep:", lstep, "dyn_org:", dyn_org
+        if (myrank .eq. master) then
+          write(*,*) "current lstep:", lstep, "dyn_org:", dyn_org
+        endif
         rotf     = 90.0
         shrkfactor = 2.0
         do i = 1,numnp
