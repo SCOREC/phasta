@@ -39,6 +39,49 @@ c
 c
         end subroutine calc_projector
 c
+        subroutine calc_u_ref_grad_u(h_u, A0, var, u_ref)
+c...............................................................................
+c  Calculating the (\sum_i^{nsd} | (U_ref)-1 * U_{,i} |^2) and output it to h_u
+c...............................................................................
+          use propar_m, only: npro
+          use conpar_m, only: nflow
+          use global_const_m, only: nsd
+          use e3if_param_m, only: var_t 
+          use number_def_m
+          implicit none
+c
+          real(8), dimension(npro), intent(out) :: h_u
+          real(8), dimension(npro,nflow,nflow), intent(in) :: A0
+          type(var_t), dimension(npro), intent(in) :: var
+          real(8), dimension(npro,nflow), intent(in) :: u_ref
+c
+          real(8), dimension(npro,nflow,nsd) :: A0_grad_y, temp
+          real(8), dimension(npro,nsd) :: temp_square
+          integer :: iel, iflow, isd
+c
+          h_u = zero
+c
+          do iel =1,npro
+c... U_{,i} = A0 Y_{,m}
+            A0_grad_y(iel,:,:) = matmul( A0(iel,:,:),
+     &                                   transpose(var(iel)%grad_y(:,:)))
+            do isd = 1,nsd
+              do iflow =1, nflow
+c... (u_ref)^{-1} U_{,i} in each i direction
+                 temp(iel,iflow,isd) = ( one/u_ref(iel,iflow) )
+     &                               *A0_grad_y(iel,iflow,isd)                              
+              enddo
+c... | (u_ref)^{-1} U_{,i} |^2 in each i direction
+                 temp_square(iel,isd) = dot_product(temp(iel,:,isd),
+     &                                  temp(iel,:,isd))            
+c... get h_u
+                 h_u(iel) = h_u(iel) + temp_square(iel,isd)
+            enddo
+c            
+          enddo       
+c          
+        end subroutine calc_u_ref_grad_u
+c
         subroutine calc_ch(ch0, ch1, f_jump)
 c..............................................................................
 c  calculating the c^h of the DC operator for the interface, which is analogous 
@@ -57,7 +100,8 @@ c
           real*8, dimension(npro,nflow) :: u_ref_0, u_ref_1 ! reference conservative
                                                             ! variables
           real*8, dimension(npro,nflow) :: temp0, temp1 ! local temporary array
-          integer :: iel                                                  
+          integer :: iel
+          real*8, dimension(npro) :: h_u_0, h_u_1 !hacking                                                  
 c
           u_ref_0(:,1) = 1.000000000000000d0 ! hacking, rho_ref, gas phase
           u_ref_0(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
