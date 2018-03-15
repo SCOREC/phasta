@@ -39,9 +39,11 @@ c
 c
         end subroutine calc_projector
 c
-        subroutine calc_u_ref_grad_u(h_u, A0, var, u_ref)
+        subroutine calc_u_ref_grad_u(h_u, grad_rho, A0, var, u_ref)
 c...............................................................................
-c  Calculating the (\sum_i^{nsd} | (U_ref)-1 * U_{,i} |^2) and output it to h_u
+c  calculating the (\sum_i^{nsd} | (U_ref)-1 * U_{,i} |^2) at quadrature point
+c  and output it to h_u
+c  also prepare the gradient of rho
 c...............................................................................
           use propar_m, only: npro
           use conpar_m, only: nflow
@@ -51,6 +53,7 @@ c...............................................................................
           implicit none
 c
           real(8), dimension(npro), intent(out) :: h_u
+          real(8), dimension(npro,nsd), intent(out) :: grad_rho
           real(8), dimension(npro,nflow,nflow), intent(in) :: A0
           type(var_t), dimension(npro), intent(in) :: var
           real(8), dimension(npro,nflow), intent(in) :: u_ref
@@ -78,9 +81,53 @@ c... get h_u
                  h_u(iel) = h_u(iel) + temp_square(iel,isd)
             enddo
 c            
-          enddo       
+          enddo
+c
+c... get the gradient of rho
+          do isd = 1,nsd
+            grad_rho(:,isd) = A0_grad_y(iel,:,isd)
+          enddo
 c          
         end subroutine calc_u_ref_grad_u
+c
+        subroutine calc_h_dc(h_dc, grad_rho, shg, nshl)
+c...............................................................................
+c calculating h_dc by 2( sum_i^{nshl} | j_i \dot Na_{,i} | )^{-1} 
+c...............................................................................
+          use number_def_m
+          use propar_m, only: npro
+          use conpar_m, only: nflow
+          use global_const_m, only: nsd
+          implicit none
+c
+          real(8),dimension(npro), intent(out) :: h_dc
+          real(8), dimension(npro,nsd), intent(in) :: grad_rho 
+          real(8), dimension(npro,nshl,nsd), intent(in) :: shg
+          integer, intent(in) :: nshl
+c
+c
+          integer :: iel,i
+          real(8), dimension(npro,nshl) :: tmp
+          real(8), dimension(npro) :: tmp_length
+          real(8), dimension(npro,nsd) :: tmp_normal
+c
+          h_dc = zero
+c
+          do iel = 1, npro
+c... calc j = rho_{,i}/ |rho|
+            tmp_length(iel) = sqrt(dot_product(grad_rho(iel,:),
+     &                                         grad_rho(iel,:))) !calc j = rho_{,i}/ |rho|
+            tmp_normal(iel,:) = grad_rho(iel,:)/tmp_length(iel) ! normalize grad_rho
+            do i = 1, nshl
+c... calc | j_i \dot Na_{,i} |            
+              tmp(iel,i) = abs( dot_product(grad_rho(iel,:), 
+     &                           shg(iel,i,:)) )     
+              h_dc(iel) = h_dc(iel) + tmp(iel,i) ! sum up
+            enddo
+              h_dc(iel) = two * h_dc(iel)**(-1) 
+          enddo
+c              
+        end subroutine calc_h_dc
 c
         subroutine calc_ch(ch0, ch1, f_jump)
 c..............................................................................
