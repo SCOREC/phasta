@@ -195,8 +195,8 @@ c... get the tangential projector
 c... get the c^h
           call calc_ch(ch0, ch1, f_jump)
 c          
-          call e3giju (giju0, dxidx0, npro, nsd, lcsyst) ! get g^{ij}, 0 side
-          call e3giju (giju1, dxidx1, npro, nsd, lcsyst) ! get g^{ij}, 1 side
+          call e3giju (giju0, dxidx0, npro, nsd, lcsyst0) ! get g^{ij}, 0 side
+          call e3giju (giju1, dxidx1, npro, nsd, lcsyst1) ! get g^{ij}, 1 side
 c.... get the full g^ij matrix
           giju_f0(:,1,1) = giju0(:,1)
           giju_f0(:,1,2) = giju0(:,4)
