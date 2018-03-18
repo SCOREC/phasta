@@ -85,7 +85,7 @@ c
 c
 c... get the gradient of rho
           do isd = 1,nsd
-            grad_rho(:,isd) = A0_grad_y(iel,:,isd)
+            grad_rho(:,isd) = A0_grad_y(:,1,isd)
           enddo
 c          
         end subroutine calc_u_ref_grad_u
@@ -128,6 +128,99 @@ c... calc | j_i \dot Na_{,i} |
           enddo
 c              
         end subroutine calc_h_dc
+c
+        subroutine calc_ch_extended(ch0, ch1,
+     &                     f_jump, A0_0, A0_1, 
+     &                     var0,  var1, shg0, shg1,
+     &                     gii_0, gii_1)
+c..............................................................................
+c  calculating the c^h of the DC operator for the interface, which is analogous 
+c  to the nu^h for the volumn elements. 
+c  Unit of c^h ~ [Length]/ [Time]
+c..............................................................................        
+          use number_def_m
+          use propar_m, only: npro
+          use conpar_m, only: nflow
+          use dgifinp_m, only: if_e_dc
+          use shpdat_m, only: nshl0, nshl1
+          use e3if_param_m, only: var_t
+          use global_const_m, only: nsd
+          implicit none
+c
+          real*8, dimension(npro),intent(out) :: ch0, ch1
+          real*8, dimension(npro,nflow),intent(in) :: f_jump ! flux jump
+          real(8), dimension(npro,nflow,nflow), intent(in) :: A0_0, A0_1
+          type(var_t), dimension(npro), intent(in) :: var0, var1
+          real(8), dimension(npro,nshl0,nsd), intent(in) :: shg0
+          real(8), dimension(npro,nshl1,nsd), intent(in) :: shg1
+          real(8), dimension(npro), intent(in) :: gii_0, gii_1
+c
+          real(8), dimension(npro,nflow) :: u_ref_0, u_ref_1 ! reference conservative
+                                                            ! variables
+          real(8), dimension(npro,nflow) :: temp0, temp1 ! local temporary array
+          integer :: iel
+          integer :: beta
+          real(8), dimension(npro) :: h_u_0, h_u_1
+          real(8), dimension(npro) :: h_dc_0, h_dc_1
+          real(8), dimension(npro) :: tmp_h_0, tmp_h_1 ! length^2 from h_u and h_dc
+          real*8, dimension(npro,nsd) :: grad_rho_0, grad_rho_1
+c
+          beta = one          
+c
+          u_ref_0(:,1) = 1.000000000000000d0 ! hacking, rho_ref, gas phase
+          u_ref_0(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_0(:,3) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_0(:,4) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_0(:,5) = 2.114165517241379d5 ! hacking, rho_ref*(ei + 0.5*v_ref^2)
+c
+          u_ref_1(:,1) = 1.000000000000000d2 ! hacking, rho_ref, liquid phase
+          u_ref_1(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_1(:,3) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_1(:,4) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
+          u_ref_1(:,5) = 4.204805000000000d7 ! hacking, rho_ref*(ei + 0.5*v_ref^2)
+c... diag(U1_ref ... U5_ref) * flux_jump          
+          temp0(:,1) = ( one/u_ref_0 (:,1) )*f_jump(:,1)
+          temp0(:,2) = ( one/u_ref_0 (:,2) )*f_jump(:,2)
+          temp0(:,3) = ( one/u_ref_0 (:,3) )*f_jump(:,3)
+          temp0(:,4) = ( one/u_ref_0 (:,4) )*f_jump(:,4)
+          temp0(:,5) = ( one/u_ref_0 (:,5) )*f_jump(:,5)
+c
+          temp1(:,1) = ( one/u_ref_1 (:,1) )*f_jump(:,1)
+          temp1(:,2) = ( one/u_ref_1 (:,2) )*f_jump(:,2)
+          temp1(:,3) = ( one/u_ref_1 (:,3) )*f_jump(:,3)
+          temp1(:,4) = ( one/u_ref_1 (:,4) )*f_jump(:,4)
+          temp1(:,5) = ( one/u_ref_1 (:,5) )*f_jump(:,5)
+c... get h_u and h_dc for both phases
+          call calc_u_ref_grad_u(h_u_0, grad_rho_0, A0_0, var0, u_ref_0)
+          call calc_u_ref_grad_u(h_u_1, grad_rho_1, A0_1, var1, u_ref_1)
+c
+          call calc_h_dc(h_dc_0, grad_rho_0, shg0, nshl0)
+          call calc_h_dc(h_dc_1, grad_rho_1, shg1, nshl1)
+c... get the charactoristic length square
+          tmp_h_0(:) = (h_u_0(:))**(beta/two -one) 
+     &               * (h_dc_0(:)/two)**(beta)
+          tmp_h_1(:) = (h_u_1(:))**(beta/two -one) 
+     &               * (h_dc_1(:)/two)**(beta)         
+c... c^h for each phase
+          do iel = 1,npro
+            if ( tmp_h_0(iel) .ge. 1.0d2*gii_0(iel)) then ! hacking here
+              ch0(iel) = zero
+            else  
+              ch0(iel) = if_e_dc 
+     &                 * sqrt(dot_product(temp0(iel,:),temp0(iel,:)))
+     &                 * tmp_h_0(iel)
+            endif
+c
+            if ( tmp_h_1(iel) .ge. 1.0d2*gii_1(iel)) then ! hacking here
+              ch1(iel) = zero
+            else             
+              ch1(iel) = if_e_dc 
+     &               * sqrt(dot_product(temp1(iel,:),temp1(iel,:)))
+     &               * tmp_h_0(iel)
+            endif
+          enddo         
+c          
+        end subroutine calc_ch_extended
 c
         subroutine calc_ch(ch0, ch1, f_jump)
 c..............................................................................
@@ -182,6 +275,10 @@ c... c^h for each phase
           enddo
 c          
         end subroutine calc_ch
+c
+c
+c
+c        
 c
         subroutine e3if_dc_res(ri, var, A0, ch, pt_g_p)
 c..............................................................................
@@ -280,12 +377,11 @@ c
           real*8, dimension(npro,nsd,nsd) :: pt_g0, pt_g1 ! proj_{ik} g^ij
                                                           ! proj is symetric
           real*8, dimension(npro,nsd,nsd) :: pt_g_p0, pt_g_p1 ! proj_{ik} g^ij proj_{jm}
+          real*8, dimension(npro) :: gii_0, gii_1 !g^{ii}
           integer :: iel
 c... get the tangential projector          
           call calc_projector(proj, nv0) ! get the tangential projector
-c... get the c^h
-          call calc_ch(ch0, ch1, f_jump)
-c          
+c... get the vector g^ij          
           call e3giju (giju0, dxidx0, npro, nsd, lcsyst) ! get g^{ij}, 0 side
           call e3giju (giju1, dxidx1, npro, nsd, lcsyst) ! get g^{ij}, 1 side
 c.... get the full g^ij matrix
@@ -315,17 +411,38 @@ c... calculate proj_{ik} g^ij, notice proj is symetric
 c... calculate proj_{ik} g^ij proj_{jm}
             pt_g_p0(iel,:,:) = matmul(pt_g0(iel,:,:),proj(iel,:,:))
             pt_g_p1(iel,:,:) = matmul(pt_g1(iel,:,:),proj(iel,:,:))             
-          enddo         
+          enddo
+c... get the g^ii for each element
+          gii_0(:) = (one/three)*(giju_f0(:,1,1) + giju_f0(:,2,2)
+     &                          + giju_f0(:,3,3))
+          gii_1(:) = (one/three)*(giju_f1(:,1,1) + giju_f1(:,2,2)
+     &                          + giju_f1(:,3,3))
+c... get the c^h
+c          call calc_ch(ch0, ch1, f_jump)
+           call calc_ch_extended(ch0, ch1, 
+     &                           f_jump, A0_0, A0_1, 
+     &                           var0,  var1, shg0, shg1,
+     &                           gii_0, gii_1 )                   
 c... calculate the local residual
-          call e3if_dc_res(ri0, var0, A0_0, ch0,pt_g_p0)
-          call e3if_dc_res(ri1, var1, A0_1, ch1,pt_g_p1)
+c          call e3if_dc_res(ri0, var0, A0_0, ch0,pt_g_p0)
+c          call e3if_dc_res(ri1, var1, A0_1, ch1,pt_g_p1)
+c debugging
+            call e3if_dc_res(ri0, var0, A0_0, ch0, proj)
+            call e3if_dc_res(ri1, var1, A0_1, ch1, proj)
 c... calculate the local stiffness matrix
+c          if (lhs_dg .eq. 1) then
+c            call e3if_dc_egmass(egmass00, nshl0, shg0,A0_0, ch0, pt_g_p0,
+c     &                          WdetJif0)
+c            call e3if_dc_egmass(egmass11, nshl1, shg1,A0_1, ch1, pt_g_p1,
+c     &                          WdetJif1)       
+c          endif
+c debugging
           if (lhs_dg .eq. 1) then
-            call e3if_dc_egmass(egmass00, nshl0, shg0,A0_0, ch0, pt_g_p0,
+            call e3if_dc_egmass(egmass00, nshl0, shg0,A0_0, ch0, proj,
      &                          WdetJif0)
-            call e3if_dc_egmass(egmass11, nshl1, shg1,A0_1, ch1, pt_g_p1,
+            call e3if_dc_egmass(egmass11, nshl1, shg1,A0_1, ch1, proj,
      &                          WdetJif1)       
-          endif          
+          endif                       
 c                                                
           
 c
