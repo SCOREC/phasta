@@ -154,18 +154,19 @@ c----------------------------------------------------------------------
 c
 c.... common /meshquality/   : mesh quality and auto adaptation trigger
 c
-c autoTrigger  : flag used to turn on/off auto mesh adaptation trigger
+c autoTrigger  : flag used to turn on/off auto mesh adaptation trigger option
 c volMeshqTol  : threshold for volume mesh quality
 c faceMeshqTol : threshold for mesh quality of triangle face
-c                   in boundary layered mesh
+c                in boundary layered mesh
+c triggerNow   : flag used to terminate solver at this time step
 c
       module meshquality_m
         use iso_c_binding
         implicit none
         real(c_double), target :: volMeshqTol, faceMeshqTol
-        integer(c_int), target :: autoTrigger
+        integer(c_int), target :: autoTrigger, triggerNow
         common /meshquality/  volMeshqTol, faceMeshqTol,
-     &                        autoTrigger
+     &                        autoTrigger, triggerNow
       end module meshquality_m
 c
 c----------------------------------------------------------------------
@@ -183,8 +184,9 @@ c lstep         : current time step
 c ifunc         : func. eval. counter (=niter*(lstep-lstep0) + iter)
 c itseq         : sequence number
 c istep         : step number (reseted at the beginning of the run)
-c iter          : iteration number
-c nitr          : number of multi-corrector iterations for this sequence
+c iter          : current iteration number
+c nitr          : number of multi-corrector iterations of flow solve
+c                 for the current stagger
 c
       module timdat_m
         use iso_c_binding

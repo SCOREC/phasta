@@ -6,6 +6,7 @@ c-----------------------------------------------------------------
 c
       use m2gfields ! read m2g fields
       use core_snap
+      use interfaceflag
 c
       include "common.h"
       include "mpif.h"
@@ -486,6 +487,20 @@ c
           endif ! end if inside box
         enddo ! end loop numnp
       endif  ! end case 9
+c
+c.... test case 10
+c.... drive interface toward -x direction in stefan case
+c
+      if ( casenumber .eq. 10 ) then
+        do i = 1,numnp
+          if ( ifFlag(i) .eq. 1 ) then ! interface node
+            disp(i,1) = -1.0 * Delt(1)
+            disp(i,2) =  0.0 * Delt(1)
+            disp(i,3) =  0.0 * Delt(1)
+            BC(i,:) = disp(i,:)
+          endif
+        enddo ! end loop numnp
+      endif  ! end case 10
 c
       return
       end
