@@ -55,9 +55,9 @@ c
      &            BC(nshg,ndofBC),         ilwork(nlwork),
      &            iper(nshg),              uold(nshg,nsd)
 c
-        dimension res(nshg,nflow),         
+        dimension res(nshg,nflow),
      &            rest(nshg),              solinc(nshg,ndof)
-c     
+c
         dimension shp(MAXTOP,maxsh,MAXQPT),  
      &            shgl(MAXTOP,nsd,maxsh,MAXQPT), 
      &            shpb(MAXTOP,maxsh,MAXQPT),
@@ -790,7 +790,6 @@ c
                      x = xold + disp
 c
                      umesh = disp / Delt(1)
-                     umeshold = umesh
 c
                   endif ! end of switch for flow or scalar or mesh-elastic update
                endif            !end of switch between solve or update
@@ -815,6 +814,7 @@ c
 c
             call itrUpdate( yold,  acold,   y,    ac)
             call itrUpdateElas ( xold, x)
+            umeshold = umesh
 c
             call itrBC (y,ac, iBC, BC, iper, ilwork, umesh)
 c
@@ -987,6 +987,10 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                myrank,'a'//char(0),'CFLworst'//char(0), 8,
      &                CFLworst, 'd'//char(0), numel, 1,   lstep)
+                   call write_field(
+     &                  myrank,'a'//char(0),'residual'//char(0), 8,
+     &                  res,  'd'//char(0), nshg, 5, lstep)
+c
                  endif
 c
       if (solid_p%is_active) call write_restart_solid
@@ -1020,6 +1024,12 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
 		 call write_field(
      &                myrank,'a'//char(0),'CFLworst'//char(0), 8,
      &                CFLworst, 'd'//char(0), numel, 1,   lstep)
+c
+                 call write_field(
+     &                myrank,'a'//char(0),'residual'//char(0), 8,
+     &                res,  'd'//char(0), nshg, 5, lstep)
+c
+
                endif
 c
                   call write_field(

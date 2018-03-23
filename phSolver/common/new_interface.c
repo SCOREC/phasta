@@ -190,6 +190,10 @@ void countfieldstowriterestart()
 {
   int nfields = 4; /*magic number, solution, time derivatives, material type*/
 
+  if(outpar.write_residual == 1){
+    nfields++; /* non-linear residual */
+  }
+
   if(outpar.ivort == 1){
     nfields++; /*vorticity*/
   }

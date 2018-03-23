@@ -79,7 +79,7 @@ c
         call i3LU (BDiag, rtmp, 'forward ')
 c
         rtmp = rtmp**2
-        call sumgat (rtmp, nflow, summed, ilwork)
+        call sumgat (rtmp, nflow, summed)
         epsA = (epsM**2) * sqrt(summed)
 c
 c.... compute the norm of the second derivative (truncation error)
@@ -131,7 +131,7 @@ c.... compute the second derivative and its norm
 c
         rtmp = (( rtmp - two * rmes ) / epsM)**2
 c
-        call sumgat (rtmp, nflow, summed, ilwork)
+        call sumgat (rtmp, nflow, summed)
         SDnrm = sqrt(summed)
 c
 c.... compute the 'optimum' interval
@@ -215,7 +215,7 @@ c
         iabres = 0
 c
         rtmp = rtmp**2
-        call sumgat (rtmp, nflow, summed, ilwork)
+        call sumgat (rtmp, nflow, summed)
         epsA = (epsM**2) * sqrt(summed)
 c
 c.... compute the norm of the second derivative (truncation error)
@@ -254,7 +254,7 @@ c.... compute the second derivative and its norm
 c
         rtmp = (( rtmp - two * rmes ) / epsM)**2
 c
-        call sumgat (rtmp, nflow, summed, ilwork)
+        call sumgat (rtmp, nflow, summed)
         SDnrm = sqrt(summed)
 c
 c.... compute the 'optimum' interval

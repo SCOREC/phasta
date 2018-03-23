@@ -53,7 +53,7 @@
 !.... compute the finite difference interval
 !
         Dy2 = Dy**2
-        call sumgat (Dy2, nflow, summed, ilwork)
+        call sumgat (Dy2, nflow, summed)
         eps = epsM**pt66 / sqrt(summed)
 !
 !.... calculate R(y + eps x)

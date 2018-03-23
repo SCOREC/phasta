@@ -82,12 +82,12 @@ c.... collect total force
      &         (abs(x(i,1)-0.8) .lt. 0.79) .and.
      &         ((x(i,2)*x(i,2) + x(i,3)*x(i,3)) .lt. 0.004225)) then
 c.... 0.004225 = 0.065^2
-            BC(i,1)   = umeshold(i,1) + acc * Delt(1) * Delt(1)
+            BC(i,1)   = (umeshold(i,1) + acc * Delt(1)) * Delt(1)
             BC(i,2)   = zero
             BC(i,3)   = zero
 
 c.... >>> hard-coding update flow velocity boundry condition on mortar surfaces
-            BC_flow(i,1:3) = BC(i,1:3)
+            BC_flow(i,1:3) = BC(i,1:3) / Delt(1)
 c.... <<< hard-coding
 
           endif ! end if inside box

@@ -94,7 +94,7 @@ c
           rtmp = rtmp + res(:,i)**2
         enddo
  
-        call sumgat (rtmp, 1, resnrm, ilwork)
+        call sumgat (rtmp, 1, resnrm)
       
         resmaxl = maxval(rtmp)
 
@@ -201,7 +201,7 @@ c
         rtmp = zero
         rtmp = rtmp + rest**2
  
-        call sumgat (rtmp, 1, resnrm, ilwork)
+        call sumgat (rtmp, 1, resnrm)
       
         resmaxl = maxval(rtmp)
 
@@ -503,7 +503,7 @@ c
           rtmp = rtmp + res(:,i) * res(:,i)
         enddo
  
-        call sumgat (rtmp, 1, resnrm, ilwork)
+        call sumgat (rtmp, 1, resnrm)
       
         resmaxl = maxval(rtmp)
 

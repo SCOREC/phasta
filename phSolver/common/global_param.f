@@ -472,7 +472,8 @@ c
         implicit none
         integer(c_int) :: ntout,ioform,iowflux,iofieldv,ioybar,nstepsincycle,nphasesincycle,
      &    ncycles_startphaseavg,ivort,icomputevort,nsynciofiles,nsynciofieldswriterestart,
-     &    iv_rankpercore,iv_corepernode,input_mode,output_mode,conservation_probe
+     &    iv_rankpercore,iv_corepernode,input_mode,output_mode,conservation_probe,
+     &    write_residual
         real(c_double) :: ro,vel,temper,press,entrop
         character(len=80) :: iotype
         common /outpar/ ro,     vel,    temper, press,  entrop, ntout,
@@ -481,7 +482,8 @@ c
      &                  ncycles_startphaseavg, ivort, icomputevort,
      &                  nsynciofiles, nsynciofieldswriterestart, 
      &                  iv_rankpercore, iv_corepernode, 
-     &                  input_mode, output_mode, conservation_probe
+     &                  input_mode, output_mode, conservation_probe,
+     &                  write_residual
       end module outpar_m
 c
       module workfc_m

@@ -21,8 +21,8 @@ c
 c
         integer col(nshg+1), row(nnz*nshg)
         real*8  elaslhsK(nelas*nelas,nnz_tot),
-     &          meshq(numel),
-     &          meshV(numel)
+     &          meshq(numel),   meshV(numel)
+        real*8, allocatable :: meshqbk(:),  meshVbk(:)
 c
         real*8  gcnormal(nshg, nsd)
 c
@@ -315,6 +315,8 @@ c
           allocate (Estiff(npro,ndofelas,ndofelas))
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
+          allocate (meshqbk(npro))
+          allocate (meshVbk(npro))
 c
           Estiff = zero
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
@@ -323,15 +325,18 @@ c
 c.... Shape measure. Calculate the shape quality
 c
           call shpMeasure(x, mien(iblk)%p, tmpshp, tmpshgl,
-     &                    meshq(iel:iel+npro-1),
-     &                    meshV(iel:iel+npro-1), errorcount )
+     &                    meshqbk,  meshVbk,  errorcount )
+c
+c.... map local element to global
+          do i = 1, npro
+            meshq(mieMap(iblk)%p(i)) = meshqbk(i)
+          enddo
 c
           call AsIGMRElas (x,             disp,
      &                     tmpshp,        tmpshgl,
      &                     mien(iblk)%p,  elasres,
      &                     elasBDiag,     Estiff,
-     &                     meshq(iel:iel+npro-1),
-     &                     meshV(iel:iel+npro-1)   )
+     &                     meshqbk,       meshVbk   )
 c
 c.... satisfy the BCs on the implicit LHS
 c
@@ -346,6 +351,8 @@ c
           deallocate ( Estiff )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
+          deallocate ( meshqbk )
+          deallocate ( meshVbk )
 c
 c.... end of interior element loop
 c

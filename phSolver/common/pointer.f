@@ -39,6 +39,7 @@ c
 c.... pointer declarations
 c
          type (i1d), dimension(MAXBLK2) ::  mmat,  mmatb
+         type (i1d), dimension(MAXBLK2) ::  mieMap
          type (i2d), dimension(MAXBLK2) ::  mien
          type (i2d64), dimension(MAXBLK2) ::  mienG
          type (i2d), dimension(MAXBLK2) ::  mienb,  miBCB

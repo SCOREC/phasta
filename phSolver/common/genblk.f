@@ -17,6 +17,7 @@ c
         include "mpif.h" !Required to determine the max for itpblk
 
         integer, target, allocatable :: ientp(:,:)
+        integer, pointer :: ieMaptmp(:)
         integer mater(ibksz)
         integer, target :: intfromfile(50) ! integers read from headers
         character*255 :: fname1
@@ -122,6 +123,7 @@ C
 C
            allocate (ientp(neltp,nshl))
            allocate (ientmp(ibksz,nshl))
+           allocate (ieMaptmp(ibksz))
            allocate (neltp_mattype(nummat))
            iientpsiz=neltp*nshl
 
@@ -156,7 +158,6 @@ c.... mattype_interior is the global material type for each element
 c     it is used for visualization
 c
            mattype_interior(numel_ct+1:numel_ct+intfromfile(1)) = mattype(:)
-           numel_ct = numel_ct + intfromfile(1)
 
 c ... count elements with the same mattype
 c
@@ -174,6 +175,7 @@ c
                    if (mattype(iptr) == mat_tag(imattype,1)) then
                      npro = npro + 1
                      ientmp(npro,1:nshl) = ientp(iptr,1:nshl)
+                     ieMaptmp(npro) = numel_ct + iptr
                    endif
                    iptr = iptr + 1
                    if (npro == ibksz .or. iptr > neltp) exit
@@ -204,6 +206,10 @@ c
                  ! note mienG will be passed to gensav but nothing filled if not 
                  ! using PETSc so this is safe
 c
+c.... attach map array to pointer
+                 allocate (mieMap(nelblk)%p(npro))
+                 mieMap(nelblk)%p(1:npro) = ieMaptmp(1:npro)
+c
 c.... save the element block
 c
 c                n1=n
@@ -218,8 +224,10 @@ c     &                       mmat(nelblk)%p)
                  if (iptr > neltp) exit blocks_loop
                enddo blocks_loop
              enddo material_loop
-           endif
+             numel_ct = numel_ct + intfromfile(1)
+           endif ! writeLock
            deallocate(ientp,ientmp)
+           deallocate(ieMaptmp)
            deallocate(mattype,neltp_mattype)
         enddo iblk_loop
 c
