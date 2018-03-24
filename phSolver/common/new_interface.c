@@ -194,6 +194,11 @@ void countfieldstowriterestart()
     nfields++; /* non-linear residual */
   }
 
+  if(outpar.imeshCFL == 1){
+    nfields++; /* meshCFL */
+  }
+
+
   if(outpar.ivort == 1){
     nfields++; /*vorticity*/
   }
@@ -234,7 +239,6 @@ void countfieldstowriterestart()
   if (conpar.iALE == 2) {
 //HARDCODED BY FAN, 3 fields: mesh_vel, mesh_coord, meshQ
     nfields = nfields + 3;
-    nfields = nfields +1; // !AC for CFLworst
   }
 
   if (conpar.iSOLID == 1) {

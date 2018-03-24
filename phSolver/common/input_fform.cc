@@ -463,6 +463,19 @@ int input_fform(phSolver::Input& inp)
       cout << endl;
       exit(1);
     }
+	
+    if ( (string)inp.GetValue("Write meshCFL to restart") == "No" ){
+        outpar.imeshCFL = 0;
+    }
+    else if ( (string)inp.GetValue("Write meshCFL to restart") == "Yes" ){
+        outpar.imeshCFL = 1;
+    }
+    else {
+      cout << " Write meshCFL to restart: Only Legal Values (Yes, No) ";
+      cout << endl;
+      exit(1);
+    }
+    
 
     turbvari.iramp=0;
     if((string)inp.GetValue("Ramp Inflow") == "True") turbvari.iramp=1;

@@ -4,7 +4,7 @@
      &                     con,    dxidx,  rLyi,
      &                     rLymi,  tau,    rk, 
      &                     giju,   rTLS,   raLS,
-     &                     A0inv,  dVdY,   cv, CFLworst)
+     &                     A0inv,  dVdY,   cv, meshCFLblk)
 c
 c----------------------------------------------------------------------
 c
@@ -50,8 +50,9 @@ c
      &            tau(npro,5),               rLyi(npro,nflow),
      &            rLymi(npro,nflow),         dVdY(npro,15), 
      &            rTLS(npro),                raLS(npro),
-     &            rLyitemp(npro,nflow),      detgijI(npro),
-     &            CFLworst(npro)
+     &            rLyitemp(npro,nflow),      detgijI(npro)
+c     
+      real*8       meshCFLblk(npro)
 c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  uh1(npro),
@@ -176,7 +177,7 @@ c... ALE
          tau(:,1)=pt125*fact/(gijd(:,1)+gijd(:,3)+gijd(:,6))*taucfct/rho
          tau(:,2)=one/fact
 c        
-	 CFLworst(:)= CFLworst(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
+	 meshCFLblk(:)= meshCFLblk(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
      &        + two*((u2 - um2)*gijd(:,2) + (u3 - um3)*gijd(:,4)))
      &        + (u2 - um2)*((u2 - um2)*gijd(:,3) + two*(u3-um3)*gijd(:,5))
      &        + (u3 - um3)*(u3 - um3)*gijd(:,6))/(Dtgl*two)
