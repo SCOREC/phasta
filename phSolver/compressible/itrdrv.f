@@ -507,7 +507,7 @@ c
 c                        write(*,*) 'lhs=',lhs
                     if(usingpetsc.eq.1) then
 #if (HAVE_PETSC)
-               call SolGMRp iy,             ac,            yold,
+               call SolGMRp (y,             ac,            yold,
      &                       x,
      &                       iBC,           BC,
      &                       colm,          rowp,          lhsk,
