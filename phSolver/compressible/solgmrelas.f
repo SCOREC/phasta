@@ -32,6 +32,8 @@ c
       real*8  elaslhsK(nelas*nelas,nnz_tot), 
      &        meshq(numel)
 c
+      real*8  beta,  summed
+c
       dimension x(numnp,nsd),             disp(numnp,nsd),
      &          iBC(nshg),                BC(nshg,ndofBC),
      &          elasres(nshg,nelas), 
@@ -101,7 +103,7 @@ c.... calculate norm of residual
 c
       temp  = elasres**2
 
-      call sumgat (temp, nelas, summed, ilwork)
+      call sumgat (temp, nelas, summed)
       unorm = sqrt(summed)
 c
 c.... check if GMRES iterations are required
@@ -146,7 +148,7 @@ c
 c.... calculate the norm
 c
             temp  = temp**2
-            call sumgat (temp, nelas, summed, ilwork)
+            call sumgat (temp, nelas, summed)
             unorm = sqrt(summed)
 c     
 c.... flop count
@@ -184,7 +186,7 @@ c
                if (jK .eq. 1) then
 c
                   temp = uBrg(:,:,iKs+1) * uBrg(:,:,1) ! {u_{i+1}*u_1} vector 
-                  call sumgat (temp, nelas, beta, ilwork) ! sum vector=(u_{i+1},u_1)
+                  call sumgat (temp, nelas, beta) ! sum vector=(u_{i+1},u_1)
 c
                else
 c
@@ -193,7 +195,7 @@ c
                   uBrg(:,:,iKs+1)=uBrg(:,:,iKs+1)-beta * uBrg(:,:,jK-1)
 c
                   temp = uBrg(:,:,iKs+1) * uBrg(:,:,jK) !{u_{i+1}*u_j} vector
-                  call sumgat (temp, nelas, beta, ilwork) ! sum vector=(u_{i+1},u_j)
+                  call sumgat (temp, nelas, beta) ! sum vector=(u_{i+1},u_j)
 c
                endif
 c

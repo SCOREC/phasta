@@ -140,7 +140,7 @@ c
 
 c        call tnanq(temp,5,"res**2  ")
         
-        call sumgat (temp, nflow, summed, ilwork)
+        call sumgat (temp, nflow, summed)
         unorm = sqrt(summed)
 c
 c.... flop count
@@ -197,7 +197,7 @@ c
 c.... calculate the norm
 c
           temp  = temp**2
-          call sumgat (temp, ndof, summed, ilwork)
+          call sumgat (temp, ndof, summed)
           unorm = sqrt(summed)
 
 c
@@ -249,7 +249,7 @@ c
           if (jK .eq. 1) then
 c
             temp = uBrg(:,:,iKs+1) * uBrg(:,:,1)  ! {u_{i+1}*u_1} vector 
-            call sumgat (temp, nflow, beta, ilwork) ! sum vector=(u_{i+1},u_1)
+            call sumgat (temp, nflow, beta) ! sum vector=(u_{i+1},u_1)
 c
           else
 c
@@ -258,7 +258,7 @@ c
             uBrg(:,:,iKs+1) = uBrg(:,:,iKs+1) - beta * uBrg(:,:,jK-1)
 c
             temp = uBrg(:,:,iKs+1) * uBrg(:,:,jK) !{u_{i+1}*u_j} vector
-            call sumgat (temp, nflow, beta, ilwork) ! sum vector=(u_{i+1},u_j)
+            call sumgat (temp, nflow, beta) ! sum vector=(u_{i+1},u_j)
 c
           endif
 c

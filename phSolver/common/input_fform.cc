@@ -452,6 +452,18 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
 
+    if ( (string)inp.GetValue("Write non-linear residual to restart") == "No" ){
+        outpar.write_residual = 0;
+    }
+    else if ( (string)inp.GetValue("Write non-linear residual to restart") == "Yes" ){
+        outpar.write_residual = 1;
+    }
+    else {
+      cout << " Write non-linear residual to restart: Only Legal Values (Yes, No) ";
+      cout << endl;
+      exit(1);
+    }
+
     turbvari.iramp=0;
     if((string)inp.GetValue("Ramp Inflow") == "True") turbvari.iramp=1;
     if(turbvari.iramp == 1) {
