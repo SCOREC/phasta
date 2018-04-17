@@ -135,7 +135,7 @@ c... applying tangential projection to energy equations
 c                
         end subroutine e3if_dc_res
 c
-        subroutine e3if_dc_egmass(egmass,nshl, shg,A0, ch,gI, WdetJ)  
+        subroutine e3if_dc_egmass(egmass,nshl, shg,A0, ch,gI, g, WdetJ)
 c..............................................................................
 c  calculation of the contribution of DC operator to the local stiffness matrix
 c  for both phases
@@ -153,11 +153,14 @@ c
           real*8, dimension(npro), intent(in) :: ch
           real*8, dimension(npro,nsd,nsd),intent(in) :: gI !g^{ij}_{I} = 
                                                            ! proj^T g^{ij} proj
+          real*8, dimension(npro,nsd,nsd),intent(in) :: g  !g^{ij}
           real*8, dimension(npro),intent(in) :: WdetJ
           integer, intent(in)  :: nshl
 c
           real*8, dimension(npro,nsd) :: shga_g
+          real*8, dimension(npro,nsd) :: shga_gI
           real*8, dimension(npro) :: shga_g_shgb
+          real*8, dimension(npro) :: shga_gI_shgb
           integer :: iel, ia, ib, a_row, b_col
 c
           do iel = 1,npro
@@ -165,16 +168,28 @@ c
               a_row = (ia -1)*nflow ! a_row+1: starting row# for dof ia
                                     ! a_row+nflow: ending row# for dof ia
 c... g^{km}_{I} N_{ia,k}                                    
-              shga_g(iel,:) = matmul( shg(iel,ia,:), gI(iel,:,:) )
+              shga_gI(iel,:) = matmul( shg(iel,ia,:), gI(iel,:,:) )
+c... g^{km} N_{ia,k}                                    
+              shga_g(iel,:) = matmul( shg(iel,ia,:), g(iel,:,:) )
+c
               do ib = 1,nshl
                 b_col = (ib -1)*nflow ! b_col+1: starting column# for dof ib
                                       ! b_col+nflow: ending column# for dof ib
 c... g^{km}_{I} N_{ia,k} N_{ib,m}                                                    
+                shga_gI_shgb(iel) = dot_product( shga_gI(iel,:),shg(iel,ib,:))
+c... g^{km} N_{ia,k} N_{ib,m}                                                    
                 shga_g_shgb(iel) = dot_product( shga_g(iel,:),shg(iel,ib,:))
 c
-                egmass(iel, a_row+1:a_row+nflow, b_col+1:b_col+nflow) = 
-     &          egmass(iel, a_row+1:a_row+nflow, b_col+1:b_col+nflow)
-     &        + ch(iel) * shga_g_shgb(iel) * A0(iel,:, :) * WdetJ(iel)
+                egmass(iel, a_row+1:a_row+nflow-1, b_col+1:b_col+nflow) = 
+     &          egmass(iel, a_row+1:a_row+nflow-1, b_col+1:b_col+nflow)
+     &        + ch(iel) * shga_g_shgb(iel) * A0(iel,1:nflow-1, :) 
+     &        * WdetJ(iel)
+c
+                egmass(iel, a_row+nflow, b_col+1:b_col+nflow) = 
+     &          egmass(iel, a_row+nflow, b_col+1:b_col+nflow)
+     &        + ch(iel) * shga_gI_shgb(iel) * A0(iel,nflow, :) 
+     &        * WdetJ(iel)
+c
               enddo
             enddo 
           enddo
@@ -237,9 +252,9 @@ c... calculate the local residual
 c... calculate the local stiffness matrix
           if (lhs_dg .eq. 1) then
             call e3if_dc_egmass(egmass00, nshl0, shg0,A0_0, ch0, pt_g_p0,
-     &                          WdetJif0)
+     &                          giju_f0, WdetJif0)
             call e3if_dc_egmass(egmass11, nshl1, shg1,A0_1, ch1, pt_g_p1,
-     &                          WdetJif1)       
+     &                          giju_f1, WdetJif1)       
           endif          
 c                                                
           
