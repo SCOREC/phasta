@@ -92,7 +92,7 @@ c... c^h for each phase
 c          
         end subroutine calc_ch
 c
-        subroutine e3if_dc_res(ri, var, A0, ch, pt_g_p)
+        subroutine e3if_dc_res(ri, var, A0, ch, pt_g_p, g)
 c..............................................................................
 c  calculation of the contribution of DC operator to the integrand of residual
 c  for both phases
@@ -109,6 +109,7 @@ c
           type(var_t), dimension(npro), intent(in) :: var
           real*8, dimension(npro), intent(in) :: ch
           real*8, dimension(npro,nsd,nsd),intent(in) :: pt_g_p
+          real*8, dimension(npro,nsd,nsd),intent(in) :: g
 c
           real*8, dimension(npro,nflow,nsd) :: A0_grad_y
           integer :: iel, k, k0
@@ -118,12 +119,17 @@ c... A0 Y_{,m}
             A0_grad_y(iel,:,:) = matmul( A0(iel,:,:),
      &                                   transpose(var(iel)%grad_y(:,:)))
 c... c^h g^{km}_{I} A0 Y_{,m}
+c... No tangential projection in the first 4 equations
             do k = 1,nsd
               k0 = (k-1)*nflow !k0+1, starting index in ri for kth direction
                                !k0+nflow, ending index in ri for kth direction
-              ri(iel,k0+1:k0+nflow) = ri(iel,k0+1:k0+nflow)
+              ri(iel,k0+1:k0+nflow-1) = ri(iel,k0+1:k0+nflow-1)
      &        + ch(iel) 
-     &        * matmul( A0_grad_y(iel,:,:), pt_g_p(iel,k,:) )
+     &        * matmul( A0_grad_y(iel,1:nflow-1,:), g(iel,k,:) )
+c... applying tangential projection to energy equations
+              ri(iel,k0+nflow) = ri(iel,k0+nflow)
+     &        + ch(iel)
+     &        * dot_product( A0_grad_y(iel,nflow,:), pt_g_p(iel,k,:) )
             enddo
           enddo 
 c                
@@ -226,8 +232,8 @@ c... calculate proj_{ik} g^ij proj_{jm}
             pt_g_p1(iel,:,:) = matmul(pt_g1(iel,:,:),proj(iel,:,:))             
           enddo         
 c... calculate the local residual
-          call e3if_dc_res(ri0, var0, A0_0, ch0,pt_g_p0)
-          call e3if_dc_res(ri1, var1, A0_1, ch1,pt_g_p1)
+          call e3if_dc_res(ri0, var0, A0_0, ch0,pt_g_p0, giju_f0)
+          call e3if_dc_res(ri1, var1, A0_1, ch1,pt_g_p1, giju_f1)
 c... calculate the local stiffness matrix
           if (lhs_dg .eq. 1) then
             call e3if_dc_egmass(egmass00, nshl0, shg0,A0_0, ch0, pt_g_p0,
