@@ -310,7 +310,8 @@ c
         use probe_m
         use ifbc_def_m
         use weighted_normal_m !hacking for weighted normal
-        use interfaceflag ! hacking for weighted normal        
+        use interfaceflag ! hacking for weighted normal
+        use m2gfields ! read m2g fields        
 c
         include "common.h"
         include "mpif.h"
@@ -608,6 +609,94 @@ c
 c
 c
 c.... -------------------->   boundary elements   <--------------------
+c... hacking
+c... adding one loop over all the boundary blks to calculate the weigthed normal
+c... for the boundary elements. Notice that this weighted normal is stored in a 
+c... different array with the one for interface element.
+c... allocation and initialization of the weighted normal
+           allocate(w_normal_b_global(nshg,nsd))
+           allocate(length_temp(nshg))
+c
+           w_normal_b_global = zero
+           length_temp = zero
+c
+c.... loop over the boundary elements
+c
+        boundary_blocks: do iblk = 1, nelblb
+c
+c.... set up the parameters
+c
+          iel    = lcblkb(1,iblk)
+          lelCat = lcblkb(2,iblk)
+          lcsyst = lcblkb(3,iblk)
+          iorder = lcblkb(4,iblk)
+          nenl   = lcblkb(5,iblk)  ! no. of vertices per element
+          nenbl  = lcblkb(6,iblk)  ! no. of vertices per bdry. face
+          nshl   = lcblkb(9,iblk)
+          nshlb  = lcblkb(10,iblk)
+          mattyp = lcblkb(7,iblk)
+          ndofl  = lcblkb(8,iblk)
+          npro   = lcblkb(1,iblk+1) - iel
+c
+c... preparation of getting weighted normal starts, major part of codes are copied
+c    from the way to calculate gcnorml in elmgmrelas
+c
+c... allocation and initialization of the factor
+          allocate(calc_factor_temp(npro))
+c
+          calc_factor_temp(:) = 1 
+c
+c... copy from elmgmrelas, defining some global parameters:
+c.... hack; doesn't support 2nd and higher order
+c
+          if(iorder .eq. 1) then
+            nshlb = nenbl ! only work with linear element
+          else if(iorder .gt. 1) then
+            write(*,*) "need to implement for higher order"
+            call error('elmgmrelas  ','higher order', iorder)
+          endif
+c                     
+          if(lcsyst.eq.itp_wedge_tri) lcsyst=nenbl ! may not be necessary
+          ngaussb = nintb(lcsyst)
+c
+c... calculate and assemble non-unit weighted normal for boundary
+          call calc_normal(x, shpb(lcsyst,1:nshl,:), calc_factor_temp,
+     &                     mienb(iblk)%p, miBCB(iblk)%p, 
+     &                     w_normal_b_global )
+c... deallocation of factor
+          deallocate(calc_factor_temp)     
+c
+        enddo boundary_blocks ! end loop the boundary elements
+c        
+c...communication of the weighted normal
+        if (numpe > 1) then
+          call commu (w_normal_b_global, ilwork, nsd  , 'in ')
+          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+          call commu (w_normal_b_global, ilwork, nsd  , 'out')
+          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+        endif
+c...normalize the weighted normal
+        do inode = 1, nshg
+          if ( (m2gClsfcn(i,1) .eq. 2) .and. 
+     &         (ifFlag(inode) .eq. 1) ) then ! if vetex on the face 
+                                             ! but not on interface
+            length_temp(inode) = sqrt( w_normal_b_global(inode,1)
+     &                         * w_normal_b_global(inode,1)
+     &                         + w_normal_b_global(inode,2)
+     &                         * w_normal_b_global(inode,2)
+     &                         + w_normal_b_global(inode,3)
+     &                         * w_normal_b_global(inode,3) )
+            do isd = 1, nsd
+              w_normal_b_global(inode,isd) = w_normal_b_global(inode,isd) 
+     &                                     / length_temp(inode)
+            enddo
+          endif
+        enddo
+c... changing from inward normal to outward normal
+        w_normal_b_global = - w_normal_b_global        
+c           
+c... end of hacking
+c
 c
 c.... loop over the boundary elements
 c
@@ -640,6 +729,9 @@ c
           else
              allocate (EGmass(1,1,1))
           endif
+c... hacking. allocation of w_normal_l0 and w_normal_l1
+          allocate(w_normal_b_l(npro,nshl0,nsd))
+c... end of hacking   
           
           tmpshpb(1:nshl,:) = shpb(lcsyst,1:nshl,:)
           tmpshglb(:,1:nshl,:) = shglb(lcsyst,:,1:nshl,:)
@@ -686,9 +778,16 @@ c
           deallocate (EGmass)
           deallocate (tmpshpb)
           deallocate (tmpshglb)
+c... hacking, deallocation of local weighted normal
+          deallocate(w_normal_b_l)
+c... end of hacking                
 c
         enddo   !end of boundary element loop
-c
+c        
+c... hacking, deallocation of the arrays used in weighted normal
+        deallocate(w_normal_global)
+        deallocate(length_temp)
+c... end of hacking        
 #if debug==1
       imax = maxloc(res,1)
       idbg = imax(1)

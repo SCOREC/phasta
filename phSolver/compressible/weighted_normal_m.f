@@ -7,6 +7,11 @@ c... define the weighted normal for 0 and 1 phases
         real*8, dimension(:,:), allocatable :: w_normal_global
         real*8, dimension(:), allocatable :: length_temp
         integer, dimension(:), pointer :: calc_factor_temp
-        real*8, dimension(:,:,:), pointer :: w_normal_l0, w_normal_l1 
+        real*8, dimension(:,:,:), pointer :: w_normal_l0, w_normal_l1
+c... define the weighted normal for boundary, notice that we have two seperate 
+c... array for interface and boundary element to avoid the problem of interface 
+c... intersect with global boudary
+        real*8, dimension(:,:), allocatable :: w_normal_b_global
+        real*8, dimension(:,:,:), pointer :: w_normal_b_l
 c                        
       end module weighted_normal_m
