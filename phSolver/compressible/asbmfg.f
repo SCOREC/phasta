@@ -10,6 +10,7 @@ c
 c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+        use weighted_normal_m, only:w_normal_b_l,w_normal_b_global !hacking
         include "common.h"
 c
         dimension y(nshg,ndofl),           x(numnp,nsd),
@@ -42,6 +43,9 @@ c
         call localy(y,      ycl,     ienb,   ndofl,  'gather  ')
         call localx(x,      xlb,    ienb,   nsd,    'gather  ')
         call local (umesh,  uml,    ienb,   nsd,    'gather  ')
+c... hacking, localize the weighted normal
+        call localx(w_normal_b_global, w_normal_b_l, ienb , nsd, 'gather')
+c... end of hacking                
 c
 c      do iel = 1,npro
 c        do n = 1,nshlb
