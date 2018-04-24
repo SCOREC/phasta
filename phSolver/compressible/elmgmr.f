@@ -678,7 +678,7 @@ c...communication of the weighted normal
 c...normalize the weighted normal
         do inode = 1, nshg
           if ( (m2gClsfcn(i,1) .eq. 2) .and. 
-     &         (ifFlag(inode) .eq. 1) ) then ! if vetex on the face 
+     &         (ifFlag(inode) .ne. 1) ) then ! if vetex on the face 
                                              ! but not on interface
             length_temp(inode) = sqrt( w_normal_b_global(inode,1)
      &                         * w_normal_b_global(inode,1)
@@ -730,7 +730,7 @@ c
              allocate (EGmass(1,1,1))
           endif
 c... hacking. allocation of w_normal_l0 and w_normal_l1
-          allocate(w_normal_b_l(npro,nshl0,nsd))
+          allocate(w_normal_b_l(npro,nshl,nsd))
 c... end of hacking   
           
           tmpshpb(1:nshl,:) = shpb(lcsyst,1:nshl,:)
@@ -785,7 +785,7 @@ c
         enddo   !end of boundary element loop
 c        
 c... hacking, deallocation of the arrays used in weighted normal
-        deallocate(w_normal_global)
+        deallocate(w_normal_b_global)
         deallocate(length_temp)
 c... end of hacking        
 #if debug==1
