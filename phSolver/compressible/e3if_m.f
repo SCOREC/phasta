@@ -313,6 +313,8 @@ c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
 c...debugging
           real*8, dimension(nflow):: error_l, error_air
+          real*8 :: q_air, q_l
+          real*8, dimension(2) :: percent_air, percent_l
 c...end of debugging
 c
           element_loop: do iel = 1,npro
@@ -394,12 +396,28 @@ c... error in momenum
 c... error in energy
         error_l(5) = abs(f_jump(iel,5))/abs(f1n1(5))
         error_air(5) = abs(f_jump(iel,5))/abs(f0n0(5))
+c... get the conductive flux in normal direction
+            q_air = zero
+            q_l = zero
+c
+            q_air = prop0(iel)%stiff(5,5) 
+     &          * dot_product(var0(iel)%grad_y(:,5), nv0(iel,:))
+            q_l = prop1(iel)%stiff(5,5) 
+     &          * dot_product(var1(iel)%grad_y(:,5), nv1(iel,:))
+c... get the percentage of normal conductive heat flux
+             percent_air(1) = abs(q_air)/abs(f0n0(5))
+             percent_air(2) = abs(q_air- q_l)/abs(f0n0(5))
+c             
+             percent_l(1) = abs(q_l)/abs(f1n1(5))
+             percent_l(2) = abs(q_air- q_l)/abs(f1n1(5))
 c
         write(*,*) 'qpt is',intp_flag
         write(*,*) 'rank is',myrank
         write(*,*) 'elm number is',iel
         write(*,*) 'error_l is',error_l
         write(*,*) 'error_air is',error_air
+        write(*,*) 'percentage in air:', percent_air
+        write(*,*) 'percentage in air:', percent_l
 c        write(*,*) 'ri0  : ',iel,ri0(iel,16:20)
 c        write(*,*) 'ri1  : ',iel,ri1(iel,16:20)
       endif
