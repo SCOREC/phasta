@@ -634,6 +634,7 @@ int input_fform(phSolver::Input& inp)
     dgifinp.h = (double)inp.GetValue("DG Interface Penalty Factor h");
     // DG interface DISCONTINUITY CAPTURING input parameters
     dgifinp.if_e_dc = (double)inp.GetValue("DG Interface DC Factor");
+    dgifinp.if_e_dc_mon = (double)inp.GetValue("DG Interface DC Factor for momentum");
 
 //for mesh-elastic--------------------------------------------
     if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "True"){

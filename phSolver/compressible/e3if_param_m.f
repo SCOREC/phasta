@@ -109,7 +109,7 @@ c... added for interface DC operator
         real*8, dimension(:,:), pointer :: f_jump ! flux jump
         real*8, dimension(:,:,:), pointer :: proj  ! tangential projector
         real*8, dimension(:,:,:), pointer :: dxidx0, dxidx1  ! inverse of element deformation tensor
-        real*8, dimension(:),pointer :: ch0, ch1 ! nu^h for DC on interface       
+        real*8, dimension(:,:,:),pointer :: ch0, ch1 ! nu^h for DC on interface       
 c
       contains
 c
@@ -185,7 +185,7 @@ c
           allocate(kappa0(npro),kappa1(npro))
 c
           allocate(mu(npro,nflow))
-          allocate(ch0(npro),ch1(npro))
+          allocate(ch0(npro,nflow,nflow),ch1(npro,nflow,nflow))
 c
         end subroutine e3if_malloc
 c

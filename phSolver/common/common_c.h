@@ -560,6 +560,7 @@ extern "C" {
     double ek;
     double h;
     double if_e_dc;
+    double if_e_dc_mon;
     double hfg_liquid, mw_liquid, T_boil_liquid;
     double burn_rate_exp, burn_rate_coeff, burn_rate_pref;
   } dgifinp;

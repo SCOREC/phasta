@@ -48,16 +48,16 @@ c..............................................................................
           use number_def_m
           use propar_m, only: npro
           use conpar_m, only: nflow
-          use dgifinp_m, only: if_e_dc
+          use dgifinp_m, only: if_e_dc, if_e_dc_mon
           implicit none
 c
-          real*8, dimension(npro),intent(out) :: ch0, ch1 
+          real*8, dimension(npro,nflow,nflow),intent(out) :: ch0, ch1 
           real*8, dimension(npro,nflow),intent(in) :: f_jump ! flux jump
 c
           real*8, dimension(npro,nflow) :: u_ref_0, u_ref_1 ! reference conservative
                                                             ! variables
           real*8, dimension(npro,nflow) :: temp0, temp1 ! local temporary array
-          integer :: iel                                                  
+          integer :: iel, i                                                 
 c
           u_ref_0(:,1) = 1.000000000000000d0 ! hacking, rho_ref, gas phase
           u_ref_0(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
@@ -83,11 +83,27 @@ c
           temp1(:,4) = ( one/u_ref_1 (:,4) )*f_jump(:,4)
           temp1(:,5) = ( one/u_ref_1 (:,5) )*f_jump(:,5)
 c... c^h for each phase
+          ch0 = zero
+          ch1 = zero
+c          
           do iel = 1,npro
-            ch0(iel) = if_e_dc 
+            ch0(iel,1,1) = if_e_dc 
      &               * sqrt(dot_product(temp0(iel,:),temp0(iel,:)))
-            ch1(iel) = if_e_dc 
+            ch1(iel,1,1) = if_e_dc 
      &               * sqrt(dot_product(temp1(iel,:),temp1(iel,:)))
+c
+            do i = 2,4
+            ch0(iel,i,i) = if_e_dc_mon 
+     &               * sqrt(dot_product(temp0(iel,:),temp0(iel,:)))
+            ch1(iel,i,i) = if_e_dc_mon 
+     &               * sqrt(dot_product(temp1(iel,:),temp1(iel,:)))
+            enddo
+c
+            ch0(iel,5,5) = if_e_dc 
+     &               * sqrt(dot_product(temp0(iel,:),temp0(iel,:)))
+            ch1(iel,5,5) = if_e_dc 
+     &               * sqrt(dot_product(temp1(iel,:),temp1(iel,:)))
+c                             
           enddo
 c          
         end subroutine calc_ch
@@ -107,11 +123,13 @@ c
           real*8, dimension(npro,nflow*(nsd+1)), intent(inout) :: ri
           real*8, dimension(npro,nflow,nflow), intent(in) :: A0
           type(var_t), dimension(npro), intent(in) :: var
-          real*8, dimension(npro), intent(in) :: ch
+          real*8, dimension(npro,nflow,nflow), intent(in) :: ch
           real*8, dimension(npro,nsd,nsd),intent(in) :: pt_g_p
 c
           real*8, dimension(npro,nflow,nsd) :: A0_grad_y
+          real*8, dimension(npro,nflow) :: tmp, tmp1
           integer :: iel, k, k0
+                          
 c
           do iel = 1,npro
 c... A0 Y_{,m}          
@@ -121,9 +139,11 @@ c... c^h g^{km}_{I} A0 Y_{,m}
             do k = 1,nsd
               k0 = (k-1)*nflow !k0+1, starting index in ri for kth direction
                                !k0+nflow, ending index in ri for kth direction
+              tmp(iel,:) = matmul( A0_grad_y(iel,:,:), pt_g_p(iel,k,:) )
+              tmp1(iel,:) = matmul(ch(iel,:,:), tmp(iel,:))
+c                                
               ri(iel,k0+1:k0+nflow) = ri(iel,k0+1:k0+nflow)
-     &        + ch(iel) 
-     &        * matmul( A0_grad_y(iel,:,:), pt_g_p(iel,k,:) )
+     &        + tmp1(iel,:)
             enddo
           enddo 
 c                
@@ -144,7 +164,7 @@ c
           real*8, dimension(:,:,:),   intent(inout) :: egmass
           real*8, dimension(:,:,:),   intent(in) :: shg
           real*8, dimension(npro,nflow,nflow), intent(in) :: A0
-          real*8, dimension(npro), intent(in) :: ch
+          real*8, dimension(npro,nflow,nflow), intent(in) :: ch
           real*8, dimension(npro,nsd,nsd),intent(in) :: gI !g^{ij}_{I} = 
                                                            ! proj^T g^{ij} proj
           real*8, dimension(npro),intent(in) :: WdetJ
@@ -152,6 +172,7 @@ c
 c
           real*8, dimension(npro,nsd) :: shga_g
           real*8, dimension(npro) :: shga_g_shgb
+          real*8, dimension(npro,nflow,nflow) :: temp, temp1
           integer :: iel, ia, ib, a_row, b_col
 c
           do iel = 1,npro
@@ -166,9 +187,13 @@ c... g^{km}_{I} N_{ia,k}
 c... g^{km}_{I} N_{ia,k} N_{ib,m}                                                    
                 shga_g_shgb(iel) = dot_product( shga_g(iel,:),shg(iel,ib,:))
 c
+                temp(iel,:,:) = shga_g_shgb(iel) * A0(iel,:, :)
+     &                         * WdetJ(iel)
+                temp1(iel,:,:) = matmul( ch(iel,:,:),temp(iel,:,:) )
+c                
                 egmass(iel, a_row+1:a_row+nflow, b_col+1:b_col+nflow) = 
      &          egmass(iel, a_row+1:a_row+nflow, b_col+1:b_col+nflow)
-     &        + ch(iel) * shga_g_shgb(iel) * A0(iel,:, :) * WdetJ(iel)
+     &          + temp1(iel,:,:)
               enddo
             enddo 
           enddo
