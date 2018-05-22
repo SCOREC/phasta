@@ -120,6 +120,11 @@ c
 !        real*8 vBC, vBCg
         real*8 vortmax, vortmaxg
 
+c------------------- Allocate i_if_pair and i_if_con ----------------------
+c these are used for enforcing strong  interface continuity of some variables
+	integer i_if_pair(nshg)
+c---------------------------------------------------------------------------
+	
        iprec=0 !PETSc - Disable PHASTA's BDiag. TODO: Preprocssor Switch
 
        call findTurbWall(iTurbWall)
@@ -237,6 +242,19 @@ c..........................................
         ybar(:,ndof+7) = y(:,1)*y(:,3)
         ybar(:,ndof+8) = y(:,2)*y(:,3)
 c.........................................
+
+c------------------- Initializing i_if_pair and i_if_con --------------------------------
+
+
+
+
+
+
+
+
+
+
+c---------------------------------------------------------------------------------------
 
 !  change the freestream and inflow eddy viscosity to reflect different
 !  levels of freestream turbulence
