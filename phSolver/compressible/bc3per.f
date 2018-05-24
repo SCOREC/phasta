@@ -16,6 +16,8 @@ c
 c Kenneth Jansen,  Winter 1998. 
 c----------------------------------------------------------------------
 c
+        use interfaceflag
+        use interface_continuity_data_m
         include "common.h"
 c
         dimension iBC(nshg),
@@ -43,6 +45,16 @@ c      enddo
 c
 c
 c.... return
+c... continuous field across interface(no communications)
+        do j = 1,nshg
+          if ( (ifFlag(j) .eq. 1) .and. 
+     &         (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+            i = i_if_pair(j)
+            res(i,i_con_field) = res(i,i_con_field) + res(j,i_con_field)
+            res(j,i_con_field) = zero          
+          endif
+        enddo 
+c...       
 c
         return
         end

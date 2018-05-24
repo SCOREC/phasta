@@ -11,6 +11,7 @@ C Nahid Razmara, Spring 2000. (Sparse Matrix)
 C============================================================================
 
 c
+      use interface_continuity_data_m
       include "common.h"
 c
 c
@@ -34,6 +35,10 @@ c
         do j=1,nvar
            p(:,j)=p(iper(:),j)
         enddo
+c... handle the continuous field across interface(no communications) 
+c... before Ap product
+        p(:,i_con_field) = p(i_if_pair(:),i_con_field)
+c...        
 c
 c       slave has masters value, for abc we need to rotate it
 c        (if this is a vector only no SCALARS)
