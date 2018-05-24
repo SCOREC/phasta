@@ -21,6 +21,8 @@ c Zdenek Johan, Summer 1990. (Modified from g3bce.f)
 c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+        use interfaceflag
+        use interface_continuity_data_m
         include "common.h"
 c
         dimension y(nshg,ndof),             iBC(nshg),
@@ -352,7 +354,25 @@ c
               endif
            enddo  
 c$$$        endif
-
+c... continuous field across interface(no communications)
+           do j = 1,nshg
+             if ( (ifFlag(j) .eq. 1) .and. 
+     &            (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+               i = i_if_pair(j)
+               BDiag(i,i_con_field,i_con_field) = BDiag(i,i_con_field,i_con_field)
+     &                                       + BDiag(j,i_con_field,i_con_field)         
+             endif
+           enddo
+c... interface pair slaves get the values of the masters
+c
+           do j = 1,nshg
+             if ( (ifFlag(j) .eq. 1) .and. 
+     &            (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+               i = i_if_pair(j)
+               BDiag(j,i_con_field,i_con_field) = BDiag(i,i_con_field,i_con_field)
+             endif
+           enddo      
+c...
         if(numpe.gt.1) then
 c
 c.... nodes treated on another processor are eliminated
