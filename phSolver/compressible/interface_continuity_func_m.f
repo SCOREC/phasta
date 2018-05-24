@@ -93,5 +93,25 @@ c
           deallocate(i_if_pair)
 c                    
         end subroutine dealloc_interface_continuity
+c
+        subroutine itr_interface_continuity(y, ac)
+c...............................................................................
+c... ensuring the continuous interface field during the correct and update stage for
+c... each non-linear iteration
+          use interface_continuity_data_m
+          use conpar_m, only:ndof,nshg
+          use genpar_m, only:ires
+          implicit none
+c
+          real*8, dimension(nshg,ndof) :: y, ac
+c... handle the continuous field across interface(no communications)
+c... Notice the order of the solution field is changed at itrdrv level:
+c... y(:,1:3) - velocity, y(:,4) - pressure, y(:,5) - temperature 
+          y(:,i_con_field) = y(i_if_pair(:),i_con_field)
+          if(ires.ne.2) then
+            ac(:,i_con_field) = ac(i_if_pair(:),i_con_field)
+          endif               
+c          
+        endsubroutine itr_interface_continuity
 c     
       end module interface_continuity_func_m

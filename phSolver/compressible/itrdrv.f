@@ -733,6 +733,9 @@ c
                   iupdate=icode/10 ! what to update
                   if(iupdate.eq.0) then !update flow  
                      call itrCorrect ( y, ac, yold, acold, solinc)
+c... handle continuous interface field
+                     call itr_interface_continuity(y, ac)
+c...                     
 c
                      call itrBC (y,ac, iBC, BC, iper, ilwork, umesh)
 c
@@ -819,6 +822,9 @@ c
             endif          
 c
             call itrUpdate( yold,  acold,   y,    ac)
+c... handle continuous interface field
+            call itr_interface_continuity(y, ac)
+c...              
             call itrUpdateElas ( xold, x)
             umeshold = umesh
 c
