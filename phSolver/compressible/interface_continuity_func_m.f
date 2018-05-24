@@ -19,7 +19,7 @@ c...............................................................................
           implicit none
 c
           integer :: inode, iblk, iel, npro, ipord, nenbl_if,
-     &               itpid, nshlb_if, i  
+     &               itpid, nshlb_if, i, j, j_pair  
 c... allocation
           allocate(i_if_pair(nshg))
 c... initialization
@@ -73,9 +73,11 @@ c... only support tet and wedge with triangle on the interface, otherwise, print
 c... error msg
             if(itpid .le. 4) then
               do i = 1, npro
-                i_if_pair(mienif1(iblk)%p(i,1)) = mienif0(iblk)%p(i,1) ! making node in phase 0 the master node
-                i_if_pair(mienif1(iblk)%p(i,2)) = mienif0(iblk)%p(i,3) ! making node in phase 0 the master node,
-                i_if_pair(mienif1(iblk)%p(i,3)) = mienif0(iblk)%p(i,2) ! flip the order for the local 2nd and 3rd node                
+                do j = 1, nshlb_if
+                   j_pair = mod(2*j+1,3)+1 !flip the order for the local 2nd and 3rd node
+                   i_if_pair(mienif1(iblk)%p(i,j)) = mienif0(iblk)%p(i,j_pair) ! making node in phase 0 the master node and
+                                                                               ! flip the order for the local 2nd and 3rd node
+                enddo
               enddo              
             else
               write(*,*) "interface topology is not supported"
