@@ -43,6 +43,7 @@ c
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
+      use interface_continuity_func_m
 c
         include "common.h"
         include "mpif.h"
@@ -119,13 +120,7 @@ c
 !        logical  exMc
 !        real*8 vBC, vBCg
         real*8 vortmax, vortmaxg
-
-c------------------- Allocate i_if_pair and i_if_con ----------------------
-c these are used for enforcing strong  interface continuity of some variables
-	integer i_if_pair(nshg)
-	integer, dimension(:,:), pointer   :: ienif0, ienif1
-c---------------------------------------------------------------------------
-	
+c
        iprec=0 !PETSc - Disable PHASTA's BDiag. TODO: Preprocssor Switch
 
        call findTurbWall(iTurbWall)
@@ -244,60 +239,8 @@ c..........................................
         ybar(:,ndof+8) = y(:,2)*y(:,3)
 c.........................................
 
-c------------------- Initializing i_if_pair and i_if_con --------------------------------
-
-	do iblk = 1, nelblk
-          !nenl   = lcblk(5,iblk)   ! no. of vertices per element
-          iel    = lcblk(1,iblk)
-          !lelCat = lcblk(2,iblk)
-          !lcsyst = lcblk(3,iblk)
-          !iorder = lcblk(4,iblk)
-          nshl   = lcblk(10,iblk)
-          !mater  = lcblk(7,iblk)
-          !ndofl  = lcblk(8,iblk)
-          !nsymdl = lcblk(9,iblk)
-          npro   = lcblk(1,iblk+1) - iel
-          !ngauss = nint(lcsyst)
-	  ien => mien(iblk)%p
-	  do iel = 1, npro
-	    do ishl = 1, nshl
-	      i_if_pair(ien(iel, ishl)) = ien(iel, ishl)
-            enddo
-	  enddo
-	enddo
-
-	do iblk = 1, nelblif
-          iel     = lcblkif(1, iblk)
-          npro    = lcblkif(1,iblk+1) - iel
-          !lcsyst0 = lcblkif(3, iblk)    ! element0 type
-          !lcsyst1 = lcblkif(4, iblk)    ! element1 type
-          !ipord   = lcblkif(5, iblk)    ! polynomial order
-          !nenl0   = lcblkif(6, iblk)    ! number of vertices per element0
-          !nenl1   = lcblkif(7, iblk)    ! number of vertices per element1
-          !mater0  = lcblkif(9, iblk)
-          !mater1  = lcblkif(10,iblk)
-          nshl0   = lcblkif(iblkif_nshl0,iblk)
-          nshl1   = lcblkif(iblkif_nshl1,iblk)
-          !itpid   = lcblkif(iblkif_topology,iblk)
-          !ngaussif = nintif(itpid)
-          ienif0 => mienif0(iblk)%p
-          ienif1 => mienif1(iblk)%p
-
-	  do iel = 1, npro
-	    i_if_pair(ienif1(iel,1)) = ienif0(iel,1)
-	    i_if_pair(ienif1(iel,2)) = ienif0(iel,3)
-	    i_if_pair(ienif1(iel,3)) = ienif0(iel,2)
-	  enddo
-	enddo
-	
-
-
-
-
-
-
-
-
+c------------------- Initializing of the continuous interface field --------------------------------
+        call alloc_init_interface_continuity
 c---------------------------------------------------------------------------------------
 
 !  change the freestream and inflow eddy viscosity to reflect different
@@ -1222,7 +1165,9 @@ c.... deallocate comp1_elas magnitude if time-depended option is on
       if((timeDepComp1Flag .eq. 1) .and. (iALE .eq. 2)) then
         deallocate( timeDepComp1Mag )
       endif
-
+c------------------- deallocation of the continuous interface field ------------
+        call dealloc_interface_continuity
+c-------------------------------------------------------------------------------
 c      close (iecho)
       if(iabc==1) deallocate(acs)
 c
