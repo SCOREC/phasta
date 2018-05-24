@@ -555,7 +555,7 @@ c
           cmtrx(:,4,3) =     - nv0(:,3)*nv0(:,2)
           cmtrx(:,4,4) = one - nv0(:,3)*nv0(:,3)
 c
-          cmtrx(:,5,5) = one
+c          cmtrx(:,5,5) = one
 c
 c...NOTE: need to derive an expression for it, instead of this:
 c
