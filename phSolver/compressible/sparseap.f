@@ -12,6 +12,7 @@ C============================================================================
 
 c
       use interface_continuity_data_m
+      use interfaceflag
       include "common.h"
 c
 c
@@ -37,7 +38,13 @@ c
         enddo
 c... handle the continuous field across interface(no communications) 
 c... before Ap product
-        p(:,i_con_field) = p(i_if_pair(:),i_con_field)
+        do j = 1,nshg
+          if ( (ifFlag(j) .eq. 1) .and. 
+     &         (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+            i = i_if_pair(j)
+            p(j,i_con_field) = p(i,i_con_field)         
+          endif
+        enddo 
 c...        
 c
 c       slave has masters value, for abc we need to rotate it

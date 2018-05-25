@@ -101,18 +101,27 @@ c...............................................................................
 c... ensuring the continuous interface field during the correct and update stage for
 c... each non-linear iteration
           use interface_continuity_data_m
+          use interfaceflag
           use conpar_m, only:ndof,nshg
           use genpar_m, only:ires
           implicit none
 c
           real*8, dimension(nshg,ndof) :: y, ac
+          integer :: i,j
 c... handle the continuous field across interface(no communications)
 c... Notice the order of the solution field is changed at itrdrv level:
 c... y(:,1:3) - velocity, y(:,4) - pressure, y(:,5) - temperature 
-          y(:,i_con_field) = y(i_if_pair(:),i_con_field)
-          if(ires.ne.2) then
-            ac(:,i_con_field) = ac(i_if_pair(:),i_con_field)
-          endif               
+          do j = 1,nshg
+            if ( (ifFlag(j) .eq. 1) .and. 
+     &           (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+              i = i_if_pair(j)
+              y(j,i_con_field) = y(i,i_con_field)
+c              
+              if(ires.ne.2) then
+                ac(j,i_con_field) = ac(i,i_con_field)
+              endif         
+            endif
+          enddo 
 c          
         endsubroutine itr_interface_continuity
 c     
