@@ -10,8 +10,15 @@ c
         subroutine alloc_init_interface_continuity
 c................................................................................
 c... allocation and initialization of the pairing info
+c
+c... i_if_con (nshg)  : bit map for continuous interface field
+c    = 1 * i_if_con_1 + 2 * i_if_con_2 + 4 *  * i_if_con_3
+c              density   temperature   pressure
+c    + 8 *  * i_if_con_4 +  16 *  * i_if_con_5 +  32 *  * i_if_con_6
+c           x1-velocity      x2-velocity           x3-velocity
 c................................................................................
           use interface_continuity_data_m
+          use interfaceflag
           use conpar_m, only:nshg
           use elmpar_m, only:nelblif
           use blkdat_m, only:lcblkif,iblkif_topology 
@@ -22,6 +29,7 @@ c
      &               itpid, nshlb_if, i, j, j_pair  
 c... allocation
           allocate(i_if_pair(nshg))
+          allocate(i_if_con(nshg))
 c... initialization
 c          do iblk = 1, nelblk
 c                  !nenl   = lcblk(5,iblk)   ! no. of vertices per element
@@ -45,6 +53,9 @@ c          enddo
 c  
           do inode = 1,nshg
             i_if_pair(inode) = inode
+            if ((ifFlag(inode) .eq. 1)) then
+              i_if_con(inode) = ibset(i_if_con(inode), 1) ! hacking the bit map to make T continuous
+            endif
           enddo
 c          
           do iblk = 1, nelblif
@@ -71,7 +82,7 @@ c... print out error msg if it is not linear element
             endif
 c... only support tet and wedge with triangle on the interface, otherwise, print out
 c... error msg
-            if(itpid .le. 4) then
+            if(itpid .le. 4) then  !see L40 in global_param.f for details
               do i = 1, npro
                 do j = 1, nshlb_if
                    j_pair = mod(2*j+1,3)+1 !flip the order for the local 2nd and 3rd node
@@ -93,6 +104,7 @@ c
           implicit none
 c
           deallocate(i_if_pair)
+          deallocate(i_if_con)
 c                    
         end subroutine dealloc_interface_continuity
 c
