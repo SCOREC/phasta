@@ -171,16 +171,7 @@ c           if (btest(iBC(i),10)) then
 c              res(i,:) = res(iper(i),:)
 c           endif
 c        enddo
-c... continuous field across interface(no communications)
-        do j = 1,nshg
-          if ( (ifFlag(j) .eq. 1) .and. 
-     &         (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
-            i = i_if_pair(j)
-            res(i,i_con_field) = res(i,i_con_field) + res(j,i_con_field)
-            res(j,i_con_field) = zero          
-          endif
-        enddo 
-c...       
+c
        if(numpe.gt.1) then
        if(usingPETSc.eq.0) then !kill this code for petsc
 c

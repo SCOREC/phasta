@@ -309,6 +309,7 @@ c
         use e3_solid_m
         use probe_m
         use ifbc_def_m
+        use interface_continuity_func_m, only: interface_continuity_res
 c
         include "common.h"
         include "mpif.h"
@@ -1010,6 +1011,9 @@ c
 c.... satisfy the BCs on the residual
 c
       call bc3Res (y,  iBC,  BC,  res,  iper, ilwork)
+c
+c... continuous field across interface
+      call interface_continuity_res(res)
 c
 c------> BEGIN DEBUG <-----------
 c

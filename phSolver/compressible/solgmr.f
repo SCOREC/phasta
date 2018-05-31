@@ -398,6 +398,7 @@ c
 c Zdenek Johan,  Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+      use interface_continuity_func_m, only: interface_continuity_res
       use pointer_data
         
       include "common.h"
@@ -549,6 +550,9 @@ c.... periodic nodes have to assemble results to their partners
 c
             call bc3per (iBC,  temp,  iper, ilwork, nflow) 
 c           call tnanq(temp,5, 'q_BCprs')
+c... continuous field across interface
+            call interface_continuity_res(temp)
+c
 c
 c.... subtract A x from residual and calculate the norm
 c           
@@ -595,7 +599,9 @@ c.... periodic nodes have to assemble results to their partners
 c
             call bc3per (iBC,  uBrg(:,:,iKs+1),  iper, ilwork, nflow)
 c           call tnanq(uBrg(:,:,iKS+1),5, 'q_bc')
-
+c... continuous field across interface
+            call interface_continuity_res( uBrg(:,:,iKs+1) )
+c
 c
 c.... orthogonalize and get the norm
 c

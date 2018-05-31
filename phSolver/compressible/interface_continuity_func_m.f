@@ -80,7 +80,7 @@ c... error msg
                 enddo
               enddo              
             else
-              write(*,*) "interface topology is not supported"
+              write(*,*) "interface element type is not supported"
               call error('alloc_init_interface_continuity','topology', itpid)
             endif
 c            
@@ -100,6 +100,7 @@ c
 c...............................................................................
 c... ensuring the continuous interface field during the correct and update stage for
 c... each non-linear iteration
+c...............................................................................
           use interface_continuity_data_m
           use interfaceflag
           use conpar_m, only:ndof,nshg
@@ -124,5 +125,38 @@ c
           enddo 
 c          
         endsubroutine itr_interface_continuity
+c
+        subroutine interface_continuity_res(res)
+c.............................................................................
+c This routine handles the continuious interface fields for assembled residual 
+c and the Ap product q within the linear solver
+c
+c input:
+c  res( or q) (nshg,nflow) : residual or q before continuious interface field is applied
+c
+c output:
+c  res( or q) (nshg,nflow) : residual or q after continuious interface field is applied
+c.............................................................................. 
+c
+          use interface_continuity_data_m
+          use interfaceflag
+          use conpar_m, only:nshg,nflow
+          use number_def_m
+          implicit none
+c
+          real*8, dimension(nshg,nflow) :: res
+          integer :: i,j
+c... continuous field across interface(no communications)
+          do j = 1,nshg
+            if ( (ifFlag(j) .eq. 1) .and. 
+     &           (i_if_pair(j) .ne. j) ) then !if j is interface pair slave
+              i = i_if_pair(j)
+              res(i,i_con_field) = res(i,i_con_field) + res(j,i_con_field)
+              res(j,i_con_field) = zero          
+            endif
+          enddo 
+c... need to handle the parallel communication in future
+c                           
+        end subroutine interface_continuity_res
 c     
       end module interface_continuity_func_m
