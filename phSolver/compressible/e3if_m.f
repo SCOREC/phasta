@@ -312,9 +312,13 @@ c
 c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
 c...debugging
-          real*8, dimension(nflow):: error_l, error_air
+          real*8, dimension(nflow+1):: error_l, error_air
+          real*8, dimension(nflow+1):: new_err
           real*8 :: q_air, q_l
           real*8, dimension(2) :: percent_air, percent_l
+          real*8, dimension(nflow+1) :: ratio_air, ratio_l
+          real*8, dimension(nflow) :: f_conv0_n0, f_diff0_n0
+          real*8, dimension(nflow) :: f_conv1_n1, f_diff1_n1
 c...end of debugging
 c
           element_loop: do iel = 1,npro
@@ -382,6 +386,8 @@ c
       if ( (iel .eq. 16) .and.(myrank .eq. 19) .and.(debug_flag .eq.1)) then
         error_l = zero
         error_air = zero
+c
+        new_err = zero
 c... prepare for momenum flux
         f_mon_n0 = dot_product(f0n0(2:4),nv0(iel,:))
         f_mon_n1 = dot_product(f1n1(2:4),nv1(iel,:))
@@ -396,13 +402,26 @@ c... error in momenum
 c... error in energy
         error_l(5) = abs(f_jump(iel,5))/abs(f1n1(5))
         error_air(5) = abs(f_jump(iel,5))/abs(f0n0(5))
+c... L2 norm of the mom error
+        error_l(6) = sqrt(dot_product( error_l(2:4),error_l(2:4)))
+        error_air(6) = sqrt(dot_product( error_air(2:4),error_air(2:4)))
+c... get the new error
+        new_err(1) = abs(f_jump(iel,1))/abs(one)
+c
+        do iflow = 2,4
+          new_err(iflow) = abs(f_jump(iel,iflow))/abs(1.082566624333975d3)
+        enddo
+c
+        new_err(5) = abs(f_jump(iel,5))/abs(4.214800000000000d5)
+c
+        new_err(6) = sqrt(dot_product( new_err(2:4),new_err(2:4)))
 c... get the conductive flux in normal direction
             q_air = zero
             q_l = zero
 c
-            q_air = prop0(iel)%stiff(5,5) 
+            q_air = prop0(iel)%stiff(5,5)
      &          * dot_product(var0(iel)%grad_y(:,5), nv0(iel,:))
-            q_l = prop1(iel)%stiff(5,5) 
+            q_l = prop1(iel)%stiff(5,5)
      &          * dot_product(var1(iel)%grad_y(:,5), nv1(iel,:))
 c... get the percentage of normal conductive heat flux
              percent_air(1) = abs(q_air)/abs(f0n0(5))
@@ -410,6 +429,25 @@ c... get the percentage of normal conductive heat flux
 c             
              percent_l(1) = abs(q_l)/abs(f1n1(5))
              percent_l(2) = abs(q_air- q_l)/abs(f1n1(5))
+c... get the ratio of convective flux to diffusive flux for each
+c... equation
+             ratio_l = zero
+             ratio_air = zero
+c
+
+             do iflow = 1,nflow
+               f_conv0_n0(iflow) = dot_product(fconv0(:,iflow),nv0(iel,:))
+               f_diff0_n0(iflow) = dot_product(fdiff0(:,iflow),nv0(iel,:))
+               f_conv1_n1(iflow) = dot_product(fconv1(:,iflow),nv1(iel,:))
+               f_diff1_n1(iflow) = dot_product(fdiff1(:,iflow),nv1(iel,:))
+c
+               ratio_air(iflow) = f_conv0_n0(iflow)/f_diff0_n0(iflow)
+               ratio_l(iflow) = f_conv1_n1(iflow)/f_diff1_n1(iflow)
+             enddo
+               ratio_air(6) =dot_product(f_conv0_n0(2:4),nv0(iel,:))
+     &                      /dot_product(f_diff0_n0(2:4),nv0(iel,:))
+               ratio_l(6) =dot_product(f_conv1_n1(2:4),nv1(iel,:))
+     &                      /dot_product(f_diff1_n1(2:4),nv1(iel,:))
 c
         write(*,*) 'qpt is',intp_flag
         write(*,*) 'rank is',myrank
