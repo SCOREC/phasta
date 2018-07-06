@@ -3,7 +3,7 @@
      &                     cv,        con,         T,
      &                     u1,        u2,          u3, 
      &                     um1,       um2,         um3,
-     &                     rLyi,      dxidx,       tau,   
+     &                     rLyi,      rLyi_ac,    dxidx,    tau,   
      &                     ri,        rmi,         rk,
      &                     dui,       aci,         A0,
      &                     divqi,     shape,       shg,
@@ -34,6 +34,7 @@ c  tau   (npro,3)             : stability parameter
 c  PTau  (npro,5,5)           : matrix of stability parameters
 c  rLyi  (npro,nflow)          : convective portion of least-squares
 c                               residual vector 
+c  rLyi_ac (npro,nflow)        : Strong residual with no multipled tau
 c  divqi (npro,nflow-1)        : divergence of diffusive flux
 c  shape (npro,nshl)        : element shape functions
 c  shg   (npro,nshl,nsd)    : global element shape function grads
@@ -65,7 +66,8 @@ c
      &            dui(npro,nflow),         aci(npro,nflow),
      &            u1(npro),                u2(npro),
      &            u3(npro),                rk(npro),
-     &            rLyi(npro,nflow),        dxidx(npro,nsd,nsd),
+     &            rLyi(npro,nflow),        rLyi_ac(npro,nflow),
+     &            dxidx(npro,nsd,nsd),
      &            tau(npro,5),             giju(npro,6),
      &            rTLS(npro),              raLS(npro),
      &            ri(npro,nflow*(nsd+1)),  rmi(npro,nflow*(nsd+1)),
@@ -190,7 +192,7 @@ c.... in the first incarnation we will ONLY have a diagonal tau here
           call e3tau  (rho,             cp,		rmu,
      &         u1,              u2,             u3,
      &         um1,             um2,            um3,
-     &         con,             dxidx,          rLyi,  
+     &         con,             dxidx,          rLyi,   rLyi_ac, 
      &         rLymi,           tau,            rk,
      &         giju,            rTLS,           raLS,
      &         A0inv,           dVdY,           cv)	

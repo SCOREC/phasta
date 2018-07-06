@@ -1,7 +1,7 @@
       subroutine e3tau  (rho,    cp,     rmu, 	
      &                     u1,     u2,     u3,
      &                     um1,    um2,    um3,
-     &                     con,    dxidx,  rLyi,
+     &                     con,    dxidx,  rLyi, rLyi_ac,
      &                     rLymi,  tau,    rk, 
      &                     giju,   rTLS,   raLS,
      &                     A0inv,  dVdY,   cv)
@@ -26,6 +26,7 @@ c  um2     (npro)           : ALE x2-velocity component
 c  um3     (npro)           : ALE x3-velocity component
 c  dxidx  (npro,nsd,nsd)   : inverse of deformation gradient
 c  rLyi   (npro,nflow)      : least-squares residual vector
+c  rLyi_ac   (npro,nflow)      : least-squares residual vector not multiplied by tau
 c  rLymi   (npro,nflow)     : modified least-squares residual vector
 c
 c output:
@@ -47,7 +48,8 @@ c
      &            um1(npro),                 um2(npro), 
      &            um3(npro),                             !FOR ALE 
      &            dxidx(npro,nsd,nsd),       rk(npro),
-     &            tau(npro,5),               rLyi(npro,nflow),
+     &            tau(npro,5),               rLyi(npro,nflow), 
+     &            rLyi_ac(npro,nflow),
      &            rLymi(npro,nflow),         dVdY(npro,15), 
      &            rTLS(npro),                raLS(npro),
      &            rLyitemp(npro,nflow),      detgijI(npro)
@@ -186,8 +188,11 @@ c     two residual vectors
 c
 c ... calculate (tau Ly) --> (rLyi)
 c ... storing rLyi for the DC term
-        if(iDC .ne. 0) rLyitemp=rLyi
-
+        if(iDC .ne. 0) then
+            rLyitemp=rLyi
+            rLyi_ac=rLyi
+        endif
+c
       if(ires.eq.3 .or. ires .eq. 1) then
          rLyi(:,1) = tau(:,1) * rLyi(:,1) 
          rLyi(:,2) = tau(:,2) * rLyi(:,2)

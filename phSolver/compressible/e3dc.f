@@ -1,5 +1,5 @@
-	subroutine e3DC (g1yi,   g2yi,   g3yi,   A0,     raLS,
-     &			 rtLS,   giju,   DC,     ri,
+	subroutine e3DC (g1yi,   g2yi,   g3yi,   A0,     raLS, 
+     &			 rtLS,   rLyi_ac,  giju,   DC,     ri,
      &                   rmi,    stiff, A0DC)
 c
 c----------------------------------------------------------------------
@@ -51,7 +51,8 @@ c
 	real*8, dimension(npro) :: nuShoc, hShoc, rtmp
 	real*8, dimension(nflow) :: UrefInv
 	real*8, dimension(npro,nsd*nflow) :: A0gyi_yzb
-	real*8, dimension(npro,nflow) :: rLyi_yzb
+	!real*8, dimension(npro,nflow) ::  rLyi_yzb
+	    dimension  rLyi_ac(npro,nflow), rlyi_yzb(npro,nflow)
 c ... -----------------------> initialize <----------------------------
 c
         A0gyi    = zero
@@ -358,7 +359,8 @@ c
 c----------------------------------------------------------------
 c------------------Evaluating nuShoc-----------------------------
 	    nuShoc = zero
-	    A0gyi_yzb = A0gyi
+	    A0gyi_yzb = zero !A0gyi
+	    rLyi_yzb = zero !rLyi_ac
 	    UrefInv(1) = 1.0/100
 	    UrefInv(2) = 1.0/10000
 	    UrefInv(3) = 1.0/10000
@@ -425,9 +427,29 @@ c
             !
         endif
         !--------------------------------------------------------------------
-	endif
+        !----------------------------RHS (stiff) --------------------------
 c
-c	endif
+	    if (iprec .eq. 1) then ! leave out of LHS, when called from itrres
+	        nflow2=two*nflow
+            do j = 1, nflow
+                do i = 1, nflow
+                    dtmp(:) = A0(:,i,j)*nuShoc(:)
+
+                    stiff(:,i,j) = stiff(:,i,j) 
+     &                    + dtmp(:)
+                    stiff(:,i+nflow,j+nflow) = stiff(:,i+nflow,j+nflow) 
+     &                    + dtmp(:)
+                    stiff(:,i+nflow2,j+nflow2) = stiff(:,i+nflow2,j+nflow2) 
+     &                    + dtmp(:)
+                enddo
+            enddo
+	    endif
+ 
+
+	endif ! iDC = 4 
+!----------------------------------------------------------------------------------
+c
+c
         if (iDC .le. 3) then
 c
 c.... ---------------------------->  RHS  <----------------------------

@@ -85,7 +85,7 @@ c
         dimension A0(npro,nflow,nflow),      A1(npro,nflow,nflow),
      &            A2(npro,nflow,nflow),      A3(npro,nflow,nflow)
 c
-        dimension rLyi(npro,nflow),          sgn(npro,nshl)
+        dimension rLyi(npro,nflow),   sgn(npro,nshl),  rLyi_ac(npro,nflow)
 c      
         dimension ri(npro,nflow*(nsd+1)),    rmi(npro,nflow*(nsd+1)),
      &            shape(npro,nshl),          shdrv(npro,nsd,nshl),
@@ -138,6 +138,8 @@ c.... initialize
 c
         ri  = zero
         rmi = zero
+        rLyi = zero
+        rLyi_ac = zero
         if (lhs .eq. 1) stiff = zero
 c
 c
@@ -228,7 +230,7 @@ c
      &               cv,              con,           T,  
      &               u1,              u2,            u3,              
      &               um1,             um2,           um3,              
-     &               rLyi,            dxidx,         tau,  
+     &               rLyi,     rLyi_ac,   dxidx,     tau,  
      &               ri,              rmi,           rk, 
      &               dui,             aci,           A0,
      &               divqi,           shape,         shg,
@@ -242,7 +244,7 @@ c....  Discontinuity capturing
 c
         if(iDC.ne.0) then
           call e3dc  (g1yi,          g2yi,          g3yi,
-     &                A0,            raLS,          rTLS,
+     &                A0,            raLS,          rTLS,   rLyi_ac,
      &                giju,          DC,            
      &                ri,            rmi,           stiff, A0DC)
         endif
