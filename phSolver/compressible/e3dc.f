@@ -43,6 +43,15 @@ c
      &            gnorm(npro),              A0gyi(npro,15),
      &            yiA0DCyj(npro,6),         A0DC(npro,4)
 c
+
+!---------- Variable definitions for yzb DC implementation------------- !AC
+	integer*4 :: beta
+	real*8, dimension(npro,nsd,nshl) :: shg
+	real*8, dimension(npro,nsd) :: gDensity
+	real*8, dimension(npro) :: nuShoc, hShoc, rtmp
+	real*8, dimension(nflow) :: UrefInv
+	real*8, dimension(npro,nsd*nflow) :: A0gyi_yzb
+	real*8, dimension(npro,nflow) :: rLyi_yzb
 c ... -----------------------> initialize <----------------------------
 c
         A0gyi    = zero
@@ -329,8 +338,97 @@ c
 !	    flops = flops + 48*npro
 c
 	  endif
+	iDC = 4
+	 if (iDC == 4) then
+	    beta = 2 
+	!-----------------Evaluating hShoc-----------------------------
+	    hShoc = zero
+        gDensity(:,1) = A0gyi(:,1)
+        gDensity(:,2) = A0gyi(:,6)
+        gDensity(:,3) = A0gyi(:,11)
+        do ishl=1, nshl
+            hShoc(:) = hShoc(:) + abs( gDensity(:,1)*shg(:,1,ishl) +   
+     &                                 gDensity(:,2)*shg(:,2,ishl) +  
+     &                                 gDensity(:,3)*shg(:,3,ishl)   )
+        enddo
+        rtmp(:) = sqrt(gDensity(:,1)**2 + gDensity(:,2)**2 + gDensity(:,3)**2)
+        where ( hShoc /= zero )
+            hshoc(:) = rtmp(:)/hShoc(:)
+        endwhere
+c----------------------------------------------------------------
+c------------------Evaluating nuShoc-----------------------------
+	    nuShoc = zero
+	    A0gyi_yzb = A0gyi
+	    UrefInv(1) = 1.0/100
+	    UrefInv(2) = 1.0/10000
+	    UrefInv(3) = 1.0/10000
+	    UrefInv(4) = 1.0/10000
+	    UrefInv(5) = 1.0/1000000
+c
+	    do iflow = 1, nflow
+	        rLyi_yzb(:,iflow) = rLyi_yzb(:,iflow)*UrefInv(iflow)
+	        A0gyi_yzb(:,iflow) = A0gyi_yzb(:,iflow)*UrefInv(iflow)
+	        A0gyi_yzb(:,nflow + iflow) = A0gyi_yzb(:,nflow + iflow)*UrefInv(iflow)
+	        A0gyi_yzb(:,2*nflow + iflow) = A0gyi_yzb(:,2*nflow + iflow)*UrefInv(iflow)
+	    enddo
+	    do isd = 1, nsd
+	        do iel = 1, nel
+	   nushoc(iel) = nushoc(iel) + dot_product(A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow),A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow))
+	        enddo
+	    enddo
+	    if (beta == 1) then
+	        do iel = 1, npro
+	            nuShoc(iel) = nuShoc(iel)**(-0.5)*(dot_product(rLyi_yzb(iel,:),rLyi_yzb(iel,:)))**0.5 * hShoc(iel)/2
+	        enddo
+	        print *, '1'
+	    elseif (beta == 2) then
+	        do iel = 1, npro
+	            nuShoc(iel) = (dot_product(rLyi_yzb(iel,:),rLyi_yzb(iel,:)))**0.5 * (hShoc(iel)/2)**2
+	        enddo
+	        print *, '2'
+	    endif
+!----------------------------------------------------------------------------------------------------
+!--------------------------------RHS--------------------------------------------
+        if ((ires .eq. 1) .or. (ires .eq. 3)) then
+            ri ( :,1) = ri ( :,1) + nuShoc(:) * A0gyi_yzb( :,1)
+            rmi( :,1) = rmi( :,1) + nuShoc(:) * A0gyi_yzb( :,1) 
+            ri ( :,2) = ri ( :,2) + nuShoc(:) * A0gyi_yzb( :,2)
+            rmi( :,2) = rmi( :,2) + nuShoc(:) * A0gyi_yzb( :,2)
+            ri ( :,3) = ri ( :,3) + nuShoc(:) * A0gyi_yzb( :,3)
+            rmi( :,3) = rmi( :,3) + nuShoc(:) * A0gyi_yzb( :,3)
+            ri ( :,4) = ri ( :,4) + nuShoc(:) * A0gyi_yzb( :,4)
+            rmi( :,4) = rmi( :,4) + nuShoc(:) * A0gyi_yzb( :,4)
+            ri ( :,5) = ri ( :,5) + nuShoc(:) * A0gyi_yzb( :,5)
+            rmi( :,5) = rmi( :,5) + nuShoc(:) * A0gyi_yzb( :,5)
+            !
+            ri ( :,6) = ri ( :,6) + nuShoc(:) * A0gyi_yzb( :,6)
+            rmi( :,6) = rmi( :,6) + nuShoc(:) * A0gyi_yzb( :,6)
+            ri ( :,7) = ri ( :,7) + nuShoc(:) * A0gyi_yzb( :,7)
+            rmi( :,7) = rmi( :,7) + nuShoc(:) * A0gyi_yzb( :,7)
+            ri ( :,8) = ri ( :,8) + nuShoc(:) * A0gyi_yzb( :,8)
+            rmi( :,8) = rmi( :,8) + nuShoc(:) * A0gyi_yzb( :,8)
+            ri ( :,9) = ri ( :,9) + nuShoc(:) * A0gyi_yzb( :,9)
+            rmi( :,9) = rmi( :,9) + nuShoc(:) * A0gyi_yzb( :,9)
+            ri ( :,10) = ri ( :,10) + nuShoc(:) * A0gyi_yzb( :,10)
+            rmi( :,10) = rmi( :,10) + nuShoc(:) * A0gyi_yzb( :,10)
+            !
+            ri ( :,11) = ri ( :,11) + nuShoc(:) * A0gyi_yzb( :,11)
+            rmi( :,11) = rmi( :,11) + nuShoc(:) * A0gyi_yzb( :,11)
+            ri ( :,12) = ri ( :,12) + nuShoc(:) * A0gyi_yzb( :,12)
+            rmi( :,12) = rmi( :,12) + nuShoc(:) * A0gyi_yzb( :,12)
+            ri ( :,13) = ri ( :,13) + nuShoc(:) * A0gyi_yzb( :,13)
+            rmi( :,13) = rmi( :,13) + nuShoc(:) * A0gyi_yzb( :,13)
+            ri ( :,14) = ri ( :,14) + nuShoc(:) * A0gyi_yzb( :,14)
+            rmi( :,14) = rmi( :,14) + nuShoc(:) * A0gyi_yzb( :,14)
+            ri ( :,15) = ri ( :,15) + nuShoc(:) * A0gyi_yzb( :,15)
+            rmi( :,15) = rmi( :,15) + nuShoc(:) * A0gyi_yzb( :,15)
+            !
+        endif
+        !--------------------------------------------------------------------
+	endif
 c
 c	endif
+        if (iDC .le. 3) then
 c
 c.... ---------------------------->  RHS  <----------------------------
 c
@@ -460,6 +558,7 @@ c
 c.... end of stiffness
 c
 	endif
+        endif  ! iDC <=3
 c
 c.... return
 c
