@@ -359,8 +359,8 @@ c
 c----------------------------------------------------------------
 c------------------Evaluating nuShoc-----------------------------
 	    nuShoc = zero
-	    A0gyi_yzb = zero !A0gyi
-	    rLyi_yzb = zero !rLyi_ac
+	    A0gyi_yzb = A0gyi
+	    rLyi_yzb = rLyi_ac
 	    UrefInv(1) = 1.0/100
 	    UrefInv(2) = 1.0/10000
 	    UrefInv(3) = 1.0/10000
@@ -382,12 +382,10 @@ c
 	        do iel = 1, npro
 	            nuShoc(iel) = nuShoc(iel)**(-0.5)*(dot_product(rLyi_yzb(iel,:),rLyi_yzb(iel,:)))**0.5 * hShoc(iel)/2
 	        enddo
-	        print *, '1'
 	    elseif (beta == 2) then
 	        do iel = 1, npro
 	            nuShoc(iel) = (dot_product(rLyi_yzb(iel,:),rLyi_yzb(iel,:)))**0.5 * (hShoc(iel)/2)**2
 	        enddo
-	        print *, '2'
 	    endif
 !----------------------------------------------------------------------------------------------------
 !--------------------------------RHS--------------------------------------------
