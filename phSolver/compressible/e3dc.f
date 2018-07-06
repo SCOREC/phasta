@@ -1,6 +1,6 @@
 	subroutine e3DC (g1yi,   g2yi,   g3yi,   A0,     raLS, 
      &			 rtLS,   rLyi_ac,  giju,   DC,     ri,
-     &                   rmi,    stiff, A0DC)
+     &                   rmi,    stiff, A0DC, shg)
 c
 c----------------------------------------------------------------------
 c
@@ -46,13 +46,13 @@ c
 
 !---------- Variable definitions for yzb DC implementation------------- !AC
 	integer*4 :: beta
-	real*8, dimension(npro,nsd,nshl) :: shg
-	real*8, dimension(npro,nsd) :: gDensity
+	dimension shg(npro,nshl,nsd) 
+	!real*8, dimension(npro,nsd) :: gDensity
 	real*8, dimension(npro) :: nuShoc, hShoc, rtmp
 	real*8, dimension(nflow) :: UrefInv
 	real*8, dimension(npro,nsd*nflow) :: A0gyi_yzb
 	!real*8, dimension(npro,nflow) ::  rLyi_yzb
-	    dimension  rLyi_ac(npro,nflow), rlyi_yzb(npro,nflow)
+	    dimension  rLyi_ac(npro,nflow), rlyi_yzb(npro,nflow), gDensity(npro,nsd)
 c ... -----------------------> initialize <----------------------------
 c
         A0gyi    = zero
@@ -342,31 +342,35 @@ c
 	iDC = 4
 	 if (iDC == 4) then
 	    beta = 2 
+	    print *, beta
 	!-----------------Evaluating hShoc-----------------------------
 	    hShoc = zero
+	    rtmp = zero
+	    gDensity = zero
         gDensity(:,1) = A0gyi(:,1)
         gDensity(:,2) = A0gyi(:,6)
         gDensity(:,3) = A0gyi(:,11)
         do ishl=1, nshl
-            hShoc(:) = hShoc(:) + abs( gDensity(:,1)*shg(:,1,ishl) +   
-     &                                 gDensity(:,2)*shg(:,2,ishl) +  
-     &                                 gDensity(:,3)*shg(:,3,ishl)   )
+            do iel = 1, npro
+                hShoc(iel) = hShoc(iel) +  abs( gDensity(iel,1) * shg(iel,ishl,1) +
+     &                                     gDensity(iel,2) * shg(iel,ishl,2) +
+     &                                     gDensity(iel,3) * shg(iel,ishl,3)  )
+            enddo
         enddo
         rtmp(:) = sqrt(gDensity(:,1)**2 + gDensity(:,2)**2 + gDensity(:,3)**2)
-        where ( hShoc /= zero )
-            hshoc(:) = rtmp(:)/hShoc(:)
+        where ( abs(hShoc) /= 0.d0 )
+            hShoc(:) = rtmp(:)/hShoc(:)
         endwhere
 c----------------------------------------------------------------
 c------------------Evaluating nuShoc-----------------------------
 	    nuShoc = zero
 	    A0gyi_yzb = A0gyi
 	    rLyi_yzb = rLyi_ac
-	    UrefInv(1) = 1.0/100
-	    UrefInv(2) = 1.0/10000
-	    UrefInv(3) = 1.0/10000
-	    UrefInv(4) = 1.0/10000
-	    UrefInv(5) = 1.0/1000000
-c
+	    UrefInv(1) = 1.0d0/1.0d2
+	    UrefInv(2) = 1.0d0/1.0d4
+	    UrefInv(3) = 1.0d0/1.0d4
+	    UrefInv(4) = 1.0d0/1.0d4
+	    UrefInv(5) = 1.0d0/1.0d6
 	    do iflow = 1, nflow
 	        rLyi_yzb(:,iflow) = rLyi_yzb(:,iflow)*UrefInv(iflow)
 	        A0gyi_yzb(:,iflow) = A0gyi_yzb(:,iflow)*UrefInv(iflow)
@@ -374,7 +378,7 @@ c
 	        A0gyi_yzb(:,2*nflow + iflow) = A0gyi_yzb(:,2*nflow + iflow)*UrefInv(iflow)
 	    enddo
 	    do isd = 1, nsd
-	        do iel = 1, nel
+	        do iel = 1, npro
 	   nushoc(iel) = nushoc(iel) + dot_product(A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow),A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow))
 	        enddo
 	    enddo

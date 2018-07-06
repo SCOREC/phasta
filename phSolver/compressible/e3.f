@@ -246,7 +246,7 @@ c
           call e3dc  (g1yi,          g2yi,          g3yi,
      &                A0,            raLS,          rTLS,   rLyi_ac,
      &                giju,          DC,            
-     &                ri,            rmi,           stiff, A0DC)
+     &                ri,            rmi,           stiff, A0DC, shg)
         endif
 c
 c
