@@ -44,7 +44,7 @@ c
         call localx(x,      xlb,    ienb,   nsd,    'gather  ')
         call local (umesh,  uml,    ienb,   nsd,    'gather  ')
 c... hacking, localize the weighted normal
-        call localx(w_normal_b_global, w_normal_b_l, ienb , nsd, 'gather')
+        call localx(w_normal_b_global, w_normal_b_l, ienb , nsd, 'gather  ')
 c... end of hacking                
 c
 c      do iel = 1,npro

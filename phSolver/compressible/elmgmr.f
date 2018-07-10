@@ -677,7 +677,7 @@ c...communication of the weighted normal
         endif
 c...normalize the weighted normal
         do inode = 1, nshg
-          if ( (m2gClsfcn(i,1) .eq. 2) .and. 
+          if ( ( (m2gClsfcn(inode,1) .le. 2) ) .and.
      &         (ifFlag(inode) .ne. 1) ) then ! if vetex on the face 
                                              ! but not on interface
             length_temp(inode) = sqrt( w_normal_b_global(inode,1)
@@ -690,6 +690,8 @@ c...normalize the weighted normal
               w_normal_b_global(inode,isd) = w_normal_b_global(inode,isd) 
      &                                     / length_temp(inode)
             enddo
+c          else
+c            w_normal_b_global(inode,:) = zero
           endif
         enddo
 c... changing from inward normal to outward normal
@@ -729,7 +731,7 @@ c
           else
              allocate (EGmass(1,1,1))
           endif
-c... hacking. allocation of w_normal_l0 and w_normal_l1
+c... hacking. allocation of local weighted normal
           allocate(w_normal_b_l(npro,nshl,nsd))
 c... end of hacking   
           
