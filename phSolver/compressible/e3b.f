@@ -53,6 +53,8 @@ c Anilkumar Karanam Spring 2000 (Modified for Hierarchic Hexes)
 c----------------------------------------------------------------------
 c
         use e3_param_m
+        use hack_weighted_normal_m ! hacking
+        use weighted_normal_m ! hacking
 c
         include "common.h"
 c
@@ -146,6 +148,9 @@ c
 !     &               rou,          p,
      &               Fv2,             Fv3,          Fv4,
      &               Fh5,             dNadx,        uml)
+c
+c... Hacking to use the weighted normal
+        call hack_weighted_normal(bnorm, w_normal_b_l, shape, nshl)
 c
 c.... ires = 1 or 3
 c
