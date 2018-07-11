@@ -310,6 +310,7 @@ c
         use probe_m
         use ifbc_def_m
         use print_kappa_dc_func_m
+        use print_kappa_dc_data_m
 c
         include "common.h"
         include "mpif.h"
@@ -586,6 +587,13 @@ c
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
      &                 rerr,                umesh )
+c.... map local element to global
+          do i = 1, npro
+            kappa_dc(mieMap(iblk)%p(i),:,:) = kappa_dc_blk(i,:,:)
+            kappa_dc_f(mieMap(iblk)%p(i)) = kappa_dc_f_blk(i)
+            pe_t_dc(mieMap(iblk)%p(i)) = pe_t_dc_blk(i)
+          enddo
+     
 c
           if(lhs.eq.1) then
 c
