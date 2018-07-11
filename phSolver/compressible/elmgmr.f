@@ -309,6 +309,7 @@ c
         use e3_solid_m
         use probe_m
         use ifbc_def_m
+        use print_kappa_dc_func_m
 c
         include "common.h"
         include "mpif.h"
@@ -450,6 +451,9 @@ c
 c.... set up parameters
 c
         ires   = 1
+c... debug
+        call alloc_int_print_kappa_dc_blk
+c... end of debug        
 c
         if (idiff==1 .or. idiff==3 .or. isurf==1) then ! global reconstruction of qdiff
 c
@@ -601,6 +605,9 @@ c
           deallocate ( EGmass )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
+c... debug
+          call dealloc_print_kappa_dc_blk
+c... end of debug          
 c
 c.... end of interior element loop
 c

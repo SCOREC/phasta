@@ -43,6 +43,7 @@ c
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
+      use print_kappa_dc_func_m
 c
         include "common.h"
         include "mpif.h"
@@ -179,6 +180,9 @@ c
         acold  = ac
         umeshold = umesh
         xold   = x
+c... debug
+        call alloc_init_print_kappa_dc
+c... end of debug        
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
@@ -1163,6 +1167,9 @@ c.... deallocate comp1_elas magnitude if time-depended option is on
 
 c      close (iecho)
       if(iabc==1) deallocate(acs)
+c... debug
+      call dealloc_print_kappa_dc
+c... end of debug      
 c
 c.... end
 c
