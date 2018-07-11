@@ -192,6 +192,8 @@ void countfieldstowriterestart()
 
   if(outpar.write_residual == 1){
     nfields++; /* non-linear residual */
+    nfields = nfields + 1; /* hacking, for print kapp_dc */
+
   }
 
   if(outpar.ivort == 1){
