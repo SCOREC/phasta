@@ -40,11 +40,16 @@ c...
 c...
           use print_kappa_dc_data_m
           use propar_m, only: npro
+          use number_def_m
           implicit none
 c
           allocate(kappa_dc_blk(npro, 3, 3))
           allocate(kappa_dc_f_blk(npro))
-          allocate(pe_t_dc_blk(npro))          
+          allocate(pe_t_dc_blk(npro))
+c
+          kappa_dc_blk = zero
+          kappa_dc_f_blk = zero
+          pe_t_dc_blk = zero          
 c
         end subroutine alloc_int_print_kappa_dc_blk
 c
