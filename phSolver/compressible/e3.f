@@ -46,6 +46,7 @@ c Chris Whiting, Winter 1998.  (LHS matrix formation)
 c----------------------------------------------------------------------
 c
         use e3_param_m
+        use print_kappa_dc_func_m
 c
         include "common.h"
 c
@@ -245,6 +246,12 @@ c
      &                A0,            raLS,          rTLS,
      &                giju,          DC,            
      &                ri,            rmi,           stiff, A0DC)
+c... debugging, calculate kappa dc
+           call calc_kappa_dc(A0(:,5,5), giju,  DC,  rho,
+     &                           cp,     u1,    u2,  u3,
+     &                           xl,     shape, intp,nshl,
+     &                           ngauss )
+c... end of debugging     
         endif
 c
 c
