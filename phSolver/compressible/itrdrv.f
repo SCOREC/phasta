@@ -44,6 +44,7 @@ c
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
       use print_kappa_dc_func_m
+      use print_kappa_dc_data_m
 c
         include "common.h"
         include "mpif.h"
@@ -989,15 +990,23 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                  meshq, 'd'//char(0), numel, 1,   lstep)
-		 endif
-		 if (write_residual.eq.1) then
+                 endif
+                 if (write_residual.eq.1) then
                    call write_field(
      &                  myrank,'a'//char(0),'residual'//char(0), 8,
      &                  res,  'd'//char(0), nshg, 5, lstep)
+c... hacking, printing kappa_dc and peclet number by kappa_dc
+                   call write_field(
+     &                  myrank,'a'//char(0),'kappa_dc'//char(0), 8,
+     &                  kappa_dc_f, 'd'//char(0), numel, 1, lstep)
+c                    
+                   call write_field(
+     &                  myrank,'a'//char(0),'pe_t_dc'//char(0), 7,
+     &                  pe_t_dc, 'd'//char(0), numel, 1, lstep)    
                  endif
 c
 c
-      if (solid_p%is_active) call write_restart_solid
+                if (solid_p%is_active) call write_restart_solid
 c
                  call write_field(
      &               myrank,'a'//char(0),'material_type'//char(0),13,
@@ -1025,11 +1034,19 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                meshq, 'd'//char(0), numel, 1,   lstep)
-	       endif
-	       if (write_residual.eq.1) then
+               endif
+               if (write_residual.eq.1) then
                  call write_field(
      &                myrank,'a'//char(0),'residual'//char(0), 8,
      &                res,  'd'//char(0), nshg, 5, lstep)
+c... hacking, printing kappa_dc and peclet number by kappa_dc
+                 call write_field(
+     &                  myrank,'a'//char(0),'kappa_dc'//char(0), 8,
+     &                  kappa_dc_f, 'd'//char(0), numel, 1, lstep)
+c                    
+                 call write_field(
+     &                  myrank,'a'//char(0),'pe_t_dc'//char(0), 7,
+     &                  pe_t_dc, 'd'//char(0), numel, 1, lstep)         
                endif
 c
                   call write_field(
