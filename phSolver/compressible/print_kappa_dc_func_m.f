@@ -134,7 +134,8 @@ c
           enddo
 c... local pe number
           do iel  = 1, npro
-            pe_t_dc_blk(iel) = pe_t_dc_blk(iel) + rho(iel)* u_n(iel)* cp(iel)
+            pe_t_dc_blk(iel) = pe_t_dc_blk(iel) + rho(iel)*abs(u_n(iel))
+     &                                          * cp(iel)
      &                                          *length(iel)/ temp2(iel)/ngauss
           enddo                                                                           
 c
