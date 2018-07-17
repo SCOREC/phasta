@@ -452,9 +452,6 @@ c
 c.... set up parameters
 c
         ires   = 1
-c... debug
-        call alloc_int_print_kappa_dc_blk
-c... end of debug        
 c
         if (idiff==1 .or. idiff==3 .or. isurf==1) then ! global reconstruction of qdiff
 c
@@ -540,6 +537,9 @@ c
           inum   = iel + npro - 1
           ngauss = nint(lcsyst)
 c
+c... debug
+        call alloc_int_print_kappa_dc_blk
+c... end of debug        
 c.... compute and assemble the residual and tangent matrix
 c
           if(lhs.eq.1) then
