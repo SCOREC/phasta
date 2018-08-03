@@ -129,15 +129,11 @@ c
 c... calculate the L2 norm of tangential condition in x,y,z direction
            do i = 1, npro
              do iflow = 1, nflow
-               int_err_if_tan_1_blk(i,iflow) = int_err_if_tan_1_blk(i,iflow)
-     &                                       + cy_jump_1(i,iflow,1)**two
+               do isd = 1, nsd
+                 int_err_if_tan_blk(i,iflow) = int_err_if_tan_blk(i,iflow)
+     &                                       + cy_jump_1(i,iflow,isd)**two
      &                                       * WdetJif1(i)
-               int_err_if_tan_2_blk(i,iflow) = int_err_if_tan_2_blk(i,iflow)
-     &                                       + cy_jump_1(i,iflow,2)**two
-     &                                       * WdetJif1(i)
-               int_err_if_tan_3_blk(i,iflow) = int_err_if_tan_3_blk(i,iflow)
-     &                                       + cy_jump_1(i,iflow,3)**two
-     &                                       * WdetJif1(i)
+               enddo
              enddo
            enddo
 c...                                  
