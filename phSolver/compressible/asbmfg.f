@@ -43,6 +43,10 @@ c
         call localx(x,      xlb,    ienb,   nsd,    'gather  ')
         call local (umesh,  uml,    ienb,   nsd,    'gather  ')
 c
+        if (numrbs .gt. 0) then
+          call local_rbIndex (ienb, npro, nshl)
+        endif
+c
 c      do iel = 1,npro
 c        do n = 1,nshlb
 c          i = ienb(iel,n)
@@ -74,7 +78,11 @@ c
         call local(res,    rl,     ienb,   nflow,  'scatter ')
         if (Navier .eq. 1 .and. ires.ne.1 )
      &    call local(rmes,   rml,    ienb,   nflow,  'scatter ')
-        
+c
+        if (numrbs .gt. 0) then
+          call release_rbIndex
+        endif
+c
         !end
         return
         end

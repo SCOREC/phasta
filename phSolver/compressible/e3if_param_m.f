@@ -54,6 +54,7 @@ c
         real*8, dimension(:,:,:,:), pointer :: Ai0, Ai1, AiNa0, AiNa1, KijNaj0, KijNaj1, KijNajC0, KijNajC1
         real*8, dimension(:,:,:,:,:), pointer :: Kij0, Kij1
         real*8, dimension(:,:,:), pointer :: egmass00, egmass01, egmass10, egmass11
+        real*8, dimension(:,:,:), pointer :: BDiagl_00, BDiagl_11  ! local Block-Diagonal preconditioner
 c
 c... evaluated parameters at the integration point
 c
@@ -187,6 +188,9 @@ c
           allocate(mu(npro,nflow))
           allocate(ch0(npro),ch1(npro))
 c
+          allocate(BDiagl_00(npro,nshl0,nflow*nflow))
+          allocate(BDiagl_11(npro,nshl1,nflow*nflow))          
+c
         end subroutine e3if_malloc
 c
         subroutine e3if_mfree
@@ -246,6 +250,8 @@ c
 c
           deallocate(mu)
           deallocate(ch0,ch1)
+c
+          deallocate(BDiagl_00, BDiagl_11)
 c
         end subroutine e3if_mfree
 c

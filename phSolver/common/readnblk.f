@@ -13,6 +13,14 @@ c
         real*8, allocatable :: m2gParCoord(:,:)
       end module
 
+      module rigidBodyReadData
+        integer              :: rbUseReadData
+        integer, allocatable :: rbIDs(:)
+        integer, allocatable :: rbMTs(:)
+        integer, allocatable :: rbFlags(:)
+        real*8,  allocatable :: rbParamRead(:,:)
+      end module
+
       module interfaceflag
         integer, allocatable :: ifFlag(:)
       end module
@@ -29,6 +37,7 @@ c
 
       use m2gfields
       use interfaceflag
+      use rigidBodyReadData
       use BLparameters
 
       real*8, allocatable :: point2x(:,:)
@@ -76,6 +85,8 @@ c
       integer, target, allocatable :: tmpBLInt(:), tmpBLlist(:)
       integer, target, allocatable :: tmpm2gClsfcn(:,:)
       integer, target, allocatable :: tmpifFlag(:)
+      integer, target, allocatable :: tmprbIDs(:), tmprbMTs(:), tmprbFlags(:)
+      real*8, target, allocatable  :: tmprbParamRead(:,:)
       integer fncorpsize
       character*10 cname2, cname2nd
       character*8 mach2
@@ -452,6 +463,88 @@ c
          deallocate( tmpifFlag )
       endif
 c
+c--------------------- read rigid body tag ------------------
+c
+c.... read IDs and model tags
+        ione=1
+        intfromfile=0
+        if (numrbs > 0) then
+          allocate( tmprbIDs(numrbs) )
+          allocate( tmprbMTs(numrbs) )
+          allocate( rbIDs(numrbs) )
+          allocate( rbMTs(numrbs) )
+          rbIDs = -1
+          rbMTs = -1
+c
+          call phio_readheader(fhandle,
+     &     c_char_'rigid body IDs' // char(0),
+     &     c_loc(intfromfile),ione, dataInt, iotype)
+          if(intfromfile(1) .ne. numrbs) then
+            call error ('readnblk  ', 'num of rbs not equal input'
+     &                  , intfromfile(1))
+          endif
+          call phio_readdatablock(fhandle,
+     &     c_char_'rigid body IDs' // char(0),
+     &     c_loc(tmprbIDs),numrbs, dataInt, iotype)
+c
+          call phio_readheader(fhandle,
+     &     c_char_'rigid body MTs' // char(0),
+     &     c_loc(intfromfile),ione, dataInt, iotype)
+          if(intfromfile(1) .ne. numrbs) then
+            call error ('readnblk  ', 'num of rbs not equal input'
+     &                  , intfromfile(1))
+          endif
+          call phio_readdatablock(fhandle,
+     &     c_char_'rigid body MTs' // char(0),
+     &     c_loc(tmprbMTs),numrbs, dataInt, iotype)
+c
+          do i = 1, numrbs
+            do j = 1, numrbs
+              if(tmprbIDs(i) .eq. rbsTags(j)) then
+                rbIDs(j) = tmprbIDs(i)
+                rbMTs(j) = tmprbMTs(i)
+              endif
+            enddo
+          enddo
+          deallocate( tmprbIDs )
+          deallocate( tmprbMTs )
+        else
+          allocate( rbIDs(1) )
+          allocate( rbMTs(1) )
+          rbIDs = -1
+          rbMTs = -1
+          numrbs = 0 ! make sure it is not negative
+        endif
+c
+c.... read tag for each vertex
+      intfromfile=0
+      call phio_readheader(fhandle,
+     & c_char_'rigid body tag' // char(0),
+     & c_loc(intfromfile), ione, dataInt, iotype)
+
+      if ( intfromfile(1) .gt. 0 ) then
+        if ( intfromfile(1) .ne. numnp ) then
+          call error ('readnblk  ', 'size of rigid body tag ', intfromfile(1))
+        endif
+        allocate( tmprbFlags(numnp) )
+        allocate( rbFlags(numnp) )
+        rbFlags = 0
+        call phio_readdatablock(fhandle,
+     &   c_char_'rigid body tag' // char(0),
+     &   c_loc(tmprbFlags), intfromfile(1), dataInt, iotype)
+        do i = 1, numnp
+          do j = 1, numrbs
+            if(tmprbFlags(i) .eq. rbsTags(j)) rbFlags(i) = j
+          enddo
+        enddo
+        deallocate( tmprbFlags )
+      else
+        allocate( rbFlags(1) )
+        rbFlags = 0
+      endif
+c
+c--------------------- end read rigid body tag --------------
+c
 c--------------------- read the layered mesh parameters ------------------
 c
 c.... first layer thickness
@@ -672,8 +765,11 @@ c
       if (myrank.eq.master) then
         write(*,*) 'time to read geombc (seconds)', iotime
       endif
-
-c.... Read restart files
+c
+c-------------------------------------------------------------------------
+c------------------------- Read restart files ----------------------------
+c-------------------------------------------------------------------------
+c
       iotime = TMRC()
       if( input_mode .eq. -1 ) then
         call streamio_setup_read(fhandle, geomRestartStream)
@@ -867,6 +963,49 @@ c read in umesh
        endif
 c
 c.... end read ALE stuff
+c
+c
+c.... read in rigid body data
+c
+       rbUseReadData = 0
+       if (numrbs .gt. 0) then
+         intfromfile=0
+         call phio_readheader(fhandle,
+     &   c_char_'rbParams' //char(0),
+     &   c_loc(intfromfile), itwo, dataInt, iotype)
+c
+         allocate( rbParamRead(numrbs, rbParamSize) )
+         rbParamRead = zero
+c
+         if(intfromfile(1).ne.0) then
+           if (intfromfile(1) .ne. numrbs)
+     &       call error ('restar  ', 'rbParams size 1', numrbs)
+           if (intfromfile(2) .ne. rbParamSize)
+     &       call error ('restar  ', 'rbParams size 2', rbParamSize)
+c
+           rbUseReadData = 1 ! turn on use read data flag
+           allocate( tmprbParamRead(numrbs, rbParamSize) )
+           tmprbParamRead = zero
+c
+           iacsiz=numrbs * rbParamSize
+           call phio_readdatablock(fhandle,
+     &     c_char_'rbParams' // char(0),
+     &     c_loc(tmprbParamRead), iacsiz, dataDbl, iotype)
+c
+           rbParamRead(:,:) = tmprbParamRead(:,:)
+c
+           deallocate( tmprbParamRead )
+c
+         else
+           if (myrank.eq.master) then
+             warning='Rigid body data is set to zero (SAFE)'
+             write(*,*) warning
+           endif
+         endif
+c
+       endif ! end if numrbs greater than 0
+c
+c.... end read rigid body data
 c
 cc
 cc.... read the header and check it against the run data

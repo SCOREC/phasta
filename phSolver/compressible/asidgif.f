@@ -4,8 +4,8 @@
      &   y,        x,       umesh,
      &   shpif0,   shpif1,  shgif0,  shgif1,
      &   qwtif, qwtif0,   qwtif1,
-     &   ienif0,   ienif1
-     & )  
+     &   ienif0,   ienif1,
+     &   BDiag)  
 c
 c----------------------------------------
 c    aims to localize, compute and assemble
@@ -17,6 +17,7 @@ c----------------------------------------
           use e3if_geom_m
           use if_global_m
           use conpar_m
+          use genpar_m, only: iprec
 c
           implicit none
 c
@@ -29,8 +30,10 @@ c
           real*8, dimension(nsd,nshl0,nqpt), intent(in)  :: shgif0
           real*8, dimension(nsd,nshl1,nqpt), intent(in)  :: shgif1
           real*8, dimension(nqpt), intent(in) :: qwtif, qwtif0, qwtif1
+          real*8, dimension(nshg,nflow,nflow), intent(inout) :: BDiag
           integer, dimension(:,:), pointer, intent(in)   :: ienif0, ienif1
-      integer :: i0,i1,iel,n,i,npro_,imin(5),imax(5)
+          integer :: i0,i1,iel,n,i,npro_,imin(5),imax(5)
+          integer :: j, k, j0, loc
 c
 #define debug 0
 #define debugifbc 1
@@ -129,6 +132,38 @@ c
         enddo
       enddo
 #endif
+c... get the element preconditioner
+c... extract and assemble the Block-Diagonal (same as ASIGMR)
+        BDiagl_00 = zero
+        BDiagl_11 = zero
+c        
+        if (iprec .ne. 0) then 
+          do i = 1, nshl0
+              do j = 1, nflow
+                 i0 = (i - 1) * nflow + j
+                 do k = 1, nflow
+                    j0 = (i - 1) * nflow + k
+                    loc = (k-1)*nflow + j ! the index number when converting 5 by 5 into 25 by 1 vector
+                    BDiagl_00(:,i,loc) = egmass00(:,i0,j0)
+                 enddo
+              enddo
+           enddo
+c
+           do i = 1, nshl1
+              do j = 1, nflow
+                 i0 = (i - 1) * nflow + j
+                 do k = 1, nflow
+                    j0 = (i - 1) * nflow + k
+                    loc = (k-1)*nflow + j
+                    BDiagl_11(:,i,loc) = egmass11(:,i0,j0)
+                 enddo
+              enddo
+           enddo
+c           
+           call local (BDiag,  BDiagl_00, ienif0, nflow*nflow, 'scatter ', nshg, nshl0,npro,ipord)
+           call local (BDiag,  BDiagl_11, ienif1, nflow*nflow, 'scatter ', nshg, nshl1,npro,ipord)
+        endif
+c
 c
         call local (sum_vi_area, sum_vi_area_l0, ienif0, nsd+1, 'scatter ', nshg, nshl0,npro,ipord)
         call local (sum_vi_area, sum_vi_area_l1, ienif1, nsd+1, 'scatter ', nshg, nshl1,npro,ipord)

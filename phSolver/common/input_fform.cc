@@ -424,11 +424,11 @@ int input_fform(phSolver::Input& inp)
     ivec.erase(ivec.begin(),ivec.end());
 
     if ( (string)inp.GetValue("Time depended comp1_elas option") == "False" ){
-	  snapmesh.timeDepComp1Flag = 0;
-	}
-	else if ( (string)inp.GetValue("Time depended comp1_elas option") == "True" ){
-	  snapmesh.timeDepComp1Flag = 1;
-	}
+      snapmesh.timeDepComp1Flag = 0;
+    }
+    else if ( (string)inp.GetValue("Time depended comp1_elas option") == "True" ){
+      snapmesh.timeDepComp1Flag = 1;
+    }
     else {
       cout << " Time depended comp1_elas option: Only Legal Values (True, False) ";
       cout << endl;
@@ -436,6 +436,18 @@ int input_fform(phSolver::Input& inp)
     }
 
     snapmesh.timeDepComp1ID = inp.GetValue("Time depended comp1_elas surf ID");
+
+    if ( (string)inp.GetValue("Mesh repositioning base face option") == "All-Boundary" ) {
+      laymesh.gcBaseOpt = 0;
+    }
+    else if ( (string)inp.GetValue("Mesh repositioning base face option") == "Interface-Only" ) {
+      laymesh.gcBaseOpt = 1;
+    }
+    else {
+      cout << "Mesh repositioning base face option: Only Legal Values (All-Boundary, Interface-Only)";
+      cout << endl;
+      exit(1);
+    }
 
     outpar.iv_rankpercore = inp.GetValue("Ranks per core");
     outpar.iv_corepernode = inp.GetValue("Cores per node");
@@ -585,7 +597,80 @@ int input_fform(phSolver::Input& inp)
       }
       vec.erase(vec.begin(),vec.end());
     }
-    
+
+// read rigid body parameters, properties and constraints ---------------
+    rigidbody.numrbs = inp.GetValue("Number of Rigid Bodies");
+    if (rigidbody.numrbs > MAXTS) {
+      cout << "ERROR in Input: increase MAXTS and recompile\n";
+      exit(1);
+    }
+
+    ivec = inp.GetValue("Rigid Body Tags");
+    for (i = 0; i < rigidbody.numrbs; ++i)
+      rigidbody.rbsTags[i] = ivec[i];
+    ivec.erase(ivec.begin(),ivec.end());
+
+    string RBsbuf = (string)inp.GetValue("Rigid Body Motion Mode");
+    stringstream RBss(RBsbuf);
+    for (i = 0; i < rigidbody.numrbs; ++i){
+      if (!RBss.good()) {
+        cout << "Error: while reading Rigid Body Motion Mode!\n";
+        exit(1);
+      }
+      string RBstr;
+      RBss >> RBstr;
+      if (RBstr == "Translation-only") {
+        rigidbody.rbsMM[i] = 1;
+      }
+      else if (RBstr == "Rotation-only") {
+        cout << "Not support rotation yet\n";
+        exit(1);
+      }
+      else if (RBstr == "Translation-Rotation") {
+        cout << "Not support rotation yet\n";
+        exit(1);
+      }
+      else {
+        cout << "Rigid Body Motion Mode: " << RBstr << " is not a legal value\n";
+        exit(1);
+      }
+    }
+
+    int num_of_rb_properties = 4;
+    str0.assign("Properties of Rigid Body ");
+    for (i = 0; i < rigidbody.numrbs; ++i) {
+      string str;
+      stringstream ss;
+      ss << rigidbody.rbsTags[i];
+      str = str0 + ss.str();
+      vec = inp.GetValue(str);
+      if (vec.size() != num_of_rb_properties) {
+        cout << "WARNING: set properties of Rigid Body " << ss.str() << " to be default !" << endl;
+        vec = inp.GetValue("Properties of Rigid Body Default");
+      }
+      /* fill rb_prop here... */
+      int j = 0;
+      vector<double>::iterator it = vec.begin();
+      while (it++ < vec.end()) {
+        rigidbody.rb_prop[j][i] = vec[j];
+        j++;
+      }
+      vec.erase(vec.begin(),vec.end());
+    }
+
+    if((string)inp.GetValue("Rigid Body Communicate Motion Option") == "True"){
+      rigidbody.rb_commuMotion = 1;
+    }
+    else if((string)inp.GetValue("Rigid Body Communicate Motion Option") == "False"){
+      rigidbody.rb_commuMotion = 0;
+    }
+    else {
+      cout << " Rigid Body Communicate Motion Option: Only Legal Values (True, False) ";
+      cout << endl;
+      exit(1);
+    }
+// end read rigid body --------------------------------------------------
+
     vec = inp.GetValue("Density");
     for(i=0; i< levlset.iLSet +1 ; i++){
       matdat.datmat[i][0][0] = vec[i];
@@ -651,8 +736,8 @@ int input_fform(phSolver::Input& inp)
 //for mesh-elastic--------------------------------------------
     if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "True"){
       matdat.datelas_volume_YM = 1;
-	}
-	else if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "False"){
+    }
+    else if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "False"){
       matdat.datelas_volume_YM = 0;
     }
     else {
@@ -898,6 +983,8 @@ int input_fform(phSolver::Input& inp)
     if((string)inp.GetValue("Time Integration Rule for solid") == "First Order")
       inpdat.rhoinf_B[0] = -1 ;
     else inpdat.rhoinf_B[0] = (double)inp.GetValue("Time Integration Rho Infinity_B");
+
+    inpdat.rhoinf_rb[0] = (double)inp.GetValue("Time Integration Rho Infinity for Rigid Body Motion");
 
     if((string)inp.GetValue("Predictor at Start of Step")=="Same Velocity")
       genpar.ipred = 1;
