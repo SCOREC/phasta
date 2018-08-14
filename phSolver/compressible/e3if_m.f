@@ -126,14 +126,24 @@ c
 c
             call kinematic_condition(ri0,cy_jump_0, Kij0)
             call kinematic_condition(ri1,cy_jump_1, Kij1)
-c... calculate the L2 norm of tangential condition in x,y,z direction
+c... calculate the L2 norm of tangential condition in x,y,z direction,
+c... then taking the L2 norm of the three velocity components
            do i = 1, npro
-             do iflow = 1, nflow
-               do isd = 1, nsd
-                 int_err_if_tan_blk(i,iflow) = int_err_if_tan_blk(i,iflow)
-     &                                       + cy_jump_1(i,iflow,isd)**two
-     &                                       * WdetJif1(i)
-               enddo
+             do isd = 1, nsd
+               int_err_if_tan_blk(i,1) = int_err_if_tan_blk(i,1)
+     &                                 + cy_jump_1(i,1,isd)**two
+     &                                 * WdetJif1(i)
+c
+               int_err_if_tan_blk(i,2) = int_err_if_tan_blk(i,2)
+     &                                 + ( cy_jump_1(i,2,isd)**two
+     &                                 +   cy_jump_1(i,3,isd)**two
+     &                                 +   cy_jump_1(i,4,isd)**two )
+     &                                 * WdetJif1(i)
+c
+               int_err_if_tan_blk(i,3) = int_err_if_tan_blk(i,3)
+     &                                 + cy_jump_1(i,5,isd)**two
+     &                                 * WdetJif1(i)
+c               
              enddo
            enddo
 c...                                  

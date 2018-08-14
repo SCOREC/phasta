@@ -5,11 +5,11 @@ c-------------------------------------------------------------------------------
 c
         real*8, dimension(5) :: error_if_flux    ! surface averaged error for flux
         real*8, dimension(5) :: int_err_if_flux  ! surface intgeral of error for flux
-        real*8, dimension(5) :: error_if_tan   ! surface averaged error for tangential quantities, sum up x,y,z direction in the L2 norm
-        real*8, dimension(5) :: int_err_if_tan  ! surface intgeral of error for tangential quantities, sum up x,y,z direction
+        real*8, dimension(3) :: error_if_tan   ! surface averaged error for tangential quantities, sum up x,y,z direction in the L2 norm
+        real*8, dimension(3) :: int_err_if_tan  ! surface intgeral of error for tangential quantities, sum up x,y,z direction
         real*8 :: int_area                       ! area of interface
         real*8, dimension(5) :: int_err_if_flux_rank   !sum up all ranks
-        real*8, dimension(5) :: int_err_if_tan_rank  !sum up all ranks
+        real*8, dimension(3) :: int_err_if_tan_rank  !sum up all ranks
         real*8 :: int_area_rank  !sum up all ranks
 c
         real*8, dimension(:,:), allocatable :: int_err_if_flux_blk  ! surface intgeral of error for flux at blk level

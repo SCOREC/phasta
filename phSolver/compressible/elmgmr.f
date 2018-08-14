@@ -831,7 +831,7 @@ c
 c... allocate and initialize the date for interface error at blk level
         if (err_flag .eq. 1) then ! if there is interface element in this rank
           allocate(int_err_if_flux_blk(npro,nflow))
-          allocate(int_err_if_tan_blk(npro,nflow))
+          allocate(int_err_if_tan_blk(npro,nflow-2))
           allocate(int_area_blk(npro))
 c
           int_err_if_flux_blk = zero
@@ -939,9 +939,11 @@ c... sum up the interface error from each interface element
               do iflow = 1, nflow
                 int_err_if_flux(iflow) = int_err_if_flux(iflow) 
      &                                 + int_err_if_flux_blk(iel,iflow)
-                int_err_if_tan(iflow) = int_err_if_tan(iflow) 
-     &                                + int_err_if_tan_blk(iel,iflow)
               enddo
+              do i = 1, (nflow-2)
+                int_err_if_tan(i) = int_err_if_tan(i) 
+     &                                + int_err_if_tan_blk(iel,i)
+              enddo  
               int_area = int_area 
      &                 + int_area_blk(iel)
             enddo
@@ -973,7 +975,7 @@ c... sum up the error from all ranks
      &                        5, MPI_DOUBLE_PRECISION,
      &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
             call MPI_REDUCE ( int_err_if_tan(1),  int_err_if_tan_rank(1), 
-     &                        5, MPI_DOUBLE_PRECISION,
+     &                        3, MPI_DOUBLE_PRECISION,
      &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
             call MPI_REDUCE ( int_area,  int_area_rank, 
      &                        1, MPI_DOUBLE_PRECISION,
@@ -985,7 +987,9 @@ c... calculate the surface avg. interface error on master rank
             do iflow = 1, nflow
               error_if_flux(iflow) = sqrt(int_err_if_flux_rank(iflow)
      &                                    /int_area_rank)
-              error_if_tan(iflow)  = sqrt(int_err_if_tan_rank(iflow)
+            enddo            
+            do i = 1, (nflow-2)
+              error_if_tan(i)  = sqrt(int_err_if_tan_rank(i)
      &                                    /int_area_rank)
             enddo
           else
