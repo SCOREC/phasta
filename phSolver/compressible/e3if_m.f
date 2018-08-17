@@ -131,29 +131,29 @@ c... then taking the L2 norm of the three velocity components
            do i = 1, npro
              do isd = 1, nsd
                int_err_if_tan_blk(i,1) = int_err_if_tan_blk(i,1)
-     &                                 + cy_jump_1(i,1,isd)**two
-     &                                 * WdetJif1(i)
+     &                                 + cy_jump_0(i,1,isd)**two
+     &                                 * WdetJif0(i)
 c
                int_err_if_tan_blk(i,2) = int_err_if_tan_blk(i,2)
-     &                                 + ( cy_jump_1(i,2,isd)**two
-     &                                 +   cy_jump_1(i,3,isd)**two
-     &                                 +   cy_jump_1(i,4,isd)**two )
-     &                                 * WdetJif1(i)
+     &                                 + ( cy_jump_0(i,2,isd)**two
+     &                                 +   cy_jump_0(i,3,isd)**two
+     &                                 +   cy_jump_0(i,4,isd)**two )
+     &                                 * WdetJif0(i)
 c
                int_err_if_tan_blk(i,3) = int_err_if_tan_blk(i,3)
-     &                                 + cy_jump_1(i,5,isd)**two
-     &                                 * WdetJif1(i)
+     &                                 + cy_jump_0(i,5,isd)**two
+     &                                 * WdetJif0(i)
 c               
              enddo
 c             
              int_y_blk(i,1) = int_y_blk(i,1)
-     &                      + y1(i,1)* WdetJif1(i)
+     &                      + y0(i,1)* WdetJif0(i)
              int_y_blk(i,2) = int_y_blk(i,2)
-     &                      + sqrt( y1(i,2)**two +y1(i,3)**two 
-     &                      +       y1(i,4)**two )
-     &                      * WdetJif1(i)
+     &                      + sqrt( y0(i,2)**two +y0(i,3)**two 
+     &                      +       y0(i,4)**two )
+     &                      * WdetJif0(i)
              int_y_blk(i,3) = int_y_blk(i,3)
-     &                      + y1(i,5)* WdetJif1(i)
+     &                      + y0(i,5)* WdetJif0(i)
 c             
            enddo
 c...                                  
