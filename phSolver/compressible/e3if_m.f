@@ -145,6 +145,16 @@ c
      &                                 * WdetJif1(i)
 c               
              enddo
+c             
+             int_y_blk(i,1) = int_y_blk(i,1)
+     &                      + y1(i,1)* WdetJif1(i)
+             int_y_blk(i,2) = int_y_blk(i,2)
+     &                      + sqrt( y1(i,2)**two +y1(i,3)**two 
+     &                      +       y1(i,4)**two )
+     &                      * WdetJif1(i)
+             int_y_blk(i,3) = int_y_blk(i,3)
+     &                      + y1(i,5)* WdetJif1(i)
+c             
            enddo
 c...                                  
 c
@@ -325,6 +335,8 @@ c
           real*8 :: kappa0(nsd), kappa1(nsd), k0,k1 ! mean curvature
 c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
+c... added
+          real*8 :: f_mon_n0, f_mon_n1          
 c
           element_loop: do iel = 1,npro
 c
@@ -350,6 +362,10 @@ c
               f1n0(iflow) = dot_product(f1(:,iflow),nv0(iel,:))
               f1n1(iflow) = dot_product(f1(:,iflow),nv1(iel,:))
             enddo
+c... prepare for momenum flux in normal direction
+            f_mon_n0 = dot_product(f0n0(2:4),nv0(iel,:))
+            f_mon_n1 = dot_product(f1n1(2:4),nv1(iel,:))
+c...                    
 c        write(*,500) myrank,iel,f0n0(:)
 c
 c
@@ -379,8 +395,18 @@ c... calculating the L2 norm of flux jump
             do iflow = 1,nflow
               int_err_if_flux_blk(iel,iflow) = int_err_if_flux_blk(iel,iflow)
      &                                       + f_jump(iel,iflow)**two
-     &                                       * WdetJif1(iel)  
+     &                                       * WdetJif1(iel)
             enddo
+c
+            int_flux_blk(iel,1) = int_flux_blk(iel,1)
+     &                          + f1n1(1)
+     &                          * WdetJif1(iel)
+            int_flux_blk(iel,2:4) = int_flux_blk(iel,2:4)
+     &                            + f_mon_n1
+     &                            * WdetJif1(iel)
+            int_flux_blk(iel,5) = int_flux_blk(iel,5)
+     &                          + f1n1(5)
+     &                          * WdetJif1(iel) 
 c
             int_area_blk(iel) = int_area_blk(iel) + WdetJif1(iel)
 c...
