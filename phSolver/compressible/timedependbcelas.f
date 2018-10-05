@@ -37,6 +37,8 @@ c
         real*8    x(numnp,nsd)
 c        real*8    umeshold(numnp,nsd)
         dimension iBC(nshg), BC(nshg,3), BC_flow(nshg,3)
+        real*8    t
+        real*8, dimension(nsd) :: ra, rc, r_disp
 c
         call calc_rbMotion
 c
@@ -44,10 +46,31 @@ c.... loop over mesh vertices
         do i = 1,numnp
           if ( (ibits(iBC(i),14,3) .eq. 7) .and.
      &         (rbFlags(i) .gt. 0) ) then
+c.... calculate the displacement due to rotation
+            t = rbAng(rbFlags(i))/180.0*pi
+            ra = rb_prop(rbFlags(i),5:7)
+            rc = rb_prop(rbFlags(i),8:10)
+            r_disp(1) =
+     &               (cos(t)+ra(1)*ra(1)*(1-cos(t))-1)*(x(i,1)-rc(1))
+     &         + (ra(1)*ra(2)*(1-cos(t))-ra(3)*sin(t))*(x(i,2)-rc(2))
+     &         + (ra(1)*ra(3)*(1-cos(t))+ra(2)*sin(t))*(x(i,3)-rc(3))
+            r_disp(2) =
+     &           (ra(2)*ra(1)*(1-cos(t))+ra(3)*sin(t))*(x(i,1)-rc(1))
+     &             + (cos(t)+ra(2)*ra(2)*(1-cos(t))-1)*(x(i,2)-rc(2))
+     &         + (ra(2)*ra(3)*(1-cos(t))-ra(1)*sin(t))*(x(i,3)-rc(3))
+            r_disp(3) =
+     &           (ra(3)*ra(1)*(1-cos(t))-ra(2)*sin(t))*(x(i,1)-rc(1))
+     &         + (ra(3)*ra(2)*(1-cos(t))+ra(1)*sin(t))*(x(i,2)-rc(2))
+     &             + (cos(t)+ra(3)*ra(3)*(1-cos(t))-1)*(x(i,3)-rc(3))
+c
+c.... debugging {
+c             write(*,*) "x:",x(i,1:3),"r_disp:",r_disp(1:3)
+c.... debugging }
+c
 c.... set corresponding mesh elas BC
-            BC(i,1:3) = rbDisp(rbFlags(i), 1:3)
+            BC(i,1:3) = rbDisp(rbFlags(i),1:3) + r_disp(1:3)
 c.... update flow BC
-            BC_flow(i,1:3) = rbVel(rbFlags(i), 1:3)
+            BC_flow(i,1:3) = rbVel(rbFlags(i),1:3) + r_disp(1:3)/Delt(1)
           endif
         enddo ! end loop numnp
 c

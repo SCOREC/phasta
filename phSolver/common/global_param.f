@@ -189,7 +189,7 @@ c
         integer(c_int), target :: rbsMM(MAXTS)
         integer(c_int)         :: numrbs
         integer(c_int)         :: rb_commuMotion
-        integer                :: rbParamSize = 12
+        integer                :: rbParamSize = 14
         common /rigidbody/     rb_prop,   numrbs,   rbsTags,
      &                         rbsMM,     rb_commuMotion
       end module rigidbody_m

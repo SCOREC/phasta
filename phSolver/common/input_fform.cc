@@ -622,6 +622,9 @@ int input_fform(phSolver::Input& inp)
       if (RBstr == "Translation-only") {
         rigidbody.rbsMM[i] = 1;
       }
+      else if (RBstr == "Translation-Spinning") {
+        rigidbody.rbsMM[i] = 2;
+      }
       else if (RBstr == "Rotation-only") {
         cout << "Not support rotation yet\n";
         exit(1);
@@ -636,16 +639,23 @@ int input_fform(phSolver::Input& inp)
       }
     }
 
-    int num_of_rb_properties = 4;
+    int num_of_rb_properties;
     str0.assign("Properties of Rigid Body ");
     for (i = 0; i < rigidbody.numrbs; ++i) {
+      if (rigidbody.rbsMM[i] == 1) {
+        num_of_rb_properties = 4;
+      }
+      else if (rigidbody.rbsMM[i] == 2) {
+        num_of_rb_properties = 11;
+      }
       string str;
       stringstream ss;
       ss << rigidbody.rbsTags[i];
       str = str0 + ss.str();
       vec = inp.GetValue(str);
       if (vec.size() != num_of_rb_properties) {
-        cout << "WARNING: set properties of Rigid Body " << ss.str() << " to be default !" << endl;
+        cout << "Error: number of properties of rigid body is wrong!" << endl;
+        cout << "WARNING: set properties of rigid body " << ss.str() << " to be default !" << endl;
         vec = inp.GetValue("Properties of Rigid Body Default");
       }
       /* fill rb_prop here... */
