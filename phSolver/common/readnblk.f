@@ -931,7 +931,6 @@ c         endif
 c         xdotold=zero
 c      endif
 c read in umesh
-      fname1='umesh?'
       intfromfile=0
        call phio_readheader(fhandle, 
      & c_char_'mesh_vel' //char(0), 
