@@ -100,6 +100,7 @@
 #define ieos_ideal_gas_mixture 3
 #define ieos_liquid_1  4
 #define ieos_solid_1 10
+#define ieos_noble_abel 5
 
 #define idg_no_vi 1
 #define idg_const_vi 2
@@ -578,7 +579,7 @@ extern "C" {
   } dgifinp;
 
   extern struct { 
-    double Rgas, gamma, gamma1, mw;
+    double Rgas, gamma, gamma1, mw, coVolume;
     double pr;
     /* double pr, Planck, Stephan, Nh, Rh, Rgas;*/
     /*, const, xN2, xO2;*/

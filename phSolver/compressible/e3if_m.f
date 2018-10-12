@@ -140,7 +140,7 @@ c
       allocate(tmpmu0(npro,nflow),tmpmu1(npro,nflow))
 c
       select case (mat_eos(mater0,1))
-      case (ieos_ideal_gas,ieos_ideal_gas_mixture,ieos_liquid_1)
+      case(ieos_ideal_gas,ieos_ideal_gas_mixture,ieos_liquid_1,ieos_noble_abel)
         tmpmu0(:,1) = zero
         tmpmu0(:,2) = prop0%stiff(3,3)
         tmpmu0(:,3) = prop0%stiff(3,3)
@@ -155,7 +155,7 @@ c
       end select
 c
       select case (mat_eos(mater1,1))
-      case (ieos_ideal_gas,ieos_ideal_gas_mixture,ieos_liquid_1)
+      case(ieos_ideal_gas,ieos_ideal_gas_mixture,ieos_liquid_1,ieos_noble_abel)
         tmpmu1(:,1) = zero
         tmpmu1(:,2) = prop1%stiff(3,3)
         tmpmu1(:,3) = prop1%stiff(3,3)

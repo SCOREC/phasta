@@ -573,6 +573,9 @@ c
             iblk_solid = iblk 
             e3_malloc_ptr => e3_malloc_solid
             e3_mfree_ptr => e3_mfree_solid
+	  case(ieos_noble_abel)
+	    getthm6_ptr => getthm6_noble_abel
+	    getthm7_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'wrong material', mater)
           end select
@@ -668,6 +671,9 @@ c
             iblk_solid = iblk 
             e3_malloc_ptr => e3_malloc_solid
             e3_mfree_ptr => e3_mfree_solid
+	  case (ieos_noble_abel)
+	    getthm6_ptr => getthm6_noble_abel
+	    getthm7_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'wrong material', mater )
           end select
@@ -927,6 +933,8 @@ c
             get_vap_frac0 => get_vapor_fraction0
           case (ieos_liquid_1)
             getthmif0_ptr => getthm7_liquid_1
+	  case (ieos_noble_abel)
+	    getthmif0_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           end select
@@ -943,6 +951,8 @@ c            get_vap_frac1 => get_vapor_fraction1
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           case (ieos_liquid_1)
             getthmif1_ptr => getthm7_liquid_1
+	  case (ieos_noble_abel)
+	     getthmif1_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           end select
@@ -1345,6 +1355,8 @@ c
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm7_ptr => getthm7_liquid_1
+          case (ieos_noble_abel)
+            getthm7_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'wrong material', mater)
           end select
@@ -1422,6 +1434,8 @@ c
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm7_ptr => getthm7_liquid_1
+	  case (ieos_noble_abel)
+	    getthm7_ptr => getthm7_noble_abel
           case default
             call error ('getthm  ', 'wrong material', mater )
           end select

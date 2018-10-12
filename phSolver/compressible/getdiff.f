@@ -24,6 +24,9 @@ c
           rlm2mu = zero
           con = mat_prop(mater,icond,1)
           return
+	case (ieos_noble_abel)
+	ivisc = iprop_noble_abel_visc
+	icond = iprop_noble_abel_cond
         case default
           call error ('getdiff ', 'ERROR: index can not be set!',0)
         end select

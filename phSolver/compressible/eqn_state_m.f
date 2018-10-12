@@ -43,7 +43,32 @@ c
         if (associated(c)) c =  sqrt( gamma * Rgas * T )
 c
       end subroutine getthm7_ideal_gas
-c
+!-----------------------------------------------------------------------
+ 	subroutine getthm6_noble_abel
+        
+        mw    = mat_prop(mater,iprop_noble_abel_mw, 1)
+        gamma = mat_prop(mater,iprop_noble_abel_gamma,1)
+	coVolume = mat_prop(mater,iprop_noble_abel_coVol,1)
+	Rgas = Ru/mw*1.0d3
+	gamma1 = gamma - one 
+	rho = pres/(Rgas*T + pres*coVolume)	
+        ei  = T * Rgas / gamma1
+
+        end subroutine getthm6_noble_abel
+
+        subroutine getthm7_noble_abel
+
+        call getthm6_noble_abel
+        
+	h = ei + pres/rho
+	alphaP = Rgas / (Rgas*T + pres*coVolume)
+	betaT = Rgas*T / (Rgas*T*pres + pres**2*coVolume)
+        if (associated(cv)) cv  = Rgas / gamma1
+        if (associated(gamb)) gamb = gamma1	
+        if (associated(c)) c =  one/ (one - coVolume*rho)*sqrt( gamma * Rgas * T )
+
+	end subroutine getthm7_noble_abel
+!------------------------------------------------------------------------
       subroutine getthm6_ideal_gas_mixture
 c
         integer :: iel
