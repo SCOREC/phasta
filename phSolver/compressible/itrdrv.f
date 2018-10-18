@@ -570,10 +570,10 @@ c                        write(*,*) 'lhs=',lhs
      &                       shpif,         shgif,
      &                       solinc,        rerr,          umesh)
 c
-                     call set_if_velocity (BC,  iBC, 
-     &                                umesh,    disp, x,  Delt(1),   ilwork,
-     &                                nshg,  ndofBC,
-     &                                nsd,   nelblif, nlwork, ndof )
+c                     call set_if_velocity (BC,  iBC, 
+c     &                                umesh,    disp, x,  Delt(1),   ilwork,
+c     &                                nshg,  ndofBC,
+c     &                                nsd,   nelblif, nlwork, ndof )
 c
                     endif
                       else if (mod(impl(1),100)/10 .eq. 2) then ! mfg solve
@@ -682,6 +682,12 @@ c
 c
                       lhs = 1  
                       iprec=lhs
+
+                     call set_if_velocity (BC,  iBC,
+     &     		umesh, disp, x,  Delt(1),   ilwork,
+     &      		nshg,ndofBC, 
+     &      		nsd,nelblif, nlwork, ndof )
+
 c
 c.... update interface mesh bc based on umesh
 c.... we should have correct umesh at this point

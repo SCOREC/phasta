@@ -573,7 +573,7 @@ c
             iblk_solid = iblk 
             e3_malloc_ptr => e3_malloc_solid
             e3_mfree_ptr => e3_mfree_solid
-	  case(ieos_noble_abel)
+	  case (ieos_noble_abel)
 	    getthm6_ptr => getthm6_noble_abel
 	    getthm7_ptr => getthm7_noble_abel
           case default
