@@ -161,7 +161,8 @@ c
 c
         do i = 1, numrbs
 c.... XXX need to add rotation force
-          if (rbsMM(i) .ne. 1 .and. rbsMM(j) .ne. 2)
+c
+          if (rbsMM(i) .ne. 1 .and. rbsMM(i) .ne. 2)
      &      call error('rigidBodyBCElas','not support mode',rbsMM(i))
           if (iter .eq. nitr) then
             Forin  = (/ rbForce(i,1), rbForce(i,2), rbForce(i,3) /)
