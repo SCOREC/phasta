@@ -639,15 +639,9 @@ int input_fform(phSolver::Input& inp)
       }
     }
 
-    int num_of_rb_properties;
+    int num_of_rb_properties = 11; // hardcoding
     str0.assign("Properties of Rigid Body ");
     for (i = 0; i < rigidbody.numrbs; ++i) {
-      if (rigidbody.rbsMM[i] == 1) {
-        num_of_rb_properties = 4;
-      }
-      else if (rigidbody.rbsMM[i] == 2) {
-        num_of_rb_properties = 11;
-      }
       string str;
       stringstream ss;
       ss << rigidbody.rbsTags[i];
