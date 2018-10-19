@@ -341,7 +341,7 @@ c
 	  endif
 
 	 if (iDC == 4) then
-	    beta = 2 
+	    beta = 1 
 	!-----------------Evaluating hShoc-----------------------------
 	    hShoc = zero
 	    rtmp = zero
@@ -379,6 +379,7 @@ c------------------Evaluating nuShoc-----------------------------
 	    do isd = 1, nsd
 	        do iel = 1, npro
 	   nushoc(iel) = nushoc(iel) + dot_product(A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow),A0gyi_yzb(iel,(isd-1)*nflow+1:isd*nflow))
+     &                                                +epsM
 	        enddo
 	    enddo
 	    if (beta == 1) then
