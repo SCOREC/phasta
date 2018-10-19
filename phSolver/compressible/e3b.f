@@ -53,6 +53,7 @@ c Anilkumar Karanam Spring 2000 (Modified for Hierarchic Hexes)
 c----------------------------------------------------------------------
 c
         use e3_param_m
+        use rigidBodyForce
 c
         include "common.h"
 c
@@ -369,29 +370,39 @@ c
         if ((ires .ne. 2) .and. (iter .eq. nitr)) then
 c
 c.... compute the forces on the body
+c.... don't pollute tauXn, it will be used for other force calculation
 c
-        do i = 1, npro
-          if (nsrflist(iBCB(i,2)).ge.1) then
-            tau1n(i) = ( pres(i) * bnorm(i,1) - tau1n(i) ) * WdetJb(i)
-            tau2n(i) = ( pres(i) * bnorm(i,2) - tau2n(i) ) * WdetJb(i)
-            tau3n(i) = ( pres(i) * bnorm(i,3) - tau3n(i) ) * WdetJb(i)
-            heat(i)  = - heat(i) * WdetJb(i)
-          else
-            tau1n(i)  = zero
-            tau2n(i)  = zero
-            tau3n(i)  = zero
-            heat(i)   = zero
-          endif
-            Force(1,nsrflist(iBCB(i,2))) =
-     &      Force(1,nsrflist(iBCB(i,2))) + tau1n(i)
-            Force(2,nsrflist(iBCB(i,2))) = 
-     &      Force(2,nsrflist(iBCB(i,2))) + tau2n(i)
-            Force(3,nsrflist(iBCB(i,2))) =
-     &      Force(3,nsrflist(iBCB(i,2))) + tau3n(i)
-            HFlux(nsrflist(iBCB(i,2))) =
-     &      HFlux(nsrflist(iBCB(i,2))) + heat(i)
+          do i = 1, npro
+            if (nsrflist(iBCB(i,2)).ge.1) then
+             Force(1,nsrflist(iBCB(i,2))) = Force(1,nsrflist(iBCB(i,2)))
+     &                 + ( pres(i) * bnorm(i,1) - tau1n(i) ) * WdetJb(i)
+             Force(2,nsrflist(iBCB(i,2))) = Force(2,nsrflist(iBCB(i,2)))
+     &                 + ( pres(i) * bnorm(i,2) - tau2n(i) ) * WdetJb(i)
+             Force(3,nsrflist(iBCB(i,2))) = Force(3,nsrflist(iBCB(i,2)))
+     &                 + ( pres(i) * bnorm(i,3) - tau3n(i) ) * WdetJb(i)
+             HFlux(nsrflist(iBCB(i,2))) = HFlux(nsrflist(iBCB(i,2)))
+     &                                  - heat(i) * WdetJb(i)
+            endif
           enddo
         endif
+c
+c.... -------------------->  Rigid Body Forces  <---------------------
+c
+        if ((ires .ne. 2) .and. (iter .eq. nitr) .and. (numrbs. gt. 0)) then
+c
+c.... compute the forces on each rigid body
+c
+          do i = 1, npro
+            if (rbIndex(i).ge.1) then
+              rbForce(rbIndex(i),1) = rbForce(rbIndex(i),1)
+     &                 + ( pres(i) * bnorm(i,1) - tau1n(i) ) * WdetJb(i)
+              rbForce(rbIndex(i),2) = rbForce(rbIndex(i),2)
+     &                 + ( pres(i) * bnorm(i,2) - tau2n(i) ) * WdetJb(i)
+              rbForce(rbIndex(i),3) = rbForce(rbIndex(i),3)
+     &                 + ( pres(i) * bnorm(i,3) - tau3n(i) ) * WdetJb(i)
+            endif
+          enddo
+        endif ! end if ires = 2 and is the last solve in the stagger and have rb
 c
 c.... end of integration loop
 c

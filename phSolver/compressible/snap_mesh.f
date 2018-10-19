@@ -9,7 +9,7 @@ c
 c
         real*8    x(numnp,nsd),    disp_snap(numnp,nsd)
         dimension iBC(nshg),       BC(nshg,4)
-        integer   face_snap(nshg)
+        integer   face_snap(numnp)
         integer   answer
 c
         if ( snapSurfFlag .eq. 1 ) then ! double check
@@ -72,7 +72,7 @@ c
 c
         real*8    x(numnp,nsd),  disp_snap(numnp,nsd)
         dimension iBC(nshg),     BC(nshg, 4)
-        integer   face_snap(nshg)
+        integer   face_snap(numnp)
         real*8    mag,                rad
         integer   i,    j
         real*8    x_tmp_1(numnp), x_tmp_2(numnp), x_tmp_3(numnp)
@@ -82,7 +82,7 @@ c
         x_tmp_2 = x(:,2) + disp_snap(:,2)
         x_tmp_3 = x(:,3) + disp_snap(:,3)
         call core_get_pos_on_surf (x_tmp_1, x_tmp_2, x_tmp_3, numnp,
-     &                            x_crt_1, x_crt_2, x_crt_3)
+     &                             face_snap, x_crt_1, x_crt_2, x_crt_3)
 c
         do i = 1, nshg
 c... if face_snap = 1

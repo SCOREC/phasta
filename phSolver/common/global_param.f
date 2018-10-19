@@ -117,6 +117,7 @@ c.... common /laymesh/   : layered mesh
 c
 c numgc           : number of growth curves
 c numgcnp         : total number of nodal points of all growth curves
+c gcBaseOpt       : input base face option for repositioning method
 c layerCommuFlag  : the flag used for layer mesh master assembly in commu
 c blfactor        : multiplied with stiffness of wedge element in elas solver
 c
@@ -124,9 +125,9 @@ c
         use iso_c_binding
         implicit none
         real(c_double), target :: blfactor
-        integer(c_int), target :: numgc,          numgcnp
+        integer(c_int), target :: numgc,   numgcnp,   gcBaseOpt
         integer :: layerCommuFlag = 0
-        common /laymesh/ blfactor,  numgc,   numgcnp,
+        common /laymesh/ blfactor,  numgc,   numgcnp,   gcBaseOpt,
      &                   layerCommuFlag
       end module laymesh_m
 c
@@ -168,6 +169,30 @@ c
         common /meshquality/  volMeshqTol, faceMeshqTol,
      &                        autoTrigger, triggerNow
       end module meshquality_m
+c
+c----------------------------------------------------------------------
+c
+c.... common /rigidbody/   : rigid body parameters, properties, constraints
+c
+c numrbs         : number of rigid bodies
+c rbsTags        : tags of rigid bodies
+c rbsMM          : rigid body motion mode for each rigid body
+c rb_prop        : properties and constraints of rigid bodies
+c rb_commuMotion : communicate motion option flag
+c
+      module rigidbody_m
+        use iso_c_binding
+        use global_const_m
+        implicit none
+        real(c_double), target :: rb_prop(MAXTS, MAXTS)
+        integer(c_int), target :: rbsTags(MAXTS)
+        integer(c_int), target :: rbsMM(MAXTS)
+        integer(c_int)         :: numrbs
+        integer(c_int)         :: rb_commuMotion
+        integer                :: rbParamSize = 12
+        common /rigidbody/     rb_prop,   numrbs,   rbsTags,
+     &                         rbsMM,     rb_commuMotion
+      end module rigidbody_m
 c
 c----------------------------------------------------------------------
 c
@@ -377,12 +402,13 @@ c
         integer, dimension(6) :: LHSupd
         real*8, dimension(6) :: epstol
         real*8  :: etolelas
-        real*8, dimension(MAXTS) :: Delt, CFLfl, CFLsl, rhoinf, rhoinfS, rhoinf_B
+        real*8, dimension(MAXTS) :: Delt, CFLfl, CFLsl, rhoinf, rhoinfS,
+     &                              rhoinf_B,    rhoinf_rb
         real*8, dimension(MAXTS,2) :: deltol
         common /inpdat/ epstol,  etolelas, Delt,    CFLfl,
      &                  CFLsl,   nstep,    niter,
      &                  impl,    rhoinf,   rhoinfS,
-     &                  rhoinf_B,
+     &                  rhoinf_B,          rhoinf_rb,
      &                  LHSupd,  loctim,  deltol, 
      &                  leslib,     svLSFlag,   svLSType
       end module inpdat_m
@@ -443,12 +469,13 @@ c
      &                        vieilles_burning=3, 
      &                        clausius_clapeyron=4,
      &                        cavitation=5
-        integer(c_int) :: phase_change_model, vi_ramping
+        integer(c_int) :: phase_change_model, vi_ramping, i_w_normal,
+     &                    i_if_dc
         real(c_double) :: ramp_time, vi_mag, dgif_alpha, dgif_beta, dgif_s, dgif_e, dgif_h,
      &                    dgif_emu, dgif_ek, if_e_dc  
         real(c_double) :: burn_rate_exp, burn_rate_coeff, burn_rate_pref
         real(c_double) :: hfg_liquid, mw_liquid, T_boil_liquid
-        common /dgifinp/ phase_change_model,vi_ramping,
+        common /dgifinp/ phase_change_model,vi_ramping,i_w_normal,i_if_dc,
      &                   ramp_time,vi_mag,dgif_s,dgif_e,dgif_emu,dgif_ek,
      &                   dgif_h, if_e_dc, 
      &                   hfg_liquid, mw_liquid, T_boil_liquid,

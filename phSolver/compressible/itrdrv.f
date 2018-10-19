@@ -224,6 +224,9 @@ c ... allocate mesh-elastic solve related arrays only if mesh-elastic solve flag
           x     = xn
           xold  = xn
         endif
+c
+        if (numrbs .gt. 0) call malloc_rbForce
+c
         call init_sum_vi_area(nshg,nsd)
         call ifbc_malloc
 c
@@ -339,7 +342,34 @@ c        tcorewc1 = secs(0.0)
                 isclr=1 ! fix scalar
                 call itrBCsclr(yold,ac,iBC,BC,iper,ilwork)
         endif   
-                                                       
+c
+c.... only used for prescribing time-depended mesh-elastic BC
+c.... at this point, we need to set BC based on old data from restart.
+c     flow vel BC is changed by time-depended BC and rigid body motion.
+c     mesh vel BC is changed by time-depended BC and interface velocity.
+c
+        if (elasModel .eq. 1) then
+          if (numrbs .gt. 0) then
+            call set_rbBC (x, iBC, BC(:,ndof+2:ndof+4), BC(:,3:5))
+          endif
+c
+          if (elasFDC .gt. 0) then
+            call prescribedBCElas(x,   iBC,  BC(:,ndof+2:ndof+4),
+     &                            BC(:,3:5), umeshold)
+          endif
+        endif
+c
+        do inode = 1, nshg
+          if ( ifFlag(inode) .eq. 1 ) then
+            BC(inode,ndof+2:ndof+4) = umesh(inode,:) * Delt(1)
+          endif
+        enddo
+c
+        call itrBC (yold,  ac,  iBC,  BC,  iper, ilwork, umesh)
+c
+c.... end of reset BC based on old data from restart
+c
+
 867     continue
 
 
@@ -489,7 +519,11 @@ c
                      Force(2,:) = zero
                      Force(3,:) = zero
                      HFlux(:)   = zero
-c     
+c
+c.... reset rigid body force
+c
+                     if (numrbs .gt. 0) call init_rbForce
+c
 c.... form the element data and solve the matrix problem
 c     
 c.... explicit solver
@@ -670,8 +704,8 @@ c.... comp3_elas and DG interface share the same iBC, thus, this
 c     call will replace the interface vel with prescribed value
 c     when using Force-driven as Mesh Elas Model in solver.inp
                    if (elasModel .eq. 1) then
-                     call timeDependBCElas(x, iBC, BC(:,ndof+2:ndof+4), BC(:,3:5),
-     &                                     umeshold)
+                     call timeDependBCElas(x, iBC, BC(:,ndof+2:ndof+4),
+     &                                             BC(:,3:5), umeshold)
                    endif
 c
 c... update displacement and umesh based on iBC and BC
@@ -816,8 +850,13 @@ c
             call itrUpdate( yold,  acold,   y,    ac)
             call itrUpdateElas ( xold, x)
             umeshold = umesh
+            if (numrbs .gt. 0) then
+              call update_rbParam
+            endif
 c
             call itrBC (y,ac, iBC, BC, iper, ilwork, umesh)
+c
+            call itrBC (yold,  ac,  iBC,  BC,  iper, ilwork, umesh)
 c
 c... update B array for solid blocks...
 c
@@ -985,8 +1024,11 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                  meshq, 'd'//char(0), numel, 1,   lstep)
-		 endif
-		 if (write_residual.eq.1) then
+                 endif
+                 if (numrbs .gt. 0) then
+                   call write_rbParam
+                 endif
+                 if (write_residual.eq.1) then
                    call write_field(
      &                  myrank,'a'//char(0),'residual'//char(0), 8,
      &                  res,  'd'//char(0), nshg, 5, lstep)
@@ -1021,8 +1063,11 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                meshq, 'd'//char(0), numel, 1,   lstep)
-	       endif
-	       if (write_residual.eq.1) then
+               endif
+               if (numrbs .gt. 0) then
+                 call write_rbParam
+               endif
+               if (write_residual.eq.1) then
                  call write_field(
      &                myrank,'a'//char(0),'residual'//char(0), 8,
      &                res,  'd'//char(0), nshg, 5, lstep)
@@ -1094,7 +1139,15 @@ c
       if(myrank.eq.master)  then
         print*, "DONE"
       endif
-
+c
+      if ((output_mode .eq. -1) .and. (numrbs .gt. 0)) then
+        call synchronize_rbParam
+      endif
+c
+      if (numrbs .gt. 0) then
+        call release_rbForce
+      endif
+c
         call destruct_sum_vi_area
         call ifbc_mfree
 c
@@ -1160,7 +1213,7 @@ c.... deallocate comp1_elas magnitude if time-depended option is on
       if((timeDepComp1Flag .eq. 1) .and. (iALE .eq. 2)) then
         deallocate( timeDepComp1Mag )
       endif
-
+c
 c      close (iecho)
       if(iabc==1) deallocate(acs)
 c

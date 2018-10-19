@@ -19,6 +19,9 @@ c----------------------------------------
         use e3if_vi_m
         use if_global_m
         use e3if_dc_m ! DC operator for interface
+        use weighted_normal_func_m ! for weighted normal
+        use weighted_normal_data_m ! for weighted normal
+        use dgifinp_m, only: i_w_normal, i_if_dc
 c
         implicit none
 c
@@ -96,6 +99,12 @@ c
             call calc_normal_vectors(nv0,area,WdetJif0,xl0,qwtif0,itpid,lcsyst0,intp0,npro)
             call calc_normal_vectors(nv1,area,WdetJif1,xl1,qwtif1,itpid,lcsyst1,intp1,npro)
 c
+c... replace the normal with the weighted normal if needed
+            if (i_w_normal .eq. 1) then
+              call get_weighted_normal(nv0, w_normal_l0, shp0, nshl0)                        
+              call get_weighted_normal(nv1, w_normal_l1, shp1, nshl1)
+            endif
+c
 c... calculate the integration varibles
 c
             call e3if_var
@@ -170,8 +179,10 @@ c
 c
             call dg_penalty(ri0,y0,y1)
             call dg_penalty(ri1,y1,y0)
-c... test
-            call e3if_dc
+c... discontinuity capturing term for the interface
+            if (i_if_dc .eq. 1) then
+              call e3if_dc
+            endif
 c...LHS calculations...
 c
             if (lhs_dg .eq. 1) then

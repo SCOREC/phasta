@@ -22,6 +22,7 @@
 #define laymesh FortranCInterface_GLOBAL_(laymesh,LAYMESH)
 #define snapmesh FortranCInterface_GLOBAL_(snapmesh,SNAPMESH)
 #define meshquality FortranCInterface_GLOBAL_(meshquality,MESHQUALITY)
+#define rigidbody FortranCInterface_GLOBAL_(rigidbody,RIGIDBODY)
 #define astore FortranCInterface_GLOBAL_(astore,ASTORE)
 #define conpar FortranCInterface_GLOBAL_(conpar,CONPAR)
 #define ctrlvari FortranCInterface_GLOBAL_(ctrlvari,CTRLVARI)
@@ -255,6 +256,7 @@ extern "C" {
     double blfactor;
     int numgc;
     int numgcnp;
+    int gcBaseOpt;
   } laymesh ;
 
   extern struct {
@@ -271,6 +273,14 @@ extern "C" {
     int autoTrigger;
     int triggerNow;
   } meshquality ;
+
+  extern struct {
+    double rb_prop[MAXTS][MAXTS];
+    int numrbs;
+    int rbsTags[MAXTS];
+    int rbsMM[MAXTS];
+    int rb_commuMotion;
+  } rigidbody ;
 
   extern struct { 
     double a[100000];
@@ -477,6 +487,7 @@ extern "C" {
     double rhoinf[MAXTS];
     double rhoinfS[MAXTS];
     double rhoinf_B[MAXTS];//for solid
+    double rhoinf_rb[MAXTS];//for rigid body motion
     int LHSupd[6];
     int loctim[MAXTS];
     double deltol[2][MAXTS];
@@ -552,6 +563,8 @@ extern "C" {
   extern struct {
     int phase_change_model;
     int vi_ramping;
+    int i_w_normal;
+    int i_if_dc;
     double ramp_time;
     double vi_mag;
     double s;
