@@ -936,7 +936,8 @@ int input_fform(phSolver::Input& inp)
       if((string)inp.GetValue("Discontinuity Capturing") == "Off") solpar.iDC = 0;
     else if((string)inp.GetValue("Discontinuity Capturing") == "DC-mallet") solpar.iDC = 1;
     else if((string)inp.GetValue("Discontinuity Capturing") == "DC-quadratic") solpar.iDC = 2;
-   else if((string)inp.GetValue("Discontinuity Capturing") == "DC-minimum") solpar.iDC = 3;    
+   else if((string)inp.GetValue("Discontinuity Capturing") == "DC-minimum") solpar.iDC = 3;
+      else if((string)inp.GetValue("Discontinuity Capturing") == "DC-yzb") solpar.iDC = 4;
     else {
       cout<< "Condition not defined for Discontinuity Capturing \n ";
       exit(1);

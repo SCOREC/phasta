@@ -339,10 +339,9 @@ c
 !	    flops = flops + 48*npro
 c
 	  endif
-	iDC = 4
+
 	 if (iDC == 4) then
 	    beta = 2 
-	    print *, beta
 	!-----------------Evaluating hShoc-----------------------------
 	    hShoc = zero
 	    rtmp = zero
@@ -366,11 +365,11 @@ c------------------Evaluating nuShoc-----------------------------
 	    nuShoc = zero
 	    A0gyi_yzb = A0gyi
 	    rLyi_yzb = rLyi_ac
-	    UrefInv(1) = 1.0d0/1.0d2
-	    UrefInv(2) = 1.0d0/1.0d4
-	    UrefInv(3) = 1.0d0/1.0d4
-	    UrefInv(4) = 1.0d0/1.0d4
-	    UrefInv(5) = 1.0d0/1.0d6
+	    UrefInv(1) = 1.0d0/1.0d-1
+	    UrefInv(2) = 1.0d0/1.0d-1
+	    UrefInv(3) = 1.0d0/1.0d-1
+	    UrefInv(4) = 1.0d0/1.0d-1
+	    UrefInv(5) = 1.0d0/1.0d-1
 	    do iflow = 1, nflow
 	        rLyi_yzb(:,iflow) = rLyi_yzb(:,iflow)*UrefInv(iflow)
 	        A0gyi_yzb(:,iflow) = A0gyi_yzb(:,iflow)*UrefInv(iflow)
@@ -394,38 +393,38 @@ c------------------Evaluating nuShoc-----------------------------
 !----------------------------------------------------------------------------------------------------
 !--------------------------------RHS--------------------------------------------
         if ((ires .eq. 1) .or. (ires .eq. 3)) then
-            ri ( :,1) = ri ( :,1) + nuShoc(:) * A0gyi_yzb( :,1)
-            rmi( :,1) = rmi( :,1) + nuShoc(:) * A0gyi_yzb( :,1) 
-            ri ( :,2) = ri ( :,2) + nuShoc(:) * A0gyi_yzb( :,2)
-            rmi( :,2) = rmi( :,2) + nuShoc(:) * A0gyi_yzb( :,2)
-            ri ( :,3) = ri ( :,3) + nuShoc(:) * A0gyi_yzb( :,3)
-            rmi( :,3) = rmi( :,3) + nuShoc(:) * A0gyi_yzb( :,3)
-            ri ( :,4) = ri ( :,4) + nuShoc(:) * A0gyi_yzb( :,4)
-            rmi( :,4) = rmi( :,4) + nuShoc(:) * A0gyi_yzb( :,4)
-            ri ( :,5) = ri ( :,5) + nuShoc(:) * A0gyi_yzb( :,5)
-            rmi( :,5) = rmi( :,5) + nuShoc(:) * A0gyi_yzb( :,5)
+            ri ( :,1) = ri ( :,1) + nuShoc(:) * A0gyi( :,1)
+            rmi( :,1) = rmi( :,1) + nuShoc(:) * A0gyi( :,1) 
+            ri ( :,2) = ri ( :,2) + nuShoc(:) * A0gyi( :,2)
+            rmi( :,2) = rmi( :,2) + nuShoc(:) * A0gyi( :,2)
+            ri ( :,3) = ri ( :,3) + nuShoc(:) * A0gyi( :,3)
+            rmi( :,3) = rmi( :,3) + nuShoc(:) * A0gyi( :,3)
+            ri ( :,4) = ri ( :,4) + nuShoc(:) * A0gyi( :,4)
+            rmi( :,4) = rmi( :,4) + nuShoc(:) * A0gyi( :,4)
+            ri ( :,5) = ri ( :,5) + nuShoc(:) * A0gyi( :,5)
+            rmi( :,5) = rmi( :,5) + nuShoc(:) * A0gyi( :,5)
             !
-            ri ( :,6) = ri ( :,6) + nuShoc(:) * A0gyi_yzb( :,6)
-            rmi( :,6) = rmi( :,6) + nuShoc(:) * A0gyi_yzb( :,6)
-            ri ( :,7) = ri ( :,7) + nuShoc(:) * A0gyi_yzb( :,7)
-            rmi( :,7) = rmi( :,7) + nuShoc(:) * A0gyi_yzb( :,7)
-            ri ( :,8) = ri ( :,8) + nuShoc(:) * A0gyi_yzb( :,8)
-            rmi( :,8) = rmi( :,8) + nuShoc(:) * A0gyi_yzb( :,8)
-            ri ( :,9) = ri ( :,9) + nuShoc(:) * A0gyi_yzb( :,9)
-            rmi( :,9) = rmi( :,9) + nuShoc(:) * A0gyi_yzb( :,9)
-            ri ( :,10) = ri ( :,10) + nuShoc(:) * A0gyi_yzb( :,10)
-            rmi( :,10) = rmi( :,10) + nuShoc(:) * A0gyi_yzb( :,10)
+            ri ( :,6) = ri ( :,6) + nuShoc(:) * A0gyi( :,6)
+            rmi( :,6) = rmi( :,6) + nuShoc(:) * A0gyi( :,6)
+            ri ( :,7) = ri ( :,7) + nuShoc(:) * A0gyi( :,7)
+            rmi( :,7) = rmi( :,7) + nuShoc(:) * A0gyi( :,7)
+            ri ( :,8) = ri ( :,8) + nuShoc(:) * A0gyi( :,8)
+            rmi( :,8) = rmi( :,8) + nuShoc(:) * A0gyi( :,8)
+            ri ( :,9) = ri ( :,9) + nuShoc(:) * A0gyi( :,9)
+            rmi( :,9) = rmi( :,9) + nuShoc(:) * A0gyi( :,9)
+            ri ( :,10) = ri ( :,10) + nuShoc(:) * A0gyi( :,10)
+            rmi( :,10) = rmi( :,10) + nuShoc(:) * A0gyi( :,10)
             !
-            ri ( :,11) = ri ( :,11) + nuShoc(:) * A0gyi_yzb( :,11)
-            rmi( :,11) = rmi( :,11) + nuShoc(:) * A0gyi_yzb( :,11)
-            ri ( :,12) = ri ( :,12) + nuShoc(:) * A0gyi_yzb( :,12)
-            rmi( :,12) = rmi( :,12) + nuShoc(:) * A0gyi_yzb( :,12)
-            ri ( :,13) = ri ( :,13) + nuShoc(:) * A0gyi_yzb( :,13)
-            rmi( :,13) = rmi( :,13) + nuShoc(:) * A0gyi_yzb( :,13)
-            ri ( :,14) = ri ( :,14) + nuShoc(:) * A0gyi_yzb( :,14)
-            rmi( :,14) = rmi( :,14) + nuShoc(:) * A0gyi_yzb( :,14)
-            ri ( :,15) = ri ( :,15) + nuShoc(:) * A0gyi_yzb( :,15)
-            rmi( :,15) = rmi( :,15) + nuShoc(:) * A0gyi_yzb( :,15)
+            ri ( :,11) = ri ( :,11) + nuShoc(:) * A0gyi( :,11)
+            rmi( :,11) = rmi( :,11) + nuShoc(:) * A0gyi( :,11)
+            ri ( :,12) = ri ( :,12) + nuShoc(:) * A0gyi( :,12)
+            rmi( :,12) = rmi( :,12) + nuShoc(:) * A0gyi( :,12)
+            ri ( :,13) = ri ( :,13) + nuShoc(:) * A0gyi( :,13)
+            rmi( :,13) = rmi( :,13) + nuShoc(:) * A0gyi( :,13)
+            ri ( :,14) = ri ( :,14) + nuShoc(:) * A0gyi( :,14)
+            rmi( :,14) = rmi( :,14) + nuShoc(:) * A0gyi( :,14)
+            ri ( :,15) = ri ( :,15) + nuShoc(:) * A0gyi( :,15)
+            rmi( :,15) = rmi( :,15) + nuShoc(:) * A0gyi( :,15)
             !
         endif
         !--------------------------------------------------------------------
