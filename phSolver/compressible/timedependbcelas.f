@@ -62,11 +62,6 @@ c.... calculate the displacement due to rotation
      &           (ra(3)*ra(1)*(1-cos(t))-ra(2)*sin(t))*(x(i,1)-rc(1))
      &         + (ra(3)*ra(2)*(1-cos(t))+ra(1)*sin(t))*(x(i,2)-rc(2))
      &             + (cos(t)+ra(3)*ra(3)*(1-cos(t))-1)*(x(i,3)-rc(3))
-c
-c.... debugging {
-c             write(*,*) "x:",x(i,1:3),"r_disp:",r_disp(1:3)
-c.... debugging }
-c
 c.... set corresponding mesh elas BC
             BC(i,1:3) = rbDisp(rbFlags(i),1:3) + r_disp(1:3)
 c.... update flow BC
