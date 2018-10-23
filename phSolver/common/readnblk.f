@@ -549,6 +549,7 @@ c--------------------- read the layered mesh parameters ------------------
 c
 c.... first layer thickness
       ione=1
+      numgc = 0
       call phio_readheader(fhandle,
      & c_char_'first layer thickness' // char(0),
      & c_loc(numgc),ione, dataDbl, iotype)
@@ -621,6 +622,7 @@ c.... total number of layers
 c
 c.... growth curve connectivity
       ione=1
+      numgcnp = 0
       call phio_readheader(fhandle,
      & c_char_'list of vertices on growth curve' // char(0),
      & c_loc(numgcnp),ione, dataInt, iotype)
