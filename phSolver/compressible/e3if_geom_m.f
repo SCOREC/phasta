@@ -32,6 +32,26 @@ c
           allocate(sgn0(npro,nshl0))
           allocate(sgn1(npro,nshl1))
 c
+c.... initialization
+c
+          xl0 = 0
+          xl1 = 0
+          area = 0
+          WdetJif0 = 0
+          WdetJif1 = 0
+          if_normal_l0 = 0
+          if_normal_l1 = 0
+          if_kappa_l0 = 0
+          if_kappa_l1 = 0
+          nv0 = 0
+          nv1 = 0
+          shp0 = 0
+          shp1 = 0
+          shgl0 = 0
+          shgl1 = 0
+          sgn0 = 0
+          sgn1 = 0
+c
         end subroutine e3if_geom_malloc
 c
         subroutine e3if_geom_mfree
