@@ -155,10 +155,6 @@ c
       call phio_readheader(fhandle,c_char_'number of modes' // char(0),
      & c_loc(nshg),ione, dataInt, iotype)
 
-c.... debugging {
-      write(*,*) "rank",myrank,"numnp",numnp,"nshg",nshg
-c.... debugging }
-
       call phio_readheader(fhandle,
      &  c_char_'number of interior elements' // char(0),
      &  c_loc(numel),ione, dataInt, iotype)
