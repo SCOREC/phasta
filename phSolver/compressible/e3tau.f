@@ -55,7 +55,8 @@ c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  uh1(npro),
      &		  fact(npro),	 h2o2u(npro),   giju(npro,6),
-     &            A0inv(npro,15),gijdu(npro,6)
+     &            A0inv(npro,15),gijdu(npro,6) , h_hauke(npro),
+     &		  u_mag(npro)
 c
       call e3gijd( dxidx, npro, nsd, lcsyst, gijd )
 c
@@ -69,12 +70,12 @@ c
      &        - gijd(:,6) * gijd(:,2) * gijd(:,2)
      &        + gijd(:,2) * gijd(:,4) * gijd(:,5) * two
 c
-         uh1=    u1*u1*(gijd(:,3)*gijd(:,6)-gijd(:,5)*gijd(:,5))
-     &         + u2*u2*(gijd(:,1)*gijd(:,6)-gijd(:,4)*gijd(:,4))
-     &         + u3*u3*(gijd(:,1)*gijd(:,3)-gijd(:,2)*gijd(:,2))
-     &   + two *(u1*u2*(gijd(:,4)*gijd(:,5)-gijd(:,2)*gijd(:,6))
-     &         + u1*u3*(gijd(:,2)*gijd(:,5)-gijd(:,4)*gijd(:,3))
-     &         + u2*u3*(gijd(:,4)*gijd(:,2)-gijd(:,1)*gijd(:,5)))
+         uh1=    (u1-um1)*(u1-um1)*(gijd(:,3)*gijd(:,6)-gijd(:,5)*gijd(:,5))
+     &         + (u2-um2)*(u2-um2)*(gijd(:,1)*gijd(:,6)-gijd(:,4)*gijd(:,4))
+     &         + (u3-um3)*(u3-um3)*(gijd(:,1)*gijd(:,3)-gijd(:,2)*gijd(:,2))
+     &   + two *((u1-um1)*(u2-um2)*(gijd(:,4)*gijd(:,5)-gijd(:,2)*gijd(:,6))
+     &         + (u1-um1)*(u3-um3)*(gijd(:,2)*gijd(:,5)-gijd(:,4)*gijd(:,3))
+     &         + (u2-um2)*(u3-um3)*(gijd(:,4)*gijd(:,2)-gijd(:,1)*gijd(:,5)))
 c
 c   at this point we have (u h1)^2 * inverse coefficient^2 / 4
 c
@@ -82,14 +83,15 @@ c                                    ^ fact
 c
       uh1= two * sqrt(uh1/fact)
 c
-c  next form the advective length scale |u|/h_2 = 2 ( ui (gijd) uj)^{1/2}
+c  next form the advective length scale |u|/h_2 = 0.5 ( ui (gijd) uj)^{1/2}
 c
-      h2o2u =   u1*u1*gijd(:,1)
-     &     + u2*u2*gijd(:,3)
-     &     + u3*u3*gijd(:,6)
-     &     +(u1*u2*gijd(:,2)
-     &     + u1*u3*gijd(:,4)
-     &     + u2*u3*gijd(:,5))*two  + 1.0e-15 !FIX FOR INVALID MESHES
+! This is the computation of the lengthscale for hauke tau
+      h2o2u =   (u1-um1)*(u1-um1)*gijd(:,1)
+     &     + (u2-um2)*(u2-um2)*gijd(:,3)
+     &     + (u3-um3)*(u3-um3)*gijd(:,6)
+     &     +((u1-um1)*(u2-um2)*gijd(:,2)
+     &     + (u1-um1)*(u3-um3)*gijd(:,4)
+     &     + (u2-um2)*(u3-um3)*gijd(:,5))*two  + 1.0e-15 !FIX FOR INVALID MESHES
 c
 c  at this point we have (2 u / h_2)^2
 c
@@ -97,12 +99,13 @@ c
 c       call tnanqe(h2o2u,1,"riaconv ")
 
       h2o2u = one / sqrt(h2o2u) ! this flips it over leaves it h_2/(2u)
-c  
+      u_mag = sqrt( (u1-um1)**2 + (u2-um2)**2 + (u3-um3)**2) 
+      h_hauke = 2*u_mag*h2o2u
 c.... diffusive corrections
 
       if(itau.eq.1) then        ! tau proposed by  for nearly incompressible
 c                                 flows by Guillermo Hauke
-c     
+c  
 c.... cell Reynold number
 c     
          fact=pt5*rho*uh1/rmu
@@ -110,37 +113,37 @@ c
 c     
 c.... continuity tau
 c     
-         tau(:,1)=pt5*uh1*min(one,fact)*taucfct
+         tau(:,1)=min(h_hauke*u_mag/2.d0,zero)*taucfct
 c     
 c...  momentum tau
 c     
          dts=one/(Dtgl*dtsfct)
-         tau(:,2)=min(dts,h2o2u)
-         tau(:,2)=tau(:,2)/rho
-c     
-c.... energy tau   cv=cp/gamma  assumed
-c   
-c         tau(:,3)=gamma*tau(:,2)/cp
-          tau(:,3)=tau(:,2)/cv
+         tau(:,2)=min(dts/2.0d0/rho,
+     &	 	      h_hauke/2.0d0/rho/(u_mag + c),
+     &	              h_hauke**2/12.0d0/rmu)            
+         tau(:,3)=min(dts/2.0d0/rho/cv,
+     &	 	      h_hauke/2.0d0/rho/cv/(u_mag + c),
+     &	              h_hauke**2/12.0d0/con)             
 c     
 c.... diffusive corrections
 c     
-         if (ipord == 1) then
-            celt = pt66
-         else if (ipord == 2) then
-            celt = pt33
+c         if (ipord == 1) then
+c            celt = pt66
+c         else if (ipord == 2) then
+c            celt = pt33
 c            celt = pt33*0.04762
-         else if (ipord == 3) then
-            celt = pt33         !.02  just a guess...
-         else if (ipord >= 4) then
-            celt = .008         ! yet another guess...
-         endif
+c         else if (ipord == 3) then
+c            celt = pt33         !.02  just a guess...
+c         else if (ipord >= 4) then
+c            celt = .008         ! yet another guess...
+c         endif
 c     
 c          fact=h2o2u*h2o2u*rk*pt66/rmu
-         fact=h2o2u*h2o2u*rk*celt/rmu
+c         fact=h2o2u*h2o2u*((u1-um1)**2 + (u2-um2)**2 +
+c     &	  				(u3-um3)**2)*pt33/rmu
 c
-         tau(:,2)=min(tau(:,2),fact)
-         tau(:,3)=min(tau(:,3),fact*rmu/con)*temper
+c         tau(:,2)=min(tau(:,2),fact)
+c         tau(:,3)=min(tau(:,3),fact*rmu/con)*temper
 c     
       else if(itau.eq.0)  then  ! tau proposed by Farzin and Shakib
 c     
