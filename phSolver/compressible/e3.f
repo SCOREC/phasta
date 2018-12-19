@@ -308,9 +308,10 @@ c
 c.... end of integration loop
 c
       enddo
-
-      meshCFLblk(:) = meshCFLblk(:)/ngauss
-
+c
+      if (imeshCFL .eq. 1) then
+        meshCFLblk(:) = meshCFLblk(:)/ngauss
+      endif
 c
 c.... return
 c
