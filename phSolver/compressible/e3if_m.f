@@ -22,6 +22,7 @@ c----------------------------------------
         use weighted_normal_func_m ! for weighted normal
         use weighted_normal_data_m ! for weighted normal
         use dgifinp_m, only: i_w_normal, i_if_dc
+        use print_interface_error_data_m
 c
         implicit none
 c
@@ -36,9 +37,10 @@ c
           real*8, dimension(nqpt), intent(in) :: qwtif0, qwtif1
 c
           integer :: intp, intp0, intp1
-      integer :: iel,isd,n
-      real*8 ::sum0,sumg0
-      real*8, allocatable :: tmpmu0(:,:),tmpmu1(:,:)
+          integer :: iel,isd,n, i, iflow
+          real*8 ::sum0,sumg0
+          real*8, allocatable :: tmpmu0(:,:),tmpmu1(:,:)
+          real*8, dimension(npro,nflow,nsd) :: cy_jump_0, cy_jump_1
 #define debug 0
 c
 c      write(*,*) 'In e3if...'
@@ -131,8 +133,39 @@ c
             call calc_cmtrx
             call calc_y_jump
 c
-            call kinematic_condition(ri0,Kij0)
-            call kinematic_condition(ri1,Kij1)
+            call kinematic_condition(ri0,cy_jump_0, Kij0)
+            call kinematic_condition(ri1,cy_jump_1, Kij1)
+c... calculate the L2 norm of tangential condition in x,y,z direction,
+c... then taking the L2 norm of the three velocity components
+           do i = 1, npro
+             do isd = 1, nsd
+               int_err_if_tan_blk(i,1) = int_err_if_tan_blk(i,1)
+     &                                 + cy_jump_0(i,1,isd)**two
+     &                                 * WdetJif0(i)
+c
+               int_err_if_tan_blk(i,2) = int_err_if_tan_blk(i,2)
+     &                                 + ( cy_jump_0(i,2,isd)**two
+     &                                 +   cy_jump_0(i,3,isd)**two
+     &                                 +   cy_jump_0(i,4,isd)**two )
+     &                                 * WdetJif0(i)
+c
+               int_err_if_tan_blk(i,3) = int_err_if_tan_blk(i,3)
+     &                                 + cy_jump_0(i,5,isd)**two
+     &                                 * WdetJif0(i)
+c               
+             enddo
+c             
+             int_y_blk(i,1) = int_y_blk(i,1)
+     &                      + y0(i,1)* WdetJif0(i)
+             int_y_blk(i,2) = int_y_blk(i,2)
+     &                      + sqrt( y0(i,2)**two +y0(i,3)**two 
+     &                      +       y0(i,4)**two )
+     &                      * WdetJif0(i)
+             int_y_blk(i,3) = int_y_blk(i,3)
+     &                      + y0(i,5)* WdetJif0(i)
+c             
+           enddo
+c...                                  
 c
 c ... kinematic condition term:
 c     set the mu coeff to the max of the 0,1 materials 
@@ -313,6 +346,8 @@ c
           real*8 :: kappa0(nsd), kappa1(nsd), k0,k1 ! mean curvature
 c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
+c... added
+          real*8 :: f_mon_n0, f_mon_n1          
 c
           element_loop: do iel = 1,npro
 c
@@ -338,6 +373,10 @@ c
               f1n0(iflow) = dot_product(f1(:,iflow),nv0(iel,:))
               f1n1(iflow) = dot_product(f1(:,iflow),nv1(iel,:))
             enddo
+c... prepare for momenum flux in normal direction
+            f_mon_n0 = dot_product(f0n0(2:4),nv0(iel,:))
+            f_mon_n1 = dot_product(f1n1(2:4),nv1(iel,:))
+c...                    
 c        write(*,500) myrank,iel,f0n0(:)
 c
 c
@@ -363,6 +402,25 @@ c        write(*,11) 'f0n1:',iel,f0n1
 c      endif
 c... calculating the flux jump
             f_jump(iel,1:5) =  f1n1(1:5) + f0n0(1:5)
+c... calculating the L2 norm of flux jump
+            do iflow = 1,nflow
+              int_err_if_flux_blk(iel,iflow) = int_err_if_flux_blk(iel,iflow)
+     &                                       + f_jump(iel,iflow)**two
+     &                                       * WdetJif1(iel)
+            enddo
+c
+            int_flux_blk(iel,1) = int_flux_blk(iel,1)
+     &                          + f1n1(1)
+     &                          * WdetJif1(iel)
+            int_flux_blk(iel,2:4) = int_flux_blk(iel,2:4)
+     &                            + f_mon_n1
+     &                            * WdetJif1(iel)
+            int_flux_blk(iel,5) = int_flux_blk(iel,5)
+     &                          + f1n1(5)
+     &                          * WdetJif1(iel) 
+c
+            int_area_blk(iel) = int_area_blk(iel) + WdetJif1(iel)
+c...
 c
             ri0(iel,16:20) = ri0(iel,16:20) + pt50 * ( f0n0(1:5) + f1n0(1:5) )
             ri1(iel,16:20) = ri1(iel,16:20) + pt50 * ( f1n1(1:5) + f0n1(1:5) )
@@ -482,7 +540,7 @@ c        end subroutine flux_jump
 c
 c
 c
-        subroutine kinematic_condition(ri,Kij)
+        subroutine kinematic_condition(ri, cy_jump, Kij)
 c
            real*8, dimension(:,:), intent(inout) :: ri
            real*8, dimension(:,:,:,:,:), intent(in) :: Kij
@@ -490,7 +548,7 @@ c
            integer :: iflow,jflow,kflow,isd,jsd
            real*8 :: this_kcy(npro)
            real*8, dimension(npro,nflow,nflow,nsd,nsd) :: CKij
-           real*8,dimension(npro,nflow,nsd) :: cy_jump, kcy
+           real*8, dimension(npro,nflow,nsd) :: cy_jump, kcy
 c
            do iflow = 1,nflow
 c
