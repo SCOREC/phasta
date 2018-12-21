@@ -475,6 +475,19 @@ int input_fform(phSolver::Input& inp)
       cout << endl;
       exit(1);
     }
+	
+    if ( (string)inp.GetValue("Write meshCFL to restart") == "No" ){
+        outpar.imeshCFL = 0;
+    }
+    else if ( (string)inp.GetValue("Write meshCFL to restart") == "Yes" ){
+        outpar.imeshCFL = 1;
+    }
+    else {
+      cout << " Write meshCFL to restart: Only Legal Values (Yes, No) ";
+      cout << endl;
+      exit(1);
+    }
+    
 
     turbvari.iramp=0;
     if((string)inp.GetValue("Ramp Inflow") == "True") turbvari.iramp=1;
@@ -609,6 +622,9 @@ int input_fform(phSolver::Input& inp)
       if (RBstr == "Translation-only") {
         rigidbody.rbsMM[i] = 1;
       }
+      else if (RBstr == "Translation-Spinning") {
+        rigidbody.rbsMM[i] = 2;
+      }
       else if (RBstr == "Rotation-only") {
         cout << "Not support rotation yet\n";
         exit(1);
@@ -623,7 +639,7 @@ int input_fform(phSolver::Input& inp)
       }
     }
 
-    int num_of_rb_properties = 4;
+    int num_of_rb_properties = 11; // hardcoding
     str0.assign("Properties of Rigid Body ");
     for (i = 0; i < rigidbody.numrbs; ++i) {
       string str;
@@ -632,7 +648,8 @@ int input_fform(phSolver::Input& inp)
       str = str0 + ss.str();
       vec = inp.GetValue(str);
       if (vec.size() != num_of_rb_properties) {
-        cout << "WARNING: set properties of Rigid Body " << ss.str() << " to be default !" << endl;
+        cout << "Error: number of properties of rigid body is wrong!" << endl;
+        cout << "WARNING: set properties of rigid body " << ss.str() << " to be default !" << endl;
         vec = inp.GetValue("Properties of Rigid Body Default");
       }
       /* fill rb_prop here... */

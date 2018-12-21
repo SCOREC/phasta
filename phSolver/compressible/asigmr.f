@@ -2,7 +2,7 @@
      &                     shp,     shgl,    ien,     
      &                     mater,   res,     rmes,    
      &                     BDiag,   qres,    EGmass,   
-     &                     rerr,    umesh )
+     &                     rerr,    umesh, meshCFLblk )
 c
 c----------------------------------------------------------------------
 c
@@ -41,7 +41,7 @@ c
         dimension umesh(numnp, nsd),  uml(npro,nshl,nsd)
 c
         dimension rlsl(npro,nshl,6) 
-        real*8 rerrl(npro,nshl,6), rerr(nshg,10)
+        real*8 rerrl(npro,nshl,6), rerr(nshg,10),meshCFLblk(npro)
 c
 #define debug 0
 c
@@ -86,7 +86,7 @@ c
         call e3  (ycl,     ycl,     acl,     shp,
      &            shgl,    xl,      rl,      rml,   xmudmi,
      &            BDiagl,  ql,      sgn,     rlsl,  EGmass,
-     &            rerrl,   ytargetl, uml)
+     &            rerrl,   ytargetl, uml, meshCFLblk)
 
         ttim(31) = ttim(31) + secs(0.0)
 c

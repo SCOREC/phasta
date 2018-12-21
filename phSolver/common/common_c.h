@@ -612,6 +612,7 @@ extern "C" {
     int output_mode; //FIXME -1:streams, 0:posix, >0:syncio
     int conservation_probe;
     int write_residual;
+    int imeshCFL;
     /*  int iostats; */
 /*      int ipresref; */
   } outpar ;

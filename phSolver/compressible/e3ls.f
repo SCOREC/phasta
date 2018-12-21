@@ -10,7 +10,7 @@
      &                     EGmass,    stiff,       WdetJ,
      &                     giju,      rTLS,        raLS,
      &                     A0inv,     dVdY,        rerrl,
-     &                     compK,     pres,        PTau)
+     &                     compK,     pres,        PTau, meshCFLblk)
 c                                                                
 c----------------------------------------------------------------------
 c
@@ -73,8 +73,9 @@ c
      &            EGmass(npro,nedof,nedof),shape(npro,nshl),
      &            shg(npro,nshl,nsd),      WdetJ(npro),
      &            PTau(npro,5,5),          T(npro),
-     &            pres(npro)
-c
+     &            pres(npro)              
+
+        real*8    meshCFLblk(npro)
 c local arrays
 c
         dimension rLymi(npro,nflow),         Atau(npro,nflow,nflow),
@@ -193,7 +194,7 @@ c.... in the first incarnation we will ONLY have a diagonal tau here
      &         con,             dxidx,          rLyi,  
      &         rLymi,           tau,            rk,
      &         giju,            rTLS,           raLS,
-     &         A0inv,           dVdY,           cv)	
+     &         A0inv,           dVdY,           cv, meshCFLblk)	
           
        else
 

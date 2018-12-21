@@ -194,6 +194,11 @@ void countfieldstowriterestart()
     nfields++; /* non-linear residual */
   }
 
+  if(outpar.imeshCFL == 1){
+    nfields++; /* meshCFL */
+  }
+
+
   if(outpar.ivort == 1){
     nfields++; /*vorticity*/
   }

@@ -283,7 +283,7 @@ c_______________________________________________________________
      &                     shpif,     shgif,
      &                     res,       rmes,      BDiag,
      &                     iper,      ilwork,    lhsK,  
-     &                     col,       row,       rerr,     umesh)
+     &                     col,       row,       rerr,     umesh, meshCFL)
 c
 c----------------------------------------------------------------------
 c
@@ -432,12 +432,14 @@ c
         dimension ilwork(nlwork)
 c  
         dimension umesh(numnp, nsd)
+	real*8    meshCFL(numel)
 c
         real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
 
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
         real*8, allocatable :: EGmass(:,:,:)
+	real*8, allocatable :: meshCFLblk(:)
 c
         real*8, dimension(:,:,:), allocatable :: egmassif00,egmassif01,egmassif10,egmassif11
         real*8 :: length
@@ -465,7 +467,7 @@ c of the diffusive flux vector, q, and lumped mass matrix, rmass
 c
         qres = zero
         rmass = zero
-        
+        meshCFL = zero
         do iblk = 1, nelblk
 c
 c.... set up the parameters
@@ -559,6 +561,7 @@ c
 
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
+	  allocate(meshCFLblk(npro))
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
 c
@@ -597,6 +600,8 @@ c
 c
           if (associated(e3_malloc_ptr)) call e3_malloc_ptr
 c
+	  meshCFLblk = zero
+c
           call AsIGMR (y,                   ac,
      &                 x,                   mxmudmi(iblk)%p,
      &                 tmpshp,
@@ -604,7 +609,12 @@ c
      &                 mater,               res,
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
-     &                 rerr,                umesh )
+     &                 rerr,                umesh , meshCFLblk)
+
+c.... map local element to global
+          do i = 1, npro
+            meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
+          enddo
 c
           if(lhs.eq.1) then
 c
@@ -630,6 +640,8 @@ c
           deallocate ( EGmass )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
+	  deallocate ( meshCFLblk )
+
 c
 c.... end of interior element loop
 c

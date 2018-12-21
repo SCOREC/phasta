@@ -100,7 +100,7 @@ c.... For mesh-elastic solve
 c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
-     &         umeshold(numnp, nsd), xold(numnp,nsd)
+     &         umeshold(numnp, nsd), xold(numnp,nsd), meshCFL(numel)
 c
 c.... For surface mesh snapping
 c
@@ -169,7 +169,6 @@ c
             open (unit=iforce, file=fforce, status='unknown')
           endif
         endif
-c
 c
 c.... initialize
 c
@@ -574,7 +573,7 @@ c                        write(*,*) 'lhs=',lhs
      &                       shp,           shgl,
      &                       shpb,          shglb,         
      &                       shpif,         shgif,
-     &                       solinc,        rerr,          umesh)
+     &                       solinc,        rerr,          umesh, meshCFL)
 c
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
@@ -1039,6 +1038,11 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
      &                  myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                  meshq, 'd'//char(0), numel, 1,   lstep)
                  endif
+                 if (imeshCFL .eq. 1) then
+                   call write_field(
+     &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
+     &                meshCFL, 'd'//char(0), numel, 1,   lstep)
+                 endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
                  endif
@@ -1086,6 +1090,11 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                meshq, 'd'//char(0), numel, 1,   lstep)
+               endif
+               if (imeshCFL.eq.1)then
+                 call write_field(
+     &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
+     &                meshCFL, 'd'//char(0), numel, 1,   lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam
