@@ -15,5 +15,6 @@ c
 c
         real*8, dimension(:), allocatable :: vol_elm ! volumn of each interior element
         real*8 :: vol_factor ! volume of master element for each interior element type
-c                        
+c... used to check if it is the last flow solve in the current time step
+        integer :: n_flow_tot, i_flow_count, dc_calc_flag                        
       end module dc_lag_data_m
