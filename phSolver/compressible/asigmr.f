@@ -110,7 +110,7 @@ c.... assemble the residual and modified residual
 c
         call local (res,    rl,     ien,    nflow,  'scatter ')
 c... assemble the sum_dc_lag_vol and sum_vol
-        if ( i_dc_lag .eq.1) then
+        if ((i_dc_lag .eq. 1) .and. ( dc_calc_flag .eq. 1)) then
           call local (sum_dc_lag_vol,    sum_dc_lag_l,     ien,    1,  'scatter ')
           call local (sum_vol,    sum_vol_l,     ien,    1,  'scatter ')
         endif

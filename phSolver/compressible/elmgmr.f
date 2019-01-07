@@ -566,13 +566,15 @@ c
           e3_mfree_ptr => e3_mfree
 c... for DC lag
           if ( i_dc_lag .eq.1) then
-            allocate(sum_dc_lag_l(npro,nshl))
-            allocate(sum_vol_l(npro,nshl))
             allocate(dc_lag_l(npro,nshl))
-c
-            sum_dc_lag_l = zero
-            sum_vol_l = zero
             dc_lag_l = zero
+c            
+            if ( dc_calc_flag .eq. 1) then
+              allocate(sum_dc_lag_l(npro,nshl))
+              allocate(sum_vol_l(npro,nshl))
+              sum_dc_lag_l = zero
+              sum_vol_l = zero
+            endif
           endif          
 c
           select case (mat_eos(mater,1))
@@ -622,9 +624,12 @@ c
           if (associated(e3_mfree_ptr)) call e3_mfree_ptr
 c... for DC lag
           if ( i_dc_lag .eq.1) then
-            deallocate(sum_dc_lag_l)
-            deallocate(sum_vol_l)
             deallocate(dc_lag_l)
+c              
+            if ( dc_calc_flag .eq. 1) then
+              deallocate(sum_dc_lag_l)
+              deallocate(sum_vol_l)
+            endif
           endif          
 c
           deallocate ( EGmass )
@@ -635,8 +640,8 @@ c.... end of interior element loop
 c
        enddo
 c
-c... For DC lag if needed
-          if (i_dc_lag .eq. 1) then
+c... For DC lag if needed, only do it for the last flow solve in each time step
+          if ((i_dc_lag .eq. 1) .and. ( dc_calc_flag .eq. 1)) then
 c... communication for DC lag
             if (numpe > 1) then
               call commu (sum_dc_lag_vol, ilwork, 1, 'in ')

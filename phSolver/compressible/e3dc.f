@@ -336,12 +336,14 @@ c	endif
 c
 c... for lagging DC operation
         if (i_dc_lag .eq. 1) then
-c... sum up the numerical viscousity of the current time step
-          do n = 1,nshl
-            sum_dc_lag_l(:,n) = sum_dc_lag_l(:,n) 
-     &                        + shape(:,n)*DC(:,intp)*vol_elm(:)
-            sum_vol_l(:,n) = sum_vol_l(:,n) + shape(:,n)*vol_elm(:)          
-          enddo
+c... sum up the numerical viscousity of the last flow solve in current time step
+          if ( dc_calc_flag .eq. 1) then
+            do n = 1,nshl
+              sum_dc_lag_l(:,n) = sum_dc_lag_l(:,n) 
+     &                          + shape(:,n)*DC(:,intp)*vol_elm(:)
+              sum_vol_l(:,n) = sum_vol_l(:,n) + shape(:,n)*vol_elm(:)          
+            enddo
+          endif
 c... using the numerical viscousity from last time step to replace the
 c... the current numerical viscousity
           DC(:,intp) = dc_lag_qt(:)

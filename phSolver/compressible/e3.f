@@ -123,8 +123,11 @@ c (note: not currently included in mfg)
 c
 c... allocation of the array for DC lag
         if (i_dc_lag .eq. 1) then
-          allocate(vol_elm(npro))
           allocate(dc_lag_qt(npro))
+c          
+          if ( dc_calc_flag .eq. 1) then
+            allocate(vol_elm(npro))
+          endif
         endif
 c.... loop through the integration points
 c
@@ -251,20 +254,22 @@ c
           if (i_dc_lag .eq. 1) then
             call get_dc_lag_qt(dc_lag_qt, dc_lag_l, shape, nshl)
 c... get the vol of each element, corrected by the element type
-            select case ( lcsyst )
-            case (1) ! tets            
-              vol_factor = one/six
-            case (2) ! hexes
-              vol_factor = eight
-            case (3) ! wedges
-              vol_factor = one
-            case (5) ! pyramids
-              vol_factor = eight/three
-            case default
-              call error ('e3 ', 'elem lcsyst', lcsyst)
-            end select
+            if ( dc_calc_flag .eq. 1) then ! last flow solve in each time step
+              select case ( lcsyst )
+              case (1) ! tets            
+                vol_factor = one/six
+              case (2) ! hexes
+                vol_factor = eight
+              case (3) ! wedges
+                vol_factor = one
+              case (5) ! pyramids
+                vol_factor = eight/three
+              case default
+                call error ('e3 ', 'elem lcsyst', lcsyst)
+              end select
 c            
-            vol_elm(:) = vol_factor* WdetJ(:) / Qwt(lcsyst,intp)
+              vol_elm(:) = vol_factor* WdetJ(:) / Qwt(lcsyst,intp)
+            endif            
           endif
 c                    
           call e3dc  (g1yi,          g2yi,          g3yi,
@@ -336,8 +341,10 @@ c
       enddo
 c... deallocation for the DC lag after the qt loop
       if (i_dc_lag .eq. 1) then
-          deallocate(vol_elm)
-          deallocate(dc_lag_qt)
+          deallocate(dc_lag_qt)               
+          if ( dc_calc_flag .eq. 1) then
+            deallocate(vol_elm)
+          endif
       endif
 c      
       ttim(6) = ttim(6) + secs(0.0)

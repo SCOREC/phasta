@@ -303,6 +303,10 @@ c
 c.... nitr is set to be the total number of flow solve in a sequence
 c        nitr = niter(itseq)
 c
+c... get the total number of flow solve per time step when using DC lagging
+        if ( i_dc_lag .eq.1) then
+          n_flow_tot = niter(itseq)
+        endif
 c.... determine how many scalar equations we are going to need to solve
 c
         nsclrsol=nsclr          ! total number of scalars solved. At
@@ -393,6 +397,13 @@ c          if (elasModel .eq. 1) then
 c            call timeDependBCElas(x, iBC, BC(:,ndof+2:ndof+4),
 c     &                            BC(:,3:5), umeshold)
 c          endif
+c
+c... initialize the flow count for the DC lagging if needed
+       if ( i_dc_lag .eq.1) then
+         i_flow_count = 0
+         dc_calc_flag = 0
+       endif
+c
 c
         if(iramp.eq.1) 
      &        call BCprofileScale(vbc_prof,BC,yold)
@@ -509,6 +520,16 @@ c.... nitr is set to be the accumulated number of flow solves in the current sta
                 if((stepseq(i).gt.1).and.(i.ge.istepc)) exit
                 if(stepseq(i).eq.0) nitr = nitr + 1
               enddo
+c... count the flow solve in this time step for DC lagging
+              if ( i_dc_lag .eq.1) then
+                if(stepseq(istepc).eq.0) then
+                  i_flow_count = i_flow_count +1
+                endif
+c
+                if(i_flow_count .eq. n_flow_tot) then !this is the last flow solve in current time step
+                  dc_calc_flag = 1
+                endif                  
+              endif              
 c
                icode=stepseq(istepc)
                if(mod(icode,10).eq.0) then ! this is a solve
