@@ -563,6 +563,8 @@ extern "C" {
   extern struct {
     int phase_change_model;
     int vi_ramping;
+    int i_w_normal;
+    int i_if_dc;
     double ramp_time;
     double vi_mag;
     double s;

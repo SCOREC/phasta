@@ -728,13 +728,35 @@ int input_fform(phSolver::Input& inp)
       dgifinp.mw_liquid      = (double)inp.GetValue("Molecular Weight of Liquid");
       dgifinp.T_boil_liquid  = (double)inp.GetValue("Boiling Temperature");}
       
-
+// methods of interface normal calculation
+    if((string)inp.GetValue("Interface Normal") == "Constant"){
+		  dgifinp.i_w_normal = 0;
+	}	  
+    else if((string)inp.GetValue("Interface Normal") == "Weighted"){
+		  dgifinp.i_w_normal = 1;
+   	}	    
+    else {
+      cout<< "Interface Normal: Only Legal Values(Constant, Weighted) \n ";
+      cout << endl;
+      exit(1);
+    }
     dgifinp.s = (double)inp.GetValue("DG Interface Kinematic Condition S");
     dgifinp.e = (double)inp.GetValue("DG Interface Penalty Factor epsilon");
     dgifinp.emu = (double)inp.GetValue("DG Interface Penalty Factor epsilon mu");
     dgifinp.ek = (double)inp.GetValue("DG Interface Penalty Factor epsilon k");
     dgifinp.h = (double)inp.GetValue("DG Interface Penalty Factor h");
-    // DG interface DISCONTINUITY CAPTURING input parameters
+// DG interface DISCONTINUITY CAPTURING input parameters
+    if((string)inp.GetValue("Interface Discontinuity Capturing") == "Off"){
+		  dgifinp.i_if_dc = 0;
+	}	  
+    else if((string)inp.GetValue("Interface Discontinuity Capturing") == "On"){
+		  dgifinp.i_if_dc = 1;
+   	}	    
+    else {
+      cout<< "Interface Discontinuity Capturing: Only Legal Values(Off, On) \n ";
+      cout << endl;
+      exit(1);
+    }
     dgifinp.if_e_dc = (double)inp.GetValue("DG Interface DC Factor");
 
 //for mesh-elastic--------------------------------------------

@@ -108,9 +108,7 @@ c
         procedure(calc_vi2), pointer :: calc_vi_cavitation
 c... added for interface DC operator
         real*8, dimension(:,:), pointer :: f_jump ! flux jump
-        real*8, dimension(:,:,:), pointer :: proj  ! tangential projector
-        real*8, dimension(:,:,:), pointer :: dxidx0, dxidx1  ! inverse of element deformation tensor
-        real*8, dimension(:),pointer :: ch0, ch1 ! nu^h for DC on interface       
+        real*8, dimension(:,:,:), pointer :: dxidx0, dxidx1  ! inverse of element deformation tensor      
 c
       contains
 c
@@ -129,7 +127,6 @@ c
           allocate(ifbc_l1(npro,nshl1,nifbc+1))
           allocate(cmtrx(npro,nflow,nflow))
           allocate(ctc(npro,nflow,nflow))
-          allocate(proj(npro,nsd,nsd))
           allocate(acl0(npro,nshl0,ndof))
           allocate(acl1(npro,nshl1,ndof))
 c
@@ -186,7 +183,6 @@ c
           allocate(kappa0(npro),kappa1(npro))
 c
           allocate(mu(npro,nflow))
-          allocate(ch0(npro),ch1(npro))
 c
           allocate(BDiagl_00(npro,nshl0,nflow*nflow))
           allocate(BDiagl_11(npro,nshl1,nflow*nflow))          
@@ -204,7 +200,6 @@ c
           deallocate(ifbc_l0,ifbc_l1)
           deallocate(cmtrx)
           deallocate(ctc)
-          deallocate(proj)
           deallocate(acl0,acl1)
           deallocate(shg0,shg1)
           deallocate(dxdxi0,dxdxi1)
@@ -249,7 +244,6 @@ c
           deallocate(kappa0,kappa1)
 c
           deallocate(mu)
-          deallocate(ch0,ch1)
 c
           deallocate(BDiagl_00, BDiagl_11)
 c

@@ -469,12 +469,13 @@ c
      &                        vieilles_burning=3, 
      &                        clausius_clapeyron=4,
      &                        cavitation=5
-        integer(c_int) :: phase_change_model, vi_ramping
+        integer(c_int) :: phase_change_model, vi_ramping, i_w_normal,
+     &                    i_if_dc
         real(c_double) :: ramp_time, vi_mag, dgif_alpha, dgif_beta, dgif_s, dgif_e, dgif_h,
      &                    dgif_emu, dgif_ek, if_e_dc  
         real(c_double) :: burn_rate_exp, burn_rate_coeff, burn_rate_pref
         real(c_double) :: hfg_liquid, mw_liquid, T_boil_liquid
-        common /dgifinp/ phase_change_model,vi_ramping,
+        common /dgifinp/ phase_change_model,vi_ramping,i_w_normal,i_if_dc,
      &                   ramp_time,vi_mag,dgif_s,dgif_e,dgif_emu,dgif_ek,
      &                   dgif_h, if_e_dc, 
      &                   hfg_liquid, mw_liquid, T_boil_liquid,

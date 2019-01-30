@@ -17,7 +17,9 @@ c----------------------------------------
           use e3if_geom_m
           use if_global_m
           use conpar_m
+          use weighted_normal_data_m, only:w_normal_l0, w_normal_l1, w_normal_global !for weighted normal on the interface
           use genpar_m, only: iprec
+          use dgifinp_m, only: i_w_normal
 c
           implicit none
 c
@@ -33,7 +35,8 @@ c
           real*8, dimension(nshg,nflow,nflow), intent(inout) :: BDiag
           integer, dimension(:,:), pointer, intent(in)   :: ienif0, ienif1
           integer :: i0,i1,iel,n,i,npro_,imin(5),imax(5)
-          integer :: j, k, j0, loc
+c
+          integer :: j, k, j0, loc  
 c
 #define debug 0
 #define debugifbc 1
@@ -63,6 +66,11 @@ c
         if (associated(if_kappa)) then
           call localx(if_kappa, if_kappa_l0,  ienif0, nsd, 'gather  ', nshg, nenl0, npro)
           call localx(if_kappa, if_kappa_l1,  ienif1, nsd, 'gather  ', nshg, nenl1, npro)
+        endif
+c... localize the weighted normal
+        if (i_w_normal .eq. 1) then
+          call localx(w_normal_global, w_normal_l0,  ienif0, nsd, 'gather  ', nshg, nenl0, npro)
+          call localx(w_normal_global, w_normal_l1,  ienif1, nsd, 'gather  ', nshg, nenl1, npro)
         endif
 c
         call e3if(shpif0,shpif1,shgif0,shgif1,qwtif0,qwtif1)
@@ -147,7 +155,7 @@ c
                     BDiagl_00(:,i,loc) = egmass00(:,i0,j0)
                  enddo
               enddo
-           enddo
+          enddo
 c
            do i = 1, nshl1
               do j = 1, nflow

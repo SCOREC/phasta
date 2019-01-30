@@ -184,6 +184,8 @@ c..............................................................................
           implicit none
 c
 c
+          real*8, dimension(npro) :: ch0, ch1 ! nu^h for DC on interface
+          real*8, dimension(npro,nsd,nsd) :: proj  ! tangential projector
           real*8, dimension(npro,6) :: giju0, giju1 ! g^{ij} vector form
           real*8, dimension(npro,nsd,nsd) :: giju_f0, giju_f1 ! g^{ij} full
           real*8, dimension(npro,nsd,nsd) :: pt_g0, pt_g1 ! proj_{ik} g^ij
