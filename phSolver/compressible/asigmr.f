@@ -1,8 +1,8 @@
-        subroutine AsIGMR (y,       ac,      x,        xmudmi,   
+        subroutine AsIGMR (y,       ac,      x,          xmudmi,   
      &                     shp,     shgl,    ien,     
      &                     mater,   res,     rmes,    
      &                     BDiag,   qres,    EGmass,   
-     &                     rerr,    umesh, meshCFLblk )
+     &                     rerr,    umesh,   meshCFLblk, errorH1blk)
 c
 c----------------------------------------------------------------------
 c
@@ -41,6 +41,7 @@ c
 c
         dimension rlsl(npro,nshl,6) 
         real*8 rerrl(npro,nshl,6), rerr(nshg,10),meshCFLblk(npro)
+        real*8 errorH1blk(npro,nflow)
 c
 #define debug 0
 c
@@ -81,7 +82,8 @@ c
         call e3  (ycl,     ycl,     acl,     shp,
      &            shgl,    xl,      rl,      rml,   xmudmi,
      &            BDiagl,  ql,      sgn,     rlsl,  EGmass,
-     &            rerrl,   ytargetl, uml, meshCFLblk)
+     &            rerrl,   ytargetl, uml,    meshCFLblk,
+     &            errorH1blk)
 
         ttim(31) = ttim(31) + secs(0.0)
 c

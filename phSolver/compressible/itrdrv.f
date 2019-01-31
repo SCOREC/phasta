@@ -98,7 +98,8 @@ c.... For mesh-elastic solve
 c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
-     &         umeshold(numnp, nsd), xold(numnp,nsd), meshCFL(numel)
+     &         umeshold(numnp, nsd), xold(numnp,nsd),
+     &         meshCFL(numel),      errorH1(numel, nflow)
 c
 c.... For surface mesh snapping
 c
@@ -567,7 +568,8 @@ c                        write(*,*) 'lhs=',lhs
      &                       shp,           shgl,
      &                       shpb,          shglb,         
      &                       shpif,         shgif,
-     &                       solinc,        rerr,          umesh, meshCFL)
+     &                       solinc,        rerr,          umesh,
+     &                       meshCFL,       errorH1)
 c
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
@@ -1026,8 +1028,13 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                  endif
                  if (imeshCFL .eq. 1) then
                    call write_field(
-     &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
-     &                meshCFL, 'd'//char(0), numel, 1,   lstep)
+     &                  myrank,'a'//char(0),'meshCFL'//char(0), 7,
+     &                  meshCFL, 'd'//char(0), numel, 1,   lstep)
+                 endif
+                 if (errorEstimation .eq. 1) then
+                   call write_field(
+     &                  myrank,'a'//char(0),'errorH1'//char(0), 7,
+     &                  errorH1, 'd'//char(0), numel, nflow, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1072,6 +1079,11 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
      &                meshCFL, 'd'//char(0), numel, 1,   lstep)
+               endif
+               if (errorEstimation .eq. 1) then
+                 call write_field(
+     &                myrank,'a'//char(0),'errorH1'//char(0), 7,
+     &                errorH1, 'd'//char(0), numel, nflow, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

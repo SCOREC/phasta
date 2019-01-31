@@ -4,7 +4,9 @@
      &                     con,    dxidx,  rLyi,
      &                     rLymi,  tau,    rk, 
      &                     giju,   rTLS,   raLS,
-     &                     A0inv,  dVdY,   cv, meshCFLblk)
+     &                     A0inv,  dVdY,   cv,
+     &                     meshCFLblk,     errorH1blk,
+     &                     WdetJ)
 c
 c----------------------------------------------------------------------
 c
@@ -52,7 +54,9 @@ c
      &            rTLS(npro),                raLS(npro),
      &            rLyitemp(npro,nflow),      detgijI(npro)
 c     
-      real*8       meshCFLblk(npro)
+      real*8      meshCFLblk(npro)
+      real*8      errorH1blk(npro,nflow)
+      dimension   WdetJ(npro)
 c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  uh1(npro),
@@ -191,6 +195,27 @@ c
 c
       endif
 c     
+c.... get error in H1 norm
+c
+      if (errorEstimation .eq. 1)  then
+        errorH1blk(:,1) = errorH1blk(:,1)
+     &                  + sqrt(gijd(:,1)+gijd(:,3)+gijd(:,6)) * tau(:,1)
+     &                  * rLyi(:,1) * WdetJ
+        errorH1blk(:,2) = errorH1blk(:,2)
+     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
+     &                  * rLyi(:,2) * WdetJ
+        errorH1blk(:,3) = errorH1blk(:,3)
+     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
+     &                  * rLyi(:,3) * WdetJ
+        errorH1blk(:,4) = errorH1blk(:,4)
+     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
+     &                  * rLyi(:,4) * WdetJ
+        errorH1blk(:,5) = errorH1blk(:,5)
+     &                  + 1.0/sqrt(con) * sqrt(tau(:,3))
+     &                  * rLyi(:,5) * WdetJ
+      endif
+c
+c
 c...  finally multiply this tau matrix times the
 c     two residual vectors
 c

@@ -272,6 +272,10 @@ extern "C" {
     double faceMeshqTol;
     int autoTrigger;
     int triggerNow;
+    double errorTolMass;
+    double errorTolMomt;
+    double errorTolEngy;
+    int errorEstimation;
   } meshquality ;
 
   extern struct {

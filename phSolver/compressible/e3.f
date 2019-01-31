@@ -1,7 +1,8 @@
         subroutine e3 (yl,      ycl,     acl,     shp,
      &                 shgl,    xl,      rl,      rml,    xmudmi,
      &                 BDiagl,  ql,      sgn,     rlsl,   EGmass,
-     &                 rerrl,   ytargetl, uml, meshCFLblk)
+     &                 rerrl,   ytargetl, uml,    meshCFLblk,
+     &                 errorH1blk)
 c                                                                      
 c----------------------------------------------------------------------
 c
@@ -60,7 +61,8 @@ c
      &            EGmass(npro,nedof,nedof),
 !     &            cv(npro),
      &            ytargetl(npro,nshl,nflow)
-	real*8    meshCFLblk(npro)
+        real*8    meshCFLblk(npro)
+        real*8    errorH1blk(npro,nflow)
 c
         dimension dui(npro,ndof),            aci(npro,ndof)
 c
@@ -236,7 +238,8 @@ c
      &               EGmass,          stiff,         WdetJ,
      &               giju,            rTLS,          raLS,
      &               A0inv,           dVdY,          rerrl,
-     &               compK,           pres,          PTau, meshCFLblk)
+     &               compK,           pres,          PTau,
+     &               meshCFLblk,      errorH1blk)
         ttim(16) = ttim(16) + secs(0.0)
 c        
 c....  Discontinuity capturing

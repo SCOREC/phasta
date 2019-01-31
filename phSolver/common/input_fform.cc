@@ -793,6 +793,20 @@ int input_fform(phSolver::Input& inp)
     }
     meshquality.volMeshqTol = inp.GetValue("Threshold for Volume Mesh Quality");
     meshquality.faceMeshqTol = inp.GetValue("Threshold for Face Mesh Quality in BL");
+
+    if ((string)inp.GetValue("Error Estimation Option") == "False" ) {
+      meshquality.errorEstimation = 0;
+    } else if ((string)inp.GetValue("Error Estimation Option") == "True" ) {
+      meshquality.errorEstimation = 1;
+    } else {
+      cout << " Error Estimation Option: Only Legal Values ( False, True)" <<endl;
+      exit(1);
+    }
+
+    meshquality.errorTolMass = inp.GetValue("Error Threshold for Mass Equation");
+    meshquality.errorTolMomt = inp.GetValue("Error Threshold for Momentum Equation");
+    meshquality.errorTolEngy = inp.GetValue("Error Threshold for Energy Equation");
+
 //for auto trigger mesh adaptation----------------------------
 
 

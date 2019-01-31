@@ -164,10 +164,14 @@ c
       module meshquality_m
         use iso_c_binding
         implicit none
-        real(c_double), target :: volMeshqTol, faceMeshqTol
-        integer(c_int), target :: autoTrigger, triggerNow
-        common /meshquality/  volMeshqTol, faceMeshqTol,
-     &                        autoTrigger, triggerNow
+        real(c_double), target :: volMeshqTol,  faceMeshqTol,
+     &                            errorTolMass, errorTolMomt,
+     &                            errorTolEngy
+        integer(c_int), target :: autoTrigger, triggerNow, errorEstimation
+        common /meshquality/  volMeshqTol,  faceMeshqTol,
+     &                        autoTrigger,  triggerNow,
+     &                        errorTolMass, errorTolMomt,
+     &                        errorTolEngy, errorEstimation
       end module meshquality_m
 c
 c----------------------------------------------------------------------

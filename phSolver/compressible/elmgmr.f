@@ -283,7 +283,8 @@ c_______________________________________________________________
      &                     shpif,     shgif,
      &                     res,       rmes,      BDiag,
      &                     iper,      ilwork,    lhsK,  
-     &                     col,       row,       rerr,     umesh, meshCFL)
+     &                     col,       row,       rerr,     umesh,
+     &                     meshCFL,   errorH1)
 c
 c----------------------------------------------------------------------
 c
@@ -431,14 +432,16 @@ c
         dimension ilwork(nlwork)
 c  
         dimension umesh(numnp, nsd)
-	real*8    meshCFL(numel)
+        real*8    meshCFL(numel)
+        real*8    errorH1(numel, nflow)
 c
         real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
 
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
         real*8, allocatable :: EGmass(:,:,:)
-	real*8, allocatable :: meshCFLblk(:)
+        real*8, allocatable :: meshCFLblk(:)
+        real*8, allocatable :: errorH1blk(:,:)
 c
         real*8, dimension(:,:,:), allocatable :: egmassif00,egmassif01,egmassif10,egmassif11
         real*8 :: length
@@ -466,6 +469,7 @@ c
         qres = zero
         rmass = zero
         meshCFL = zero
+        errorH1 = zero
         do iblk = 1, nelblk
 c
 c.... set up the parameters
@@ -553,9 +557,12 @@ c
 
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
-	  allocate(meshCFLblk(npro))
+          allocate (meshCFLblk(npro))
+          allocate (errorH1blk(npro,nflow))
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
+          meshCFLblk = zero
+          errorH1blk = zero
 c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
@@ -582,8 +589,6 @@ c
 c
           if (associated(e3_malloc_ptr)) call e3_malloc_ptr
 c
-	  meshCFLblk = zero
-c
           call AsIGMR (y,                   ac,
      &                 x,                   mxmudmi(iblk)%p,
      &                 tmpshp,
@@ -591,12 +596,19 @@ c
      &                 mater,               res,
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
-     &                 rerr,                umesh , meshCFLblk)
+     &                 rerr,                umesh,
+     &                 meshCFLblk,          errorH1blk)
 
 c.... map local element to global
           do i = 1, npro
             meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
           enddo
+c
+          if (errorEstimation .eq. 1) then
+            do i = 1, npro
+              errorH1(mieMap(iblk)%p(i,:)) = errorH1blk(i,:)
+            enddo
+          endif
 c
           if(lhs.eq.1) then
 c
@@ -616,8 +628,8 @@ c
           deallocate ( EGmass )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
-	  deallocate ( meshCFLblk )
-
+          deallocate ( meshCFLblk )
+          deallocate ( errorH1blk )
 c
 c.... end of interior element loop
 c
