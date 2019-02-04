@@ -198,6 +198,9 @@ void countfieldstowriterestart()
     nfields++; /* meshCFL */
   }
 
+  if(meshquality.errorEstimation == 1) {
+    nfields++; /* errorH1 */
+  }
 
   if(outpar.ivort == 1){
     nfields++; /*vorticity*/

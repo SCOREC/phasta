@@ -606,7 +606,7 @@ c.... map local element to global
 c
           if (errorEstimation .eq. 1) then
             do i = 1, npro
-              errorH1(mieMap(iblk)%p(i,:)) = errorH1blk(i,:)
+              errorH1(mieMap(iblk)%p(i),:) = errorH1blk(i,:)
             enddo
           endif
 c

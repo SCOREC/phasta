@@ -200,19 +200,19 @@ c
       if (errorEstimation .eq. 1)  then
         errorH1blk(:,1) = errorH1blk(:,1)
      &                  + sqrt(gijd(:,1)+gijd(:,3)+gijd(:,6)) * tau(:,1)
-     &                  * rLyi(:,1) * WdetJ
+     &                  * abs(rLyi(:,1)) * WdetJ
         errorH1blk(:,2) = errorH1blk(:,2)
      &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * rLyi(:,2) * WdetJ
+     &                  * abs(rLyi(:,2)) * WdetJ
         errorH1blk(:,3) = errorH1blk(:,3)
      &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * rLyi(:,3) * WdetJ
+     &                  * abs(rLyi(:,3)) * WdetJ
         errorH1blk(:,4) = errorH1blk(:,4)
      &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * rLyi(:,4) * WdetJ
+     &                  * abs(rLyi(:,4)) * WdetJ
         errorH1blk(:,5) = errorH1blk(:,5)
      &                  + 1.0/sqrt(con) * sqrt(tau(:,3))
-     &                  * rLyi(:,5) * WdetJ
+     &                  * abs(rLyi(:,5)) * WdetJ
       endif
 c
 c
