@@ -433,7 +433,7 @@ c
 c  
         dimension umesh(numnp, nsd)
         real*8    meshCFL(numel)
-        real*8    errorH1(numel, nflow)
+        real*8    errorH1(numel,3)
 c
         real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
 
@@ -606,7 +606,19 @@ c.... map local element to global
 c
           if (errorEstimation .eq. 1) then
             do i = 1, npro
-              errorH1(mieMap(iblk)%p(i),:) = errorH1blk(i,:)
+              errorH1(mieMap(iblk)%p(i),1) = errorH1blk(i,1)
+              errorH1(mieMap(iblk)%p(i),2) = sqrt(
+     &                       errorH1blk(i,2)*errorH1blk(i,2)+
+     &                       errorH1blk(i,3)*errorH1blk(i,3)+
+     &                       errorH1blk(i,4)*errorH1blk(i,4))
+              errorH1(mieMap(iblk)%p(i),3) = errorH1blk(i,5)
+c.... trigger mesh adaptation if error is larger than the threshold
+c
+              if ((errorH1(mieMap(iblk)%p(i),1) .ge. errorTolMass) .or.
+                  (errorH1(mieMap(iblk)%p(i),2) .ge. errorTolMomt) .or. 
+                  (errorH1(mieMap(iblk)%p(i),3) .ge. errorTolEngy))then
+                triggerNow = 1
+              endif
             enddo
           endif
 c

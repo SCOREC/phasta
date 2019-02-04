@@ -99,7 +99,7 @@ c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
      &         umeshold(numnp, nsd), xold(numnp,nsd),
-     &         meshCFL(numel),      errorH1(numel, nflow)
+     &         meshCFL(numel),      errorH1(numel,3)
 c
 c.... For surface mesh snapping
 c
@@ -179,6 +179,7 @@ c
         acold  = ac
         umeshold = umesh
         xold   = x
+        triggerNow = 0
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
@@ -962,7 +963,6 @@ c.... -----------------> end error calculation  <----------------
 c
 c.... ----------------->   measure mesh quality   <----------------
 c
-            triggerNow = 0
             if (autoTrigger .eq. 1) then
               x1 = x(:,1)
               x2 = x(:,2)
@@ -1034,7 +1034,7 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                  if (errorEstimation .eq. 1) then
                    call write_field(
      &                  myrank,'a'//char(0),'errorH1'//char(0), 7,
-     &                  errorH1, 'd'//char(0), numel, nflow, lstep)
+     &                  errorH1, 'd'//char(0), numel, 3, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1083,7 +1083,7 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                if (errorEstimation .eq. 1) then
                  call write_field(
      &                myrank,'a'//char(0),'errorH1'//char(0), 7,
-     &                errorH1, 'd'//char(0), numel, nflow, lstep)
+     &                errorH1, 'd'//char(0), numel, 3, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

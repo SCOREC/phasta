@@ -425,7 +425,7 @@ c
      &          uBrg(nshg,nflow,Kspace+1),
      &          umesh(numnp, nsd)  
       real*8    meshCFL(numel)
-      real*8    errorH1(numel, nflow)
+      real*8    errorH1(numel,3)
 c        
       dimension shp(MAXTOP,maxsh,MAXQPT),  
      &          shgl(MAXTOP,nsd,maxsh,MAXQPT), 
