@@ -615,8 +615,8 @@ c
 c.... trigger mesh adaptation if error is larger than the threshold
 c
               if ((errorH1(mieMap(iblk)%p(i),1) .ge. errorTolMass) .or.
-                  (errorH1(mieMap(iblk)%p(i),2) .ge. errorTolMomt) .or. 
-                  (errorH1(mieMap(iblk)%p(i),3) .ge. errorTolEngy))then
+     &            (errorH1(mieMap(iblk)%p(i),2) .ge. errorTolMomt) .or.
+     &            (errorH1(mieMap(iblk)%p(i),3) .ge. errorTolEngy))then
                 triggerNow = 1
               endif
             enddo
