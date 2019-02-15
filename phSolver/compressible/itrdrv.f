@@ -1004,10 +1004,17 @@ c.... check if error larger than threshold
                 write(*,*) "error (mass, momt, engy):",
      &                      errorMaxMass,errorMaxMomt,errorMaxEngy
               endif
-              if ((errorMaxMass .ge. errorTolMass) .or.
-     &            (errorMaxMomt .ge. errorTolMomt) .or.
-     &            (errorMaxEngy .ge. errorTolEngy)) then
-                triggerNow = 1
+c
+              if (errorTriggerEqn .eq. 1) then
+                if (errorMaxMass .ge. errorTolMass) triggerNow = 1
+              else if (errorTriggerEqn .eq. 2) then
+                if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
+              else if (errorTriggerEqn .eq. 3) then
+                if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
+              else if (errorTriggerEqn .eq. 4) then
+                if ((errorMaxMass .ge. errorTolMass) .or.
+     &              (errorMaxMomt .ge. errorTolMomt) .or.
+     &              (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
               endif
             endif
 c
