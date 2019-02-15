@@ -612,20 +612,21 @@ c
      &                       errorH1blk(i,3)*errorH1blk(i,3)+
      &                       errorH1blk(i,4)*errorH1blk(i,4))
               errorH1(mieMap(iblk)%p(i),3) = errorH1blk(i,5)
-c.... trigger mesh adaptation if error is larger than the threshold
+c.... record the max error
 c
-              if ((errorH1(mieMap(iblk)%p(i),1) .ge. errorTolMass) .or.
-     &            (errorH1(mieMap(iblk)%p(i),2) .ge. errorTolMomt) .or.
-     &            (errorH1(mieMap(iblk)%p(i),3) .ge. errorTolEngy))then
-                triggerNow = 1
-              endif
+              if (errorH1(mieMap(iblk)%p(i),1) .gt. errorMaxMass)
+     &            errorMaxMass = errorH1(mieMap(iblk)%p(i),1)
+              if (errorH1(mieMap(iblk)%p(i),2) .gt. errorMaxMomt)
+     &            errorMaxMomt = errorH1(mieMap(iblk)%p(i),2)
+              if (errorH1(mieMap(iblk)%p(i),3) .gt. errorMaxEngy)
+     &            errorMaxEngy = errorH1(mieMap(iblk)%p(i),3)
             enddo
           endif
 c
           if(lhs.eq.1) then
 c
 c.... satisfy the BCs on the implicit LHS
-c     
+c
              call bc3LHS (iBC,                  BC,  mien(iblk)%p, 
      &                    EGmass  ) 
 c

@@ -166,12 +166,15 @@ c
         implicit none
         real(c_double), target :: volMeshqTol,  faceMeshqTol,
      &                            errorTolMass, errorTolMomt,
-     &                            errorTolEngy
+     &                            errorTolEngy, errorMaxMass,
+     &                            errorMaxMomt, errorMaxEngy
         integer(c_int), target :: autoTrigger, triggerNow, errorEstimation
         common /meshquality/  volMeshqTol,  faceMeshqTol,
      &                        autoTrigger,  triggerNow,
      &                        errorTolMass, errorTolMomt,
-     &                        errorTolEngy, errorEstimation
+     &                        errorTolEngy, errorMaxMass,
+     &                        errorMaxMomt, errorMaxEngy,
+     &                        errorEstimation
       end module meshquality_m
 c
 c----------------------------------------------------------------------

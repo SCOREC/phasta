@@ -525,6 +525,13 @@ c.... reset rigid body force
 c
                      if (numrbs .gt. 0) call init_rbForce
 c
+c.... initialize max error variables
+                     if (errorEstimation .eq. 1) then
+                       errorMaxMass = 0.0
+                       errorMaxMomt = 0.0
+                       errorMaxEngy = 0.0
+                     endif
+c
 c.... form the element data and solve the matrix problem
 c     
 c.... explicit solver
@@ -961,7 +968,7 @@ c... compute err
 
 c.... -----------------> end error calculation  <----------------
 c
-c.... ----------------->   measure mesh quality   <----------------
+c.... -----------------> check if auto trigger <-----------------
 c
             if (autoTrigger .eq. 1) then
               x1 = x(:,1)
@@ -985,7 +992,26 @@ c
               endif ! end check if less than tolerance
             endif ! end auto_trigger option
 c
-c.... -----------------> end measure mesh quality <----------------
+c.... check if error larger than threshold
+            if (errorEstimation .eq. 1) then
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMass, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMomt, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxEngy, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              if(myrank .eq. master) then
+                write(*,*) "error (mass, momt, engy):",
+     &                      errorMaxMass,errorMaxMomt,errorMaxEngy
+              endif
+              if ((errorMaxMass .ge. errorTolMass) .or.
+     &            (errorMaxMomt .ge. errorTolMomt) .or.
+     &            (errorMaxEngy .ge. errorTolEngy)) then
+                triggerNow = 1
+              endif
+            endif
+c
+c.... ---------------> end check if auto trigger <---------------
 c
             !here is where we save our averaged field.  In some cases we want to
             !write it less frequently

@@ -275,6 +275,9 @@ extern "C" {
     double errorTolMass;
     double errorTolMomt;
     double errorTolEngy;
+    double errorMaxMass;
+    double errorMaxMomt;
+    double errorMaxEngy;
     int errorEstimation;
   } meshquality ;
 
