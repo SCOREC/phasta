@@ -804,13 +804,13 @@ int input_fform(phSolver::Input& inp)
     }
 
     if ((string)inp.GetValue("Error Trigger Equation Option") == "Mass" ) {
-      meshquality.errorTriggerEqn = 0;
-    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Momentum" ) {
       meshquality.errorTriggerEqn = 1;
-    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Energy" ) {
+    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Momentum" ) {
       meshquality.errorTriggerEqn = 2;
-    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Any" ) {
+    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Energy" ) {
       meshquality.errorTriggerEqn = 3;
+    } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Any" ) {
+      meshquality.errorTriggerEqn = 4;
     } else {
       cout << " Error Trigger Equation Option: Only Legal Values ( Mass, Momentumm, Energy, Any)" <<endl;
       exit(1);
