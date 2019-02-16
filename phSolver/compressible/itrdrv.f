@@ -968,6 +968,21 @@ c... compute err
 
 c.... -----------------> end error calculation  <----------------
 c
+c.... ------------------> print out VMS error <------------------
+c
+            if (errorEstimation .eq. 1) then
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMass, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMomt, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxEngy, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              if(myrank .eq. master) then
+                write(*,*) "error (mass, momt, engy):",
+     &                      errorMaxMass,errorMaxMomt,errorMaxEngy
+              endif
+            endif
+c
 c.... -----------------> check if auto trigger <-----------------
 c
             if (autoTrigger .eq. 1) then
@@ -989,34 +1004,23 @@ c
                   write(*,*) "we need to trigger mesh adaptation!"
                 endif
                 triggerNow = 1
-              endif ! end check if less than tolerance
-            endif ! end auto_trigger option
+              endif ! end check if mesh quality less than tolerance
 c
 c.... check if error larger than threshold
-            if (errorEstimation .eq. 1) then
-              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMass, 1,
-     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
-              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMomt, 1,
-     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
-              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxEngy, 1,
-     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
-              if(myrank .eq. master) then
-                write(*,*) "error (mass, momt, engy):",
-     &                      errorMaxMass,errorMaxMomt,errorMaxEngy
-              endif
-c
-              if (errorTriggerEqn .eq. 1) then
-                if (errorMaxMass .ge. errorTolMass) triggerNow = 1
-              else if (errorTriggerEqn .eq. 2) then
-                if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
-              else if (errorTriggerEqn .eq. 3) then
-                if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
-              else if (errorTriggerEqn .eq. 4) then
-                if ((errorMaxMass .ge. errorTolMass) .or.
-     &              (errorMaxMomt .ge. errorTolMomt) .or.
-     &              (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
-              endif
-            endif
+              if (errorEstimation .eq. 1) then
+                if (errorTriggerEqn .eq. 1) then
+                  if (errorMaxMass .ge. errorTolMass) triggerNow = 1
+                else if (errorTriggerEqn .eq. 2) then
+                  if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
+                else if (errorTriggerEqn .eq. 3) then
+                  if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
+                else if (errorTriggerEqn .eq. 4) then
+                  if ((errorMaxMass .ge. errorTolMass) .or.
+     &                (errorMaxMomt .ge. errorTolMomt) .or.
+     &                (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
+                endif ! end check if error larger than threshold
+              endif ! end if error estimation option is on
+            endif ! end auto_trigger option
 c
 c.... ---------------> end check if auto trigger <---------------
 c
