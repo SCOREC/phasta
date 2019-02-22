@@ -157,11 +157,11 @@ c
         do n = 1,nshl
           do isd = 1,nsd
             sum_vi_area_l(:,n,isd) = sum_vi_area_l(:,n,isd) 
-     &                             + shp(:,n)*vi(:,isd)*area(:)
-c     &                             + shp(:,n)*vi(:,isd)*WdetJif(:)
+c     &                             + shp(:,n)*vi(:,isd)*area(:)
+     &                             + shp(:,n)*vi(:,isd)*WdetJif(:)
           enddo
-          sum_vi_area_l(:,n,nsd+1) = sum_vi_area_l(:,n,nsd+1) + shp(:,n)*area(:)
-c          sum_vi_area_l(:,n,nsd+1) = sum_vi_area_l(:,n,nsd+1) + shp(:,n)*WdetJif(:)
+c          sum_vi_area_l(:,n,nsd+1) = sum_vi_area_l(:,n,nsd+1) + shp(:,n)*area(:)
+          sum_vi_area_l(:,n,nsd+1) = sum_vi_area_l(:,n,nsd+1) + shp(:,n)*WdetJif(:)
         enddo
 c
       end subroutine calc_vi_area_node
