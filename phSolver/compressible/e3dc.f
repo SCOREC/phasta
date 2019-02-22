@@ -1,6 +1,6 @@
         subroutine e3DC (g1yi,   g2yi,   g3yi,   A0,     raLS,
      &                   rtLS,   giju,   DC,     ri,
-     &                   rmi,    stiff,  A0DC,   shape)
+     &                   rmi,    stiff,  A0DC,   shape,  WdetJ)
 c
 c----------------------------------------------------------------------
 c
@@ -43,7 +43,7 @@ c
         dimension ggyi(npro,nflow),         gAgyi(npro,15),
      &            gnorm(npro),              A0gyi(npro,15),
      &            yiA0DCyj(npro,6),         A0DC(npro,4),
-     &            shape(npro,nshl)
+     &            shape(npro,nshl),         WdetJ(npro)
 c
         integer :: n     
 c
@@ -340,8 +340,8 @@ c... sum up the numerical viscousity of the last flow solve in current time step
           if ( dc_calc_flag .eq. 1) then
             do n = 1,nshl
               sum_dc_lag_l(:,n) = sum_dc_lag_l(:,n) 
-     &                          + shape(:,n)*DC(:,intp)*vol_elm(:)
-              sum_vol_l(:,n) = sum_vol_l(:,n) + shape(:,n)*vol_elm(:)          
+     &                          + shape(:,n)*DC(:,intp)*WdetJ(:)
+              sum_vol_l(:,n) = sum_vol_l(:,n) + shape(:,n)*WdetJ(:)   
             enddo
           endif
 c... using the numerical viscousity from last time step to replace the
