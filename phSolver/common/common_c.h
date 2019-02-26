@@ -515,6 +515,7 @@ extern "C" {
     int igraph;
     int itime;
     int iconserv;
+    int igcl;
   } mio ;
 
   extern struct { 
@@ -533,6 +534,7 @@ extern "C" {
     double fgraph;
     double ftime;
     double fconserv;
+    double fgcl;
   } mioname ;
 
   extern struct { 

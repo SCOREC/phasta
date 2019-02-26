@@ -162,6 +162,7 @@ c
         if (myrank .eq. master) then
           open (unit=ihist,  file=fhist,  status='unknown')
           open (unit=iconserv,file=fconserv,status='unknown')
+          open (unit=igcl,   file=fgcl,   status='unknown') ! geometric conservation law
           inquire(file=fforce, exist=alive)
           if (alive .and. (lstep .gt. 0) ) then 
             open (unit=iforce, file=fforce, status='old', position='append')
@@ -1234,6 +1235,7 @@ c
          close (ihist)
          close (iforce)
          close (iconserv)
+         close (igcl)
 
          if(exMC) then 
            call MC_writeState(lstep) 

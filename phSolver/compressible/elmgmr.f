@@ -469,7 +469,6 @@ c of the diffusive flux vector, q, and lumped mass matrix, rmass
 c
         qres = zero
         rmass = zero
-        meshCFL = zero
         do iblk = 1, nelblk
 c
 c.... set up the parameters
@@ -524,6 +523,9 @@ c
         if (lhs. eq. 1) lhsK = zero
         if (iprec .ne. 0) BDiag = zero
         flxID = zero
+        meshCFL = zero
+        int_vol0 = zero
+        int_vol1 = zero
 c
 c... for lagging DC, initialize the sum for every Newton iteration
         if ( i_dc_lag .eq.1) then
@@ -564,6 +566,7 @@ c
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
 	  allocate(meshCFLblk(npro))
+          allocate (int_vol_blk(npro))
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
 c
@@ -603,6 +606,7 @@ c
           if (associated(e3_malloc_ptr)) call e3_malloc_ptr
 c
 	  meshCFLblk = zero
+          int_vol_blk = zero
 c
           call AsIGMR (y,                   ac,
      &                 x,                   mxmudmi(iblk)%p,
@@ -616,6 +620,12 @@ c
 c.... map local element to global
           do i = 1, npro
             meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
+          enddo
+c
+c.... add element volume to phases
+          do i = 1, npro ! assume two phases here
+            if (mater .eq. 1) int_vol0 = int_vol0 + int_vol_blk(i)
+            if (mater .eq. 2) int_vol1 = int_vol1 + int_vol_blk(i)
           enddo
 c
           if(lhs.eq.1) then
@@ -643,6 +653,7 @@ c
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
 	  deallocate ( meshCFLblk )
+          deallocate ( int_vol_blk )
 
 c
 c.... end of interior element loop
@@ -676,6 +687,14 @@ c... value
             enddo
 c                        
           endif 
+c
+c... sum up phase volume over all ranks
+          if (numpe > 1) then
+            call MPI_ALLREDUCE(MPI_IN_Place, int_vol0, 1,
+     &        MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr )
+            call MPI_ALLREDUCE(MPI_IN_Place, int_vol1, 1,
+     &        MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr )
+          endif
 c
 c.... -------------------->   boundary elements   <--------------------
 c
@@ -774,6 +793,7 @@ c... initialize the global date for interface error
         int_area = zero
         int_flux = zero
         int_y = zero
+        int_vol_rate = zero
 c
         if (nelblif .gt. zero) then ! if there is interface element in this rank
           err_flag = 1
@@ -803,7 +823,7 @@ c
            w_normal_global = zero
            length_temp = zero
         endif
-c          
+c
         if_blocks1: do iblk = 1, nelblif
 c
           iel     = lcblkif(1, iblk)
@@ -1000,12 +1020,14 @@ c... allocate and initialize the date for interface error at blk level
           allocate(int_area_blk(npro))
           allocate(int_flux_blk(npro,nflow))
           allocate(int_y_blk(npro,nflow-2))
+          allocate(int_vol_rate_blk(npro))
 c
           int_err_if_flux_blk = zero
           int_err_if_tan_blk = zero
           int_area_blk = zero
           int_flux_blk = zero
-          int_y_blk = zero          
+          int_y_blk = zero
+          int_vol_rate_blk = zero
         endif
 c...
 c... set equations of state
@@ -1126,6 +1148,13 @@ c... sum up the interface error from each interface element
             enddo
           endif
 c...
+c
+c... sum up interface velocity * normal
+          do iel = 1, npro
+            int_vol_rate = int_vol_rate + int_vol_rate_blk(iel)
+          enddo
+c...
+c
           call e3if_geom_mfree
           call e3if_mfree
 c
@@ -1146,6 +1175,7 @@ c... deallocate the date for interface error at blk level
             deallocate(int_area_blk)
             deallocate(int_flux_blk)
             deallocate(int_y_blk)
+            deallocate(int_vol_rate_blk)
           endif
 c...          
 c
@@ -1171,6 +1201,18 @@ c... sum up the error from all ranks
             call MPI_REDUCE ( int_area,  int_area_rank, 
      &                        1, MPI_DOUBLE_PRECISION,
      &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+        endif
+c... sum up integral of velocity * normal over all ranks
+        if (numpe > 1) then
+            call MPI_ALLREDUCE(MPI_IN_Place, int_vol_rate, 1,
+     &        MPI_REAL8, MPI_SUM, MPI_COMM_WORLD, ierr )
+        endif
+c... print out geometric conservation data into file
+        if (myrank .eq. master) then
+          write(igcl,*) "volume of phase 0:",int_vol0,
+     &                  "volume of phase 1:",int_vol1,
+     &                  "volumetric flow rate",int_vol_rate
+          call flush(igcl)
         endif
 c... calculate the surface avg. interface error on master rank
         if (myrank .eq. master) then

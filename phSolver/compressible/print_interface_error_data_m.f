@@ -13,22 +13,26 @@ c
         real*8, dimension(5) :: int_flux
         real*8, dimension(3) :: error_tan_nomalized
         real*8, dimension(3) :: int_y
-c        
+c
         real*8, dimension(5) :: int_err_if_flux_rank   !sum up all ranks
         real*8, dimension(3) :: int_err_if_tan_rank  !sum up all ranks
         real*8 :: int_area_rank  !sum up all ranks
 c
         real*8, dimension(5) :: int_flux_rank !sum up all ranks
         real*8, dimension(3) :: int_y_rank !sum up all ranks
-        
 c
         real*8, dimension(:,:), allocatable :: int_err_if_flux_blk  ! surface intgeral of error for flux at blk level
         real*8, dimension(:,:), allocatable :: int_err_if_tan_blk   ! surface intgeral of error for tangential quantities at blk level, sum up x, y, z direction
         real*8, dimension(:), allocatable :: int_area_blk           ! area of interface at blk level
 c
         real*8, dimension(:,:), allocatable :: int_flux_blk  ! surface intgeral of flux at blk level
-        real*8, dimension(:,:), allocatable :: int_y_blk  ! surface intgeral of flux at blk level        
+        real*8, dimension(:,:), allocatable :: int_y_blk  ! surface intgeral of flux at blk level
 c
-        integer :: err_flag                                                 
-c      
+        integer :: err_flag
+c
+        real*8 :: int_vol_rate  ! surface integral of volumetric flow rate
+        real*8, dimension(:), allocatable :: int_vol_rate_blk  ! surface integral of volumetric flow rate (interface velocity * normal) at blk level
+        real*8 :: int_vol0      ! volume of phase 0
+        real*8 :: int_vol1      ! volume of phase 1
+        real*8, dimension(:), allocatable :: int_vol_blk       ! element volume at blk level
       end module print_interface_error_data_m

@@ -48,6 +48,7 @@ c
         use e3_param_m
         use dc_lag_data_m
         use dc_lag_func_m, only:get_dc_lag_qt
+        use print_interface_error_data_m ! access to int_vol_blk
 c
         include "common.h"
 c
@@ -331,6 +332,9 @@ c
      &              ri,            rmi,       rl,        
      &              rml,           stiff,     EGmass)
        ttim(19) = ttim(19) + secs(0.0)
+c
+c... calculate the volume of element
+       int_vol_blk(:) = int_vol_blk(:) + WdetJ(:)
 c
 c.... end of integration loop
 c

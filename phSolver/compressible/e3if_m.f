@@ -152,9 +152,9 @@ c
                int_err_if_tan_blk(i,3) = int_err_if_tan_blk(i,3)
      &                                 + cy_jump_0(i,5,isd)**two
      &                                 * WdetJif0(i)
-c               
+c
              enddo
-c             
+c
              int_y_blk(i,1) = int_y_blk(i,1)
      &                      + y0(i,1)* WdetJif0(i)
              int_y_blk(i,2) = int_y_blk(i,2)
@@ -163,9 +163,9 @@ c
      &                      * WdetJif0(i)
              int_y_blk(i,3) = int_y_blk(i,3)
      &                      + y0(i,5)* WdetJif0(i)
-c             
+c
            enddo
-c...                                  
+c...
 c
 c ... kinematic condition term:
 c     set the mu coeff to the max of the 0,1 materials 
@@ -275,6 +275,14 @@ c
             call calc_vi_area_node(sum_vi_area_l1,shp1,WdetJif1,nshl1)
 c
 c            call calc_vapor_frac_node
+c
+c... calculate interface velocity * normal at this quadrature point
+c
+            int_vol_rate_blk(:) = int_vol_rate_blk(:)
+     &                            +(vi(:,1) * nv0(:,1)
+     &                            + vi(:,2) * nv0(:,2)
+     &                            + vi(:,3) * nv0(:,3)) * WdetJif0(:)
+c...
 c
           enddo 
 c------------------- End of Quadrature loop --------------------------------

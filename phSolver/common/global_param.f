@@ -545,10 +545,12 @@ c
         implicit none
         integer(c_int) :: iin,    igeom,  ipar,   ibndc,  imat,   iecho,
      &                  iout,   ichmou, irstin, irstou, ihist,  iflux,
-     &                  ierror, itable, iforce, igraph, itime, iconserv
+     &                  ierror, itable, iforce, igraph, itime, iconserv,
+     &                  igcl
         common /mio    / iin,    igeom,  ipar,   ibndc,  imat,   iecho,
      &                  iout,   ichmou, irstin, irstou, ihist,  iflux,
-     &                  ierror, itable, iforce, igraph, itime, iconserv
+     &                  ierror, itable, iforce, igraph, itime, iconserv,
+     &                  igcl
       end module mio_m
 c
 c----------------------------------------------------------------------
@@ -573,10 +575,10 @@ c
         implicit none
         character*80    fin,    fgeom,  fpar,   fbndc,  fmat,   fecho,
      &                  frstin, frstou, fhist,  ferror, ftable, fforce,
-     &                  fgraph, ftime, fconserv
+     &                  fgraph, ftime, fconserv,fgcl
         common /mioname/ fin,    fgeom,  fpar,   fbndc,  fmat,   fecho,
      &                  frstin, frstou, fhist,  ferror, ftable, fforce,
-     &                  fgraph, ftime, fconserv
+     &                  fgraph, ftime, fconserv,fgcl
       end module mioname_m
 c
       module sclrs_m

@@ -41,6 +41,7 @@
       fgraph = 'graph.dat'
       ftime = 'time.out'
       fconserv = 'conserv.dat'
+      fgcl = 'gcl.dat'  ! geometric conservation law
 
       iin = 10
       igeom = 11
@@ -60,6 +61,7 @@
       igraph = 25
       itime = 26
       iconserv = 27
+      igcl = 28
 
       mcsyst = 4
       melCat = 8
