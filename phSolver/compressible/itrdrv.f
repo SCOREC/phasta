@@ -162,7 +162,14 @@ c
         if (myrank .eq. master) then
           open (unit=ihist,  file=fhist,  status='unknown')
           open (unit=iconserv,file=fconserv,status='unknown')
-          open (unit=igcl,   file=fgcl,   status='unknown') ! geometric conservation law
+c          open (unit=igcl,   file=fgcl,   status='unknown') ! geometric conservation law
+          inquire(file=fgcl, exist=alive)
+          if (alive .and. (lstep .gt. 0) ) then 
+            open (unit=igcl, file=fgcl, status='old', position='append')
+          else
+            open (unit=igcl, file=fgcl, status='unknown')
+          endif
+c
           inquire(file=fforce, exist=alive)
           if (alive .and. (lstep .gt. 0) ) then 
             open (unit=iforce, file=fforce, status='old', position='append')
