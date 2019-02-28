@@ -324,7 +324,7 @@ c
 c
       if (errorEstimation .eq. 1) then
         do i = 1, npro
-          if (elementVol(i) .le. 0.0) then
+          if (elementVol(i) .gt. 0.0) then
             errorH1blk(i,:) = errorH1blk(i,:) / sqrt(elementVol(i))
           else
             errorH1blk(i,:) = zero
