@@ -63,6 +63,7 @@ c
      &            ytargetl(npro,nshl,nflow)
         real*8    meshCFLblk(npro)
         real*8    errorH1blk(npro,nflow)
+        real*8    elementVol(npro)
 c
         dimension dui(npro,ndof),            aci(npro,ndof)
 c
@@ -121,6 +122,8 @@ c (note: not currently included in mfg)
         if (idiff==2 .and. (ires==3 .or. ires==1)) then
            call e3ql (ycl, shp, shgl, xl, ql, xmudmi, sgn)
         endif
+c
+        elementVol = zero
 c
 c.... loop through the integration points
 c
@@ -308,12 +311,25 @@ c
      &              rml,           stiff,     EGmass)
        ttim(19) = ttim(19) + secs(0.0)
 c
+c.... calculate volume of element
+       elementVol(:) = elementVol(:) + WdetJ(:)
+c
 c.... end of integration loop
 c
       enddo
 c
       if (imeshCFL .eq. 1) then
         meshCFLblk(:) = meshCFLblk(:)/ngauss
+      endif
+c
+      if (errorEstimation .eq. 1) then
+        do i = 1, npro
+          if (elementVol(i) .le. 0.0) then
+            errorH1blk(i,:) = errorH1blk(i,:) / sqrt(elementVol(i))
+          else
+            errorH1blk(i,:) = zero
+          endif
+        enddo
       endif
 c
 c.... return
