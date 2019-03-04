@@ -20,8 +20,6 @@ c Farzin Shakib, Winter 1987.
 c Zdenek Johan,  Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
-        use e3_param_m
-c
         include "common.h"
 c
         dimension y(nshg,nflow),             iBC(nshg),

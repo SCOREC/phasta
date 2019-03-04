@@ -20,17 +20,19 @@ c
 c Kenneth Jansen, Winter 1997, Primitive Variables
 c----------------------------------------------------------------------
 c
+        use e3_param_m
+c
 	include "common.h"
 c
         dimension yl(npro,nshl,nflow),        acl(npro,nshl,ndof),
      &            WdetJ(npro),               A0(npro,nflow,nflow),
      &            rl(npro,nshl,nflow),        rml(npro,nshl,nflow)
 c
-        dimension rk(npro),                  rho(npro),
-     &            ei(npro),                  tmp(npro),
-     &            ub(npro,nflow),             fact(npro),
-     &		  fddt(npro)
-
+        dimension ub(npro,nflow),            fact(npro),
+     &            fddt(npro),                tmp(npro)
+c
+c        dimension rk(npro),    rho(npro),    ei(npro)
+c
 	ttim(28) = ttim(28) - secs(0.0)
 
 c
@@ -46,7 +48,6 @@ c   where 1 is a matrix with every element=1
 c
 c   note that the wght has 4/3 multiplier so 3/4*20=15
 c
-
         fact=WdetJ/(Qwt(lcsyst,intp)*15.0d0)
          fct1=almi/(gami*alfi)*Dtgl  ! factor for predictor (scalar)
         if(ires.ne.1) then
@@ -60,6 +61,8 @@ c     &                 rk,           rho,          ei,
 c     &                 tmp,          tmp,          tmp,
 c     &                 tmp,          tmp,          tmp,
 c     &                 tmp,          tmp)
+          pres = yl(:,inod,1)
+          T    = yl(:,inod,5)
           call getthm6_ptr
 c
          yl(:,inod,1) = rho 
