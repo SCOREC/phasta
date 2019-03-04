@@ -293,7 +293,7 @@ c
         dui(:,3) = rho * dui(:,3)
         dui(:,4) = rho * dui(:,4)
         dui(:,5) = rho * (ei + rk)
-          
+c
        ttim(10) = ttim(10) + secs(0.0)
 c
 c.... ------------->  Primitive variables at int. point  <--------------

@@ -1,7 +1,7 @@
         subroutine e3ql (ycl,      shp,     shgl,
      &                   xl,      ql,      xmudmi,
      &                   sgn )
-c                                                                      
+c
 c----------------------------------------------------------------------
 c
 c This routine computes the local diffusive flux vector using a 
@@ -19,6 +19,8 @@ c  ql     (npro,nshape,(nflow-1)*nsd) : element RHS diffusion residual
 c
 c----------------------------------------------------------------------
 c
+        use e3_param_m
+c
         include "common.h"
 c
         dimension ycl(npro,nshl,ndof),  
@@ -32,7 +34,7 @@ c
         dimension g1yi(npro,nflow),          g2yi(npro,nflow),
      &            g3yi(npro,nflow),          shg(npro,nshl,nsd),
      &            dxidx(npro,nsd,nsd),       WdetJ(npro),
-     &            T(npro),                   cp(npro),
+!     &            T(npro),     cp(npro),     rho(npro)
      &            u1(npro),                  u2(npro),
      &            u3(npro),                  rmu(npro),
      &            rlm(npro),                 rlm2mu(npro),
@@ -41,8 +43,8 @@ c
 c
         dimension qdi(npro,nsd*(nflow-1)),   shape(npro,nshl),
      &            shdrv(npro,nsd,nshl),      indx(nshl),
-     &            rmass(npro,nshl,nshl),     rho(npro)
-
+     &            rmass(npro,nshl,nshl)
+c
         real*8 tmp(npro)
 c
 c.... loop through the integration points
@@ -71,22 +73,22 @@ c.... calculate the integration variables necessary for the
 c     formation of q
 c
 
-        call e3qvar   (ycl,       shape,        shdrv,   
-     &                 rho,       xl,           g1yi,
-     &                 g2yi,      g3yi,         shg,
-     &                 dxidx,     WdetJ,        T,
-     &                 cp,        u1,           u2,
-     &                 u3                                 )              
-c
+        call e3qvar   (ycl,        shape,        shdrv,
+     &                 xl,         g1yi,
+     &                 g2yi,       g3yi,         shg,
+     &                 dxidx,      WdetJ,
+!     &                 rho,        T,            cp,
+     &                 u1,         u2,           u3)
 c
 c.... compute diffusive flux vector at this integration point
 c
 c
 c.... get material properties
 c
-        call getDiff (T,        cp,    rho,      ycl,
-     &               rmu,      rlm,    rlm2mu,   con, shape,
-     &               xmudmi,   xl)
+c        call getDiff (T,        cp,    rho,      ycl,
+c     &               rmu,      rlm,    rlm2mu,   con, shape,
+c     &               xmudmi,   xl)
+         call getdiff(rmu, rlm, rlm2mu, con, npro, mater)
 c
 c.... compute diffusive fluxes 
 c

@@ -42,14 +42,14 @@ c----------------------------------------
           allocate(h(npro))
           allocate(cv(npro))
           allocate(alphap(npro))
-          allocate(betat(npro))
+          allocate(betaT(npro))
           allocate(gamb(npro))
           allocate(c(npro))
           allocate(vap_frac(npro))
         end subroutine e3_malloc
         subroutine e3_mfree
           deallocate(rho,pres,T,cp,rk)
-          deallocate(ei,p,h,cv,alphap,betat,gamb,c)
+          deallocate(ei,p,h,cv,alphap,betaT,gamb,c)
           deallocate(vap_frac)
         end subroutine e3_mfree
       end module e3_param_m

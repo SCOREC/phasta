@@ -1,7 +1,8 @@
-        subroutine e3qvar (ycl, shp,     shgl,    rho,
+        subroutine e3qvar (ycl, shp,     shgl,
      &                     xl,  g1yi,    g2yi,    g3yi,
-     &                     shg, dxidx,   WdetJ,   T, 
-     &                     cp,  u1,      u2,      u3)
+     &                     shg, dxidx,   WdetJ,
+!     &                     rho, T,       cp,
+     &                     u1,      u2,      u3)
 c
 c----------------------------------------------------------------------
 c
@@ -33,19 +34,22 @@ c Zdenek Johan, Winter 1991. (Fortran 90)
 c Kenneth Jansen, Winter 1997. Primitive Variables
 c----------------------------------------------------------------------
 c
+        use e3_param_m
+c
         include "common.h"
 c
 c  passed arrays
 c
-        dimension ycl(npro,nshl,ndof),  rho(npro),
+        dimension ycl(npro,nshl,ndof),
      &            shp(npro,nshl),      tmp(npro),
      &            shgl(npro,nsd,nshl), xl(npro,nenl,nsd),
      &            g1yi(npro,nflow),    g2yi(npro,nflow),
      &            g3yi(npro,nflow),    shg(npro,nshl,nsd), 
      &            dxidx(npro,nsd,nsd), WdetJ(npro),
-     &            T(npro),             cp(npro),                  
+!     &            T(npro),             cp(npro),
+!     &            rho(npro),           pres(npro),
      &            u1(npro),            u2(npro),
-     &            u3(npro),            pres(npro)
+     &            u3(npro)
 c
 c  local arrays
 c
@@ -92,11 +96,12 @@ c
 c
         if (Navier .eq. 1) ithm = 7
 
-        call getthm (pres,            T,                  Sclr,
-     &               tmp,             rho,                tmp,
-     &               tmp,             tmp,                tmp,
-     &               cp,              tmp,                tmp,
-     &               tmp,             tmp)
+c        call getthm (pres,            T,                  Sclr,
+c     &               tmp,             rho,                tmp,
+c     &               tmp,             tmp,                tmp,
+c     &               cp,              tmp,                tmp,
+c     &               tmp,             tmp)
+        call getthm7_ptr
 c
 c.... --------------------->  Element Metrics  <-----------------------
 c

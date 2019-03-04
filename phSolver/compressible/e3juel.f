@@ -55,11 +55,12 @@ c
 	  rk = pt5 * (yl(:,inod,2)**2 + yl(:,inod,3)**2 + yl(:,inod,4)**2)
 c
           ithm = 6
-          call getthm (yl(:,inod,1), yl(:,inod,5), sls,
-     &                 rk,           rho,          ei,
-     &                 tmp,          tmp,          tmp,
-     &                 tmp,          tmp,          tmp,
-     &                 tmp,          tmp)
+c          call getthm (yl(:,inod,1), yl(:,inod,5), sls,
+c     &                 rk,           rho,          ei,
+c     &                 tmp,          tmp,          tmp,
+c     &                 tmp,          tmp,          tmp,
+c     &                 tmp,          tmp)
+          call getthm6_ptr
 c
          yl(:,inod,1) = rho 
          yl(:,inod,2) = rho * yl(:,inod,2)

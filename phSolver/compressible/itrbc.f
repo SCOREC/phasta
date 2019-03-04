@@ -20,6 +20,8 @@ c Farzin Shakib, Winter 1987.
 c Zdenek Johan,  Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+        use e3_param_m
+c
         include "common.h"
 c
         dimension y(nshg,nflow),             iBC(nshg),
@@ -135,22 +137,21 @@ c
             q1 = one
           endwhere
 c
-c
-c
           npro = nshg
 c
           ithm = 2  ! get pressure from rho and T 
 c...when ithm=2 scalar is not used so tmp is in place
-          call getthm (y1,        y(:,5),      tmp,
-     &                 rk,         q1,         tmp,
-     &                 tmp,        tmp,        tmp,
-     &                 tmp,        tmp,        tmp,
-     &                 tmp,        tmp)
+c          call getthm (y1,        y(:,5),      tmp,
+c     &                 rk,         q1,         tmp,
+c     &                 tmp,        tmp,        tmp,
+c     &                 tmp,        tmp,        tmp,
+c     &                 tmp,        tmp)
+           if (myrank .eq. master) write(*,*) "WARNING: ideal gas law is assumed here!"
+           y1 = Rgas * q1 * y(:,5)
 c
           where (btest(iBC,0))
             y(:,1) = y1
           endwhere
-
 c
         endif
 c
