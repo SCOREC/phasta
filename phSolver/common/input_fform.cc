@@ -1050,6 +1050,19 @@ int input_fform(phSolver::Input& inp)
       cout<< "Condition not defined for Discontinuity Capturing \n ";
       exit(1);
     }
+    
+// DISCONTINUITY CAPTURING lag options
+    if((string)inp.GetValue("Discontinuity Capturing Lag") == "Off"){
+			solpar.i_dc_lag = 0;
+	  }	  
+    else if((string)inp.GetValue("Discontinuity Capturing Lag") == "On"){
+			solpar.i_dc_lag = 1;
+   	}	    
+    else {
+      cout<< "Discontinuity Capturing Lag: Only Legal Values(Off, On) \n ";
+      cout << endl;
+      exit(1);
+    }    
 
     // SCALAR DISCONTINUITY CAPTURING
 

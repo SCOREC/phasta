@@ -619,9 +619,9 @@ c nGMRES        : maximum number of GMRES iterations
         use iso_c_binding
         implicit none
 c
-        integer(c_int) :: imap, ivart, iDC, iPcond, Kspace, nGMRES,
+        integer(c_int) :: imap, ivart, iDC, i_dc_lag, iPcond, Kspace, nGMRES,
      &                    iconvflow, iconvsclr, idcsclr(2)
-        common /solpar/ imap, ivart, iDC, iPcond, Kspace, nGMRES,
+        common /solpar/ imap, ivart, iDC, i_dc_lag, iPcond, Kspace, nGMRES,
      &                  iconvflow, iconvsclr, idcsclr
       end module solpar_m
 c

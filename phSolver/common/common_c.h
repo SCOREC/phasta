@@ -640,6 +640,7 @@ extern "C" {
     int imap;
     int ivart;
     int iDC;
+    int i_dc_lag;
     int iPcond;
     int Kspace;
     int nGMRES;
