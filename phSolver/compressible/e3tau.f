@@ -5,7 +5,6 @@
      &                     rLymi,  tau,    rk, 
      &                     giju,   rTLS,   raLS,
      &                     A0inv,  dVdY,   cv,
-     &                     meshCFLblk,     errorH1blk,
      &                     WdetJ)
 c
 c----------------------------------------------------------------------
@@ -41,6 +40,7 @@ c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
       use e3gij_m, only:e3gijd
+      use post_param_m
       include "common.h"
 c
       dimension rho(npro),                 con(npro), 
@@ -54,8 +54,6 @@ c
      &            rTLS(npro),                raLS(npro),
      &            rLyitemp(npro,nflow),      detgijI(npro)
 c     
-      real*8      meshCFLblk(npro)
-      real*8      errorH1blk(npro,nflow)
       dimension   WdetJ(npro)
 c
       dimension   rmu(npro),	 cv(npro),
@@ -182,7 +180,7 @@ c... ALE
          tau(:,2)=one/fact
 c
 c
-        if (imeshCFL .eq. 1) then
+        if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
           meshCFLblk(:)= meshCFLblk(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
      &        + two*((u2 - um2)*gijd(:,2) + (u3 - um3)*gijd(:,4)))
      &        + (u2 - um2)*((u2 - um2)*gijd(:,3) + two*(u3-um3)*gijd(:,5))
@@ -197,7 +195,7 @@ c
 c     
 c.... get error in H1 norm
 c
-      if (errorEstimation .eq. 1)  then
+      if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1))  then
         errorH1blk(:,1) = errorH1blk(:,1)
      &                  + sqrt(gijd(:,1)+gijd(:,3)+gijd(:,6)) * tau(:,1)
      &                  * abs(rLyi(:,1)) * WdetJ

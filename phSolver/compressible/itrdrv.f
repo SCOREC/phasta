@@ -43,6 +43,7 @@ c
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
+      use post_param_m
 c
         include "common.h"
         include "mpif.h"
@@ -98,8 +99,7 @@ c.... For mesh-elastic solve
 c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
-     &         umeshold(numnp, nsd), xold(numnp,nsd),
-     &         meshCFL(numel),      errorH1(numel,3)
+     &         umeshold(numnp, nsd), xold(numnp,nsd)
 c
 c.... For surface mesh snapping
 c
@@ -227,6 +227,7 @@ c ... allocate mesh-elastic solve related arrays only if mesh-elastic solve flag
         endif
 c
         if (numrbs .gt. 0) call malloc_rbForce
+        call malloc_post_param
 c
         call init_sum_vi_area(nshg,nsd)
         call ifbc_malloc
@@ -576,8 +577,7 @@ c                        write(*,*) 'lhs=',lhs
      &                       shp,           shgl,
      &                       shpb,          shglb,         
      &                       shpif,         shgif,
-     &                       solinc,        rerr,          umesh,
-     &                       meshCFL,       errorH1)
+     &                       solinc,        rerr,          umesh)
 c
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
@@ -938,7 +938,19 @@ c
               endif
             endif
           !... Yi Chen Duct geometry8
-
+c
+c.... -------------------> post-processing  <-------------------
+c
+            call ElmPost(y,             ac,            x,
+     &                   shp,           shgl,          iBC,
+     &                   BC,            shpb,          shglb,
+     &                   shpif,         shgif,
+     &                   res,           BDiag,
+     &                   iper,          ilwork,        lhsK,
+     &                   col,           row,           rerr,
+     &                   umesh)
+c
+c.... -----------------> end post-processsing <-----------------
 c
 c.... -------------------> error calculation  <-----------------
             if(ierrcalc.eq.1.or.ioybar.eq.1) then
@@ -1205,6 +1217,8 @@ c
       if (numrbs .gt. 0) then
         call release_rbForce
       endif
+c
+      call release_post_param
 c
         call destruct_sum_vi_area
         call ifbc_mfree

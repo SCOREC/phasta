@@ -283,8 +283,7 @@ c_______________________________________________________________
      &                     shpif,     shgif,
      &                     res,       rmes,      BDiag,
      &                     iper,      ilwork,    lhsK,  
-     &                     col,       row,       rerr,     umesh,
-     &                     meshCFL,   errorH1)
+     &                     col,       row,       rerr,     umesh)
 c
 c----------------------------------------------------------------------
 c
@@ -432,16 +431,12 @@ c
         dimension ilwork(nlwork)
 c  
         dimension umesh(numnp, nsd)
-        real*8    meshCFL(numel)
-        real*8    errorH1(numel,3)
 c
         real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
 
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
         real*8, allocatable :: EGmass(:,:,:)
-        real*8, allocatable :: meshCFLblk(:)
-        real*8, allocatable :: errorH1blk(:,:)
 c
         real*8, dimension(:,:,:), allocatable :: egmassif00,egmassif01,egmassif10,egmassif11
         real*8 :: length
@@ -546,8 +541,6 @@ c.... initialize the arrays
 c
         res    = zero
         rmes   = zero ! to avoid trap_uninitialized
-        meshCFL = zero
-        errorH1 = zero
         if (lhs. eq. 1) lhsK = zero
         if (iprec .ne. 0) BDiag = zero
         flxID = zero
@@ -584,13 +577,9 @@ c
 
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
-          allocate (meshCFLblk(npro))
-          allocate (errorH1blk(npro,nflow))
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
 c
-          meshCFLblk = zero
-          errorH1blk = zero
 c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
@@ -624,32 +613,7 @@ c
      &                 mater,               res,
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
-     &                 rerr,                umesh,
-     &                 meshCFLblk,          errorH1blk)
-
-c.... map local element to global
-          do i = 1, npro
-            meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
-          enddo
-c
-          if (errorEstimation .eq. 1) then
-            do i = 1, npro
-              errorH1(mieMap(iblk)%p(i),1) = errorH1blk(i,1)
-              errorH1(mieMap(iblk)%p(i),2) = sqrt(
-     &                       errorH1blk(i,2)*errorH1blk(i,2)+
-     &                       errorH1blk(i,3)*errorH1blk(i,3)+
-     &                       errorH1blk(i,4)*errorH1blk(i,4))
-              errorH1(mieMap(iblk)%p(i),3) = errorH1blk(i,5)
-c.... record the max error
-c
-              if (errorH1(mieMap(iblk)%p(i),1) .gt. errorMaxMass)
-     &            errorMaxMass = errorH1(mieMap(iblk)%p(i),1)
-              if (errorH1(mieMap(iblk)%p(i),2) .gt. errorMaxMomt)
-     &            errorMaxMomt = errorH1(mieMap(iblk)%p(i),2)
-              if (errorH1(mieMap(iblk)%p(i),3) .gt. errorMaxEngy)
-     &            errorMaxEngy = errorH1(mieMap(iblk)%p(i),3)
-            enddo
-          endif
+     &                 rerr,                umesh)
 c
           if(lhs.eq.1) then
 c
@@ -669,8 +633,6 @@ c
           deallocate ( EGmass )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
-          deallocate ( meshCFLblk )
-          deallocate ( errorH1blk )
 c
 c.... end of interior element loop
 c

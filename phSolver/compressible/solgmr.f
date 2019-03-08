@@ -368,8 +368,7 @@ c
      &                   yBrg,      Rcos,      Rsin,      iper,      ilwork,
      &                   shp,       shgl,      shpb,      shglb,
      &                   shpif,     shgif,
-     &                   Dy,        rerr,      umesh,
-     &                   meshCFL,   errorH1)
+     &                   Dy,        rerr,      umesh)
 c
 c----------------------------------------------------------------------
 c
@@ -424,8 +423,6 @@ c
      &          temp(nshg,nflow),
      &          uBrg(nshg,nflow,Kspace+1),
      &          umesh(numnp, nsd)  
-      real*8    meshCFL(numel)
-      real*8    errorH1(numel,3)
 c        
       dimension shp(MAXTOP,maxsh,MAXQPT),  
      &          shgl(MAXTOP,nsd,maxsh,MAXQPT), 
@@ -456,7 +453,7 @@ c
      &             res,           rmes,          BDiag,         
      &             iper,          ilwork,        lhsK,          
      &             col,           row,           rerr,
-     &             umesh,         meshCFL,       errorH1)
+     &             umesh)
       call rstat (res, ilwork) 
       if(ntotGM.eq.0) resfrt=zero  !don't let this mess up scaled dB     
       if(myrank.eq.master) then

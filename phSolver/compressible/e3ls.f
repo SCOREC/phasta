@@ -10,9 +10,8 @@
      &                     EGmass,    stiff,       WdetJ,
      &                     giju,      rTLS,        raLS,
      &                     A0inv,     dVdY,        rerrl,
-     &                     compK,     pres,        PTau,
-     &                     meshCFLblk,errorH1blk)
-c                                                                
+     &                     compK,     pres,        PTau)
+c
 c----------------------------------------------------------------------
 c
 c This routine calculates the contribution of the least-squares 
@@ -75,9 +74,7 @@ c
      &            shg(npro,nshl,nsd),      WdetJ(npro),
      &            PTau(npro,5,5),          T(npro),
      &            pres(npro)              
-
-        real*8    meshCFLblk(npro)
-        real*8    errorH1blk(npro,nflow)
+c
 c local arrays
 c
         dimension rLymi(npro,nflow),         Atau(npro,nflow,nflow),
@@ -197,7 +194,7 @@ c.... in the first incarnation we will ONLY have a diagonal tau here
      &         rLymi,           tau,            rk,
      &         giju,            rTLS,           raLS,
      &         A0inv,           dVdY,           cv,
-     &         meshCFLblk,      errorH1blk,     WdetJ)
+     &         WdetJ)
           
        else
 

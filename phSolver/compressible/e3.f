@@ -1,9 +1,8 @@
         subroutine e3 (yl,      ycl,     acl,     shp,
      &                 shgl,    xl,      rl,      rml,    xmudmi,
      &                 BDiagl,  ql,      sgn,     rlsl,   EGmass,
-     &                 rerrl,   ytargetl, uml,    meshCFLblk,
-     &                 errorH1blk)
-c                                                                      
+     &                 rerrl,   ytargetl, uml)
+c
 c----------------------------------------------------------------------
 c
 c This routine is the 3D element routine for the N-S equations. 
@@ -47,6 +46,7 @@ c Chris Whiting, Winter 1998.  (LHS matrix formation)
 c----------------------------------------------------------------------
 c
         use e3_param_m
+        use post_param_m
 c
         include "common.h"
 c
@@ -61,8 +61,6 @@ c
      &            EGmass(npro,nedof,nedof),
 !     &            cv(npro),
      &            ytargetl(npro,nshl,nflow)
-        real*8    meshCFLblk(npro)
-        real*8    errorH1blk(npro,nflow)
         real*8    elementVol(npro)
 c
         dimension dui(npro,ndof),            aci(npro,ndof)
@@ -241,8 +239,7 @@ c
      &               EGmass,          stiff,         WdetJ,
      &               giju,            rTLS,          raLS,
      &               A0inv,           dVdY,          rerrl,
-     &               compK,           pres,          PTau,
-     &               meshCFLblk,      errorH1blk)
+     &               compK,           pres,          PTau)
         ttim(16) = ttim(16) + secs(0.0)
 c        
 c....  Discontinuity capturing
@@ -318,11 +315,11 @@ c.... end of integration loop
 c
       enddo
 c
-      if (imeshCFL .eq. 1) then
+      if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
         meshCFLblk(:) = meshCFLblk(:)/ngauss
       endif
 c
-      if (errorEstimation .eq. 1) then
+      if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1)) then
         do i = 1, npro
           if (elementVol(i) .gt. 0.0) then
             errorH1blk(i,:) = errorH1blk(i,:) / sqrt(elementVol(i))
