@@ -588,11 +588,6 @@ c                        write(*,*) 'lhs=',lhs
      &                       shpif,         shgif,
      &                       solinc,        rerr,          umesh)
 c
-                     call set_if_velocity (BC,  iBC, 
-     &                                umesh,    disp, x,  Delt(1),   ilwork,
-     &                                nshg,  ndofBC,
-     &                                nsd,   nelblif, nlwork, ndof )
-c
                     endif
                       else if (mod(impl(1),100)/10 .eq. 2) then ! mfg solve
 c     
@@ -703,6 +698,12 @@ c
 c
 c.... update interface mesh bc based on umesh
 c.... we should have correct umesh at this point
+c... hack when to update the interface velocity
+                     call set_if_velocity (BC,  iBC, 
+     &                                umesh,    disp, x,  Delt(1),   ilwork,
+     &                                nshg,  ndofBC,
+     &                                nsd,   nelblif, nlwork, ndof )
+c
 c
                     do inode = 1, nshg
                       if ( ifFlag(inode) .eq. 1 ) then
