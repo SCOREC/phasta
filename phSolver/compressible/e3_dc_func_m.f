@@ -3,22 +3,23 @@ c------------------------------------------------------------------------
 c  move the calculation of yiA0DCyj and the DC factor from e3dc.f to this
 c  module
 c------------------------------------------------------------------------
-        use propar_m, only: npro
-        use conpar_m, only: nflow
-        use intpt_m, only: ngauss, intp
-        use number_def_m
-        use genpar_m, only: ipord
         implicit none
 c
 c
       contains
         subroutine calc_e3_dc_factor(DC,   gAgyi, 
      &                               g1yi, g2yi, g3yi, A0,
-     &                               raLS, rtLS, giju, A0DC,
-     &                               epsM, iDC)
+     &                               raLS, rtLS, giju, A0DC)
 c.......................................................................
 c  calculate yiA0DCyj and the DC factor(numerical viscousity)        
 c.......................................................................
+          use propar_m, only: npro
+          use conpar_m, only: nflow
+          use intpt_m, only: ngauss, intp
+          use number_def_m
+          use genpar_m, only: ipord
+          use precis_m
+          use solpar_m
           implicit none
 c
           real*8, dimension(npro,nflow), intent(in):: g1yi, g2yi, g3yi
@@ -26,8 +27,6 @@ c
           real*8, dimension(npro), intent(in):: raLS, rtLS
           real*8, dimension(npro,6), intent(in):: giju
           real*8, dimension(npro,4), intent(in):: A0DC
-          real*8 :: epsM
-          integer :: iDC
 c
           real*8, dimension(npro,ngauss), intent(out):: DC
           real*8, dimension(npro,15), intent(out):: gAgyi
