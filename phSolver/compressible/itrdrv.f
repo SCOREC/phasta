@@ -43,6 +43,8 @@ c
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
+      use dc_lag_func_m
+      use dc_lag_data_m
 c
         include "common.h"
         include "mpif.h"
@@ -229,6 +231,11 @@ c
 c
         call init_sum_vi_area(nshg,nsd)
         call ifbc_malloc
+c ... allocation and initialization for DC lag if need
+        if ( i_dc_lag .eq.1) then
+          call alloc_init_dc_lag
+        endif
+c        
 c
 c..........................................
         rerr = zero
@@ -450,6 +457,17 @@ c
                call asbwmod(yold,   acold,   x,      BC,     iBC,
      &                      iper,   ilwork,  ifath,  velbar)
             endif
+c           
+c... calculate the numerical viscousity in DC using the converged solutions
+c    of last time step if dc lagging flag is on
+            if ( i_dc_lag .eq.1) then
+              dc_calc_flag = 1
+              call calc_dc_lag(yold,  acold,  xold,  umeshold,
+     &                         shp,   shgl)
+c
+              dc_calc_flag = 0 !reset the preprocessing flag for dc lagging       
+            endif
+c... end of dc lagging         
 c
 c.... -----------------------> predictor phase <-----------------------
 c
@@ -1150,6 +1168,11 @@ c
 c
         call destruct_sum_vi_area
         call ifbc_mfree
+c... for DC lag if needed
+      if ( i_dc_lag .eq.1) then
+        call dealloc_dc_lag
+      endif
+c        
 c
 c.... ---------------------->  Post Processing  <----------------------
 c

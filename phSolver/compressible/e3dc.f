@@ -30,6 +30,7 @@ c Zdenek Johan, Winter 1991. (Fortran 90)
 c----------------------------------------------------------------------
 c
         use e3_dc_func_m
+        use dc_lag_data_m
         include "common.h"
 c
         dimension g1yi(npro,nflow),          g2yi(npro,nflow),
@@ -44,9 +45,17 @@ c
      &            gnorm(npro),              A0gyi(npro,15),
      &            yiA0DCyj(npro,6),         A0DC(npro,4)
 c
+c
         call calc_e3_dc_factor(DC,   gAgyi, 
      &                         g1yi, g2yi, g3yi, A0,
-     &                         raLS, rtLS, giju, A0DC)  
+     &                         raLS, rtLS, giju, A0DC)
+        if ( i_dc_lag .eq. 1) then ! no lag
+          if ( dc_calc_flag .eq. 1) then ! lag and in pre-processing
+            dc_lag_pre(:) = dc_lag_pre(:) + DC(:,intp)/ngauss ! get the avg over all quadrature points
+          else ! lag and in newton iterations
+            DC(:,intp) = dc_lag_blk(:) !overwrite the dc by the lagged value
+          endif
+        endif 
 c
 c.... ---------------------------->  RHS  <----------------------------
 c
