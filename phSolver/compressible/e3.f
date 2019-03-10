@@ -121,8 +121,6 @@ c (note: not currently included in mfg)
            call e3ql (ycl, shp, shgl, xl, ql, xmudmi, sgn)
         endif
 c
-        elementVol = zero
-c
 c.... loop through the integration points
 c
         do intp = 1, ngauss
@@ -308,9 +306,6 @@ c
      &              rml,           stiff,     EGmass)
        ttim(19) = ttim(19) + secs(0.0)
 c
-c.... calculate volume of element
-       elementVol(:) = elementVol(:) + WdetJ(:)
-c
 c.... end of integration loop
 c
       enddo
@@ -321,11 +316,7 @@ c
 c
       if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1)) then
         do i = 1, npro
-          if (elementVol(i) .gt. 0.0) then
-            errorH1blk(i,:) = errorH1blk(i,:) / sqrt(elementVol(i))
-          else
-            errorH1blk(i,:) = zero
-          endif
+          errorH1blk(i,:) = sqrt(errorH1blk(i,:))
         enddo
       endif
 c

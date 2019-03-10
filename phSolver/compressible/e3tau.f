@@ -197,20 +197,21 @@ c.... get error in H1 norm
 c
       if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1))  then
         errorH1blk(:,1) = errorH1blk(:,1)
-     &                  + sqrt(gijd(:,1)+gijd(:,3)+gijd(:,6)) * tau(:,1)
-     &                  * abs(rLyi(:,1)) * WdetJ
+     &                  + (gijd(:,1)+gijd(:,3)+gijd(:,6))
+     &                  * tau(:,1) * tau(:,1)
+     &                  * rLyi(:,1) * rLyi(:,1) * WdetJ
         errorH1blk(:,2) = errorH1blk(:,2)
-     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * abs(rLyi(:,2)) * WdetJ
+     &                  + 1.0/rmu * tau(:,2)
+     &                  * rLyi(:,2) * rLyi(:,2) * WdetJ
         errorH1blk(:,3) = errorH1blk(:,3)
-     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * abs(rLyi(:,3)) * WdetJ
+     &                  + 1.0/rmu * tau(:,2)
+     &                  * rLyi(:,3) * rLyi(:,3) * WdetJ
         errorH1blk(:,4) = errorH1blk(:,4)
-     &                  + 1.0/sqrt(rmu) * sqrt(tau(:,2))
-     &                  * abs(rLyi(:,4)) * WdetJ
+     &                  + 1.0/rmu * tau(:,2)
+     &                  * rLyi(:,4) * rLyi(:,4) * WdetJ
         errorH1blk(:,5) = errorH1blk(:,5)
-     &                  + 1.0/sqrt(con) * sqrt(tau(:,3))
-     &                  * abs(rLyi(:,5)) * WdetJ
+     &                  + 1.0/con * tau(:,3)
+     &                  * rLyi(:,5) * rLyi(:,5) * WdetJ
       endif
 c
 c
