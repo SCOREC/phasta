@@ -30,17 +30,18 @@ c
         end subroutine release_post_param
 c
         subroutine ElmPost (y,         ac,        x,
-     &                     shp,       shgl,      iBC,
-     &                     BC,        shpb,      shglb,
-     &                     shpif,     shgif,
-     &                     res,       BDiag,
-     &                     iper,      ilwork,    lhsK,
-     &                     col,       row,       rerr,     umesh)
+     &                      shp,       shgl,      iBC,
+     &                      BC,        shpb,      shglb,
+     &                      shpif,     shgif,
+     &                      res,       iper,      ilwork,
+     &                      lhsK,      rerr,      umesh)
 c
 c----------------------------------------------------------------------
 c
 c This routine loop over element blocks to collect necessary
 c post-processing variables.
+c
+c Main part is copied from ElmGMRs.
 c
 c Fan Yang. March 2019.
 c
@@ -57,7 +58,6 @@ c
         include "common.h"
         include "mpif.h"
 c
-        integer col(nshg+1), row(nnz*nshg)
         real*8 lhsK(nflow*nflow,nnz_tot)
 c
         dimension y(nshg,ndof),         ac(nshg,ndof),
@@ -65,7 +65,6 @@ c
      &            iBC(nshg),
      &            BC(nshg,ndofBC),
      &            res(nshg,nflow),
-     &            rmes(nshg,nflow),      BDiag(nshg,nflow,nflow),
      &            iper(nshg)
 c
         dimension shp(MAXTOP,maxsh,MAXQPT),
@@ -81,13 +80,10 @@ c
 c
         dimension umesh(numnp, nsd)
 c
-        real*8 Bdiagvec(nshg,nflow), rerr(nshg,10)
+        real*8  rerr(nshg,10)
 
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
-        real*8, allocatable :: EGmass(:,:,:)
-c
-        real*8 :: length
 c
 c.... -------------------->   interior elements   <--------------------
 c
@@ -100,11 +96,9 @@ c
 c.... initialize the arrays
 c
         res    = zero
-        rmes   = zero ! to avoid trap_uninitialized
         meshCFL = zero
         errorH1 = zero
         if (lhs. eq. 1) lhsK = zero
-        if (iprec .ne. 0) BDiag = zero
         flxID = zero
 c
 c.... loop over the element-blocks
@@ -124,19 +118,12 @@ c
           mater  = lcblk(7,iblk)
           ndofl  = lcblk(8,iblk)
           nsymdl = lcblk(9,iblk)
-          npro   = lcblk(1,iblk+1) - iel 
+          npro   = lcblk(1,iblk+1) - iel
           inum   = iel + npro - 1
           ngauss = nint(lcsyst)
 c
 c.... compute and assemble the residual and tangent matrix
 c
-          if(lhs.eq.1) then
-             allocate (EGmass(npro,nedof,nedof))
-             EGmass = zero
-          else
-             allocate (EGmass(1,1,1))
-          endif
-
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
           allocate (meshCFLblk(npro))
@@ -163,7 +150,7 @@ c
           case (ieos_solid_1)
             getthm6_ptr => getthm6_solid_1
             getthm7_ptr => getthm7_solid_1
-            iblk_solid = iblk 
+            iblk_solid = iblk
             e3_malloc_ptr => e3_malloc_solid
             e3_mfree_ptr => e3_mfree_solid
           case default
@@ -173,13 +160,12 @@ c
           if (associated(e3_malloc_ptr)) call e3_malloc_ptr
 c
           call AsIPost (y,                   ac,
-     &                 x,                   mxmudmi(iblk)%p,
-     &                 tmpshp,
-     &                 tmpshgl,             mien(iblk)%p,
-     &                 mater,               res,
-     &                 rmes,                BDiag,
-     &                 qres,                EGmass,
-     &                 rerr,                umesh)
+     &                  x,                   mxmudmi(iblk)%p,
+     &                  tmpshp,
+     &                  tmpshgl,             mien(iblk)%p,
+     &                  mater,               res,
+     &                  qres,
+     &                  rerr,                umesh)
 
 c.... map local element to global
           do i = 1, npro
@@ -207,7 +193,6 @@ c
 c
           if (associated(e3_mfree_ptr)) call e3_mfree_ptr
 c
-          deallocate ( EGmass )
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
           deallocate ( meshCFLblk )
@@ -221,16 +206,17 @@ c
       end
 c
 c
-        subroutine AsIPost (y,       ac,      x,          xmudmi,   
-     &                     shp,     shgl,    ien,     
-     &                     mater,   res,     rmes,    
-     &                     BDiag,   qres,    EGmass,   
-     &                     rerr,    umesh)
+        subroutine AsIPost (y,       ac,      x,       xmudmi,
+     &                      shp,     shgl,    ien,
+     &                      mater,   res,     qres,
+     &                      rerr,    umesh)
 c
 c----------------------------------------------------------------------
 c
 c This routine computes and assembles the necessary variables
 c for post-processing
+c
+c Main part is copied from AsIGMRs.
 c
 c----------------------------------------------------------------------
 c
@@ -241,33 +227,33 @@ c
         include "common.h"
 c
         dimension y(nshg,ndofl),            ac(nshg,ndofl),
-     &            x(numnp,nsd),              
-     &            shp(nshl,MAXQPT),  
+     &            x(numnp,nsd),
+     &            shp(nshl,MAXQPT),
      &            shgl(nsd,nshl,MAXQPT),
-     &            ien(npro,nshl),  
+     &            ien(npro,nshl),
      &            res(nshg,nflow),
-     &            rmes(nshg,nflow),         BDiag(nshg,nflow,nflow),
      &            qres(nshg,idflx)
       integer, intent(in) :: mater
-
 c
         dimension ycl(npro,nshl,ndofl),     acl(npro,nshl,ndof),
      &            xl(npro,nenl,nsd),        ytargetl(npro,nshl,nflow),
      &            rl(npro,nshl,nflow),      rml(npro,nshl,nflow),
      &            BDiagl(npro,nshl,nflow,nflow),
      &            ql(npro,nshl,idflx)
-c        
-        dimension  xmudmi(npro,ngauss)
+c
+        dimension xmudmi(npro,ngauss)
         dimension sgn(npro,nshl),  EGmass(npro,nedof,nedof)
 c
         dimension umesh(numnp, nsd),  uml(npro,nshl,nsd)
 c
-        dimension rlsl(npro,nshl,6) 
+        dimension rlsl(npro,nshl,6)
         real*8 rerrl(npro,nshl,6), rerr(nshg,10)
 c
-c.... create the matrix of mode signs for the hierarchic basis 
-c     functions. 
 c
+        EGmass = zero
+c
+c.... create the matrix of mode signs for the hierarchic basis
+c     functions.
 c
         if (ipord .gt. 1) then
            call getsgn(ien,sgn)
@@ -280,16 +266,15 @@ c
         call localx(x,      xl,     ien,    nsd,    'gather  ')
         call local (qres,   ql,     ien,    idflx,  'gather  ')
         call local (umesh,  uml,    ien,    nsd,    'gather  ')
-
+c
         if(matflg(5,1).ge.4 )
      &   call localy (ytarget,   ytargetl,  ien,   nflow,  'gather  ')
-
-
-        if( (iLES.gt.10).and.(iLES.lt.20)) then  ! bardina 
-           call local (rls, rlsl,     ien,       6, 'gather  ')  
+c
+        if( (iLES.gt.10).and.(iLES.lt.20)) then  ! bardina
+           call local (rls, rlsl,     ien,       6, 'gather  ')
         else
            rlsl = zero
-        endif      
+        endif
 c
 c.... get the element residuals, LHS matrix, and preconditioner
 c
@@ -316,8 +301,6 @@ c
         if ( ierrcalc .eq. 1 ) then
            call local (rerr, rerrl,  ien, 6, 'scatter ')
         endif
-c
-c.... extract and assemble the Block-Diagonal (see note in elmgmr, line 280)
 c
 c.... end
 c

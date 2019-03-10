@@ -945,10 +945,8 @@ c
      &                   shp,           shgl,          iBC,
      &                   BC,            shpb,          shglb,
      &                   shpif,         shgif,
-     &                   res,           BDiag,
-     &                   iper,          ilwork,        lhsK,
-     &                   col,           row,           rerr,
-     &                   umesh)
+     &                   res,           iper,          ilwork,
+     &                   lhsK,          rerr,          umesh)
 c
 c.... -----------------> end post-processsing <-----------------
 c
