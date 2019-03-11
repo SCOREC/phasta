@@ -91,6 +91,82 @@ c.... set up parameters
 c
         ires   = 1
 c
+        if (idiff==1 .or. idiff==3 .or. isurf==1) then ! global reconstruction of qdiff
+c
+c loop over element blocks for the global reconstruction
+c of the diffusive flux vector, q, and lumped mass matrix, rmass
+c
+        qres = zero
+        rmass = zero
+        do iblk = 1, nelblk
+c
+c.... set up the parameters
+c
+          nenl   = lcblk(5,iblk)   ! no. of vertices per element
+          iel    = lcblk(1,iblk)
+          lelCat = lcblk(2,iblk)
+          lcsyst = lcblk(3,iblk)
+          iorder = lcblk(4,iblk)
+          nshl   = lcblk(10,iblk)
+          mater  = lcblk(7,iblk)
+          ndofl  = lcblk(8,iblk)
+          nsymdl = lcblk(9,iblk)
+          npro   = lcblk(1,iblk+1) - iel
+          ngauss = nint(lcsyst)
+c
+c.... compute and assemble diffusive flux vector residual, qres,
+c     and lumped mass matrix, rmass
+c
+          allocate (tmpshp(nshl,MAXQPT))
+          allocate (tmpshgl(nsd,nshl,MAXQPT))
+c
+          tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
+          tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
+c
+          e3_malloc_ptr => e3_malloc
+          e3_mfree_ptr => e3_mfree
+c
+          select case (mat_eos(mater,1))
+          case (ieos_ideal_gas,ieos_ideal_gas_2)
+            getthm6_ptr => getthm6_ideal_gas
+            getthm7_ptr => getthm7_ideal_gas
+          case (ieos_ideal_gas_mixture)
+            getthm6_ptr => getthm6_ideal_gas_mixture
+            getthm7_ptr => getthm7_ideal_gas_mixture
+          case (ieos_liquid_1)
+            getthm6_ptr => getthm6_liquid_1
+            getthm7_ptr => getthm7_liquid_1
+          case (ieos_solid_1)
+            getthm6_ptr => getthm6_solid_1
+            getthm7_ptr => getthm7_solid_1
+            iblk_solid = iblk
+            e3_malloc_ptr => e3_malloc_solid
+            e3_mfree_ptr => e3_mfree_solid
+          case default
+            call error ('getthm  ', 'wrong material', mater)
+          end select
+c
+          if (associated(e3_malloc_ptr)) call e3_malloc_ptr
+c
+          call AsIq (y,                x,
+     &               tmpshp,
+     &               tmpshgl,
+     &               mien(iblk)%p,     mxmudmi(iblk)%p,
+     &               qres,
+     &               rmass)
+c
+          if (associated(e3_mfree_ptr)) call e3_mfree_ptr
+c
+          deallocate ( tmpshp )
+          deallocate ( tmpshgl )
+       enddo
+c
+c.... take care of periodic boundary conditions
+c
+       call qpbc( rmass, qres, iBC, iper, ilwork )
+c
+      endif                     ! computation of global diffusive flux
+c
 c.... loop over element blocks to compute element residuals
 c
 c.... initialize the arrays
