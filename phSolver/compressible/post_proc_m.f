@@ -34,7 +34,7 @@ c
      &                      BC,        shpb,      shglb,
      &                      shpif,     shgif,
      &                      res,       iper,      ilwork,
-     &                      lhsK,      rerr,      umesh)
+     &                      rerr,      umesh)
 c
 c----------------------------------------------------------------------
 c
@@ -57,8 +57,6 @@ c
 c
         include "common.h"
         include "mpif.h"
-c
-        real*8 lhsK(nflow*nflow,nnz_tot)
 c
         dimension y(nshg,ndof),         ac(nshg,ndof),
      &            x(numnp,nsd),
@@ -174,8 +172,6 @@ c
         res    = zero
         meshCFL = zero
         errorH1 = zero
-        if (lhs. eq. 1) lhsK = zero
-        flxID = zero
 c
 c.... loop over the element-blocks
 c

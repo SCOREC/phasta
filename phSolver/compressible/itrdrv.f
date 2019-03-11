@@ -941,12 +941,16 @@ c
 c
 c.... -------------------> post-processing  <-------------------
 c
-            call ElmPost(y,             ac,            x,
-     &                   shp,           shgl,          iBC,
-     &                   BC,            shpb,          shglb,
-     &                   shpif,         shgif,
-     &                   res,           iper,          ilwork,
-     &                   lhsK,          rerr,          umesh)
+c.... if we need to collect some post-processing variables
+            if ((imeshCFL        .eq. 1) .or.
+     &          (errorEstimation .eq. 1) ) then
+              call ElmPost(y,             ac,            x,
+     &                     shp,           shgl,          iBC,
+     &                     BC,            shpb,          shglb,
+     &                     shpif,         shgif,
+     &                     res,           iper,          ilwork,
+     &                     rerr,          umesh)
+            endif
 c
 c.... -----------------> end post-processsing <-----------------
 c
