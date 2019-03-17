@@ -124,10 +124,11 @@ c
 c
         h   = ei + pres/rho
         cp  = cv_liq
+!	cv  = cv_liq
         alphaP = alpha_P
         betaT  = beta_T
         if (associated(cv)) cv  = cv_liq
-        if (associated(gamb)) gamb = zero
+        if (associated(gamb)) gamb = cp/cv_liq - one
 c        c =  sqrt(one/(rho_ref*betaT))
         if (associated(c)) c =  sqrt(one/(rho*betaT))
 c

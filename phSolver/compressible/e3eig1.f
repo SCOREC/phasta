@@ -1,5 +1,6 @@
-        subroutine e3eig1 (rho,    T,      cp,     gamb,   c,
-     &                     u1,     u2,     u3,     a1,     a2,
+        subroutine e3eig1 (rho,    T,      cp,     
+     &                     u1,     u2,     u3, um1, um2, um3,    
+     &                     a1,     a2,
      &                     a3,     eb1,
      &                     dxidx,  u,      Q)
 c
@@ -35,12 +36,14 @@ c Zdenek Johan, Summer 1990.  (Modified from e2tau.f)
 c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+	use eqn_state_m, only:c,gamb
         include "common.h"
 c
         dimension rho(npro),                 T(npro),
-     &            cp(npro),                  gamb(npro),
-     &            c(npro),                   u1(npro),
+     &            cp(npro),                  
+     &                           u1(npro),
      &            u2(npro),                  u3(npro),
+     &            um1(npro), um2(npro), um3(npro),  
      &            a1(npro),                  a2(npro),
      &            a3(npro),                  
      &            eb1(npro),                 dxidx(npro,nsd,nsd),
@@ -55,9 +58,9 @@ c
 
         where (u .ne. zero)
            fact       = one / u
-           Rcs(:,1,1) = u1 * fact
-           Rcs(:,1,2) = u2 * fact
-           Rcs(:,1,3) = u3 * fact
+           Rcs(:,1,1) = (u1) * fact
+           Rcs(:,1,2) = (u2) * fact
+           Rcs(:,1,3) = (u3) * fact
         elsewhere
            Rcs(:,1,1) = one
            Rcs(:,1,2) = zero
@@ -221,7 +224,7 @@ c
         end
 
 
-        subroutine e3eig2 (u,      c,      AR1,    AR2,    AR3,
+        subroutine e3eig2 (u,        AR1,    AR2,    AR3,
      &                     rlam,   Q,    eigmax)
 c
 c----------------------------------------------------------------------
@@ -258,9 +261,10 @@ c Farzin Shakib, Spring 1989.
 c Zdenek Johan,  Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+        use eqn_state_m, only:c,gamb
         include "common.h"
 c
-        dimension u(npro),                   c(npro),
+        dimension u(npro),                
      &            AR1(npro),                 AR2(npro),
      &            AR3(npro),                 rlam(npro,nflow),
      &            Q(npro,nflow,nflow),         eigmax(npro,nflow)

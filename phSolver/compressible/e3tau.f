@@ -299,6 +299,7 @@ c
 
       subroutine e3tau_nd  (rho,    cp,	    rmu,   T,
      &     u1,              u2,             u3,
+     &     um1,             um2,            um3,
      &     a1,              a2,             a3,
      &     con,             dxidx,          rLyi,  
      &     rLymi,           Tau,            rk,
@@ -336,11 +337,13 @@ c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
       use e3gij_m, only:e3gijd
+      use eqn_state_m, only:c,gamb
       include "common.h"
 c
       dimension rho(npro),                 con(npro), 
      &            cp(npro),                  u1(npro),
      &            u2(npro),                  u3(npro),
+     &            um1(npro), um2(npro), um3(npro), 
      &            dxidx(npro,nsd,nsd),       rk(npro),
      &            rLyi(npro,nflow),
      &            rLymi(npro,nflow),         dVdY(npro,15), 
@@ -352,8 +355,9 @@ c
      &		  fact(npro),	 giju(npro,6),
      &            A0inv(npro,15),gijdu(npro,6), compK(npro,10),
      &            a1(npro),    a2(npro),      a3(npro),
-     &            T(npro),      pres(npro),     alphap(npro),
-     &            betaT(npro),  gamb(npro),     c(npro),
+     &            T(npro),      pres(npro),     alphap(npro), betaT(npro),
+c    &            betaT(npro),  gamb(npro),     c(npro),
+     &             c_Mod(npro),
      &            u(npro),      eb1(npro),      Q(npro,5,5),
      &            rlam(npro,5), eigmax(npro,5),   Pe(npro),
      &            Ak(npro),    B(npro),    D(npro),   E(npro),
@@ -364,11 +368,11 @@ c... build some necessary quantities at integration point:
 
 c      alfap = one / T
 c      betaT = one / pres     
-      gamb  = gamma1
-      c  = sqrt( (gamma * Rgas) * T )
-      u = sqrt(u1**2+u2**2+u3**2)
+c      gamb  = gamma1
+c      c  = sqrt( (gamma * Rgas) * T )
+c      u = sqrt((u1-um1)**2 + (u2-um2)**2 + (u3-um3)**2)
+      u = sqrt((u1)**2 + (u2)**2 + (u3)**2)
       eb1 = cp*T - pt5*(u1**2+u2**2+u3**2) 
-
 c... get eigenvectors for diagonalizing Tau_adv (e.v) before final rotations
 c... Note: the ordering of eigenvectors corresponds to the following
 c... ordering of the eigenvalues in the 1-st Euler Jacobian rotated to
@@ -385,8 +389,10 @@ c... different ordering assumed in Shakib/Johan entropy vars. code
 
       
       call e3eig1 (rho,             T,               cp,
-     &               gamb,            c,               u1,
-     &               u2,              u3,              a1,
+c     &               gamb,            c,               u1,
+     &               u1,
+     &               u2,              u3,              um1,
+     &               um2,             um3,		a1,
      &               a2,              a3,              eb1,
      &               dxidx,           u,               Q)
 
@@ -395,7 +401,8 @@ c... the eigenvectors. Tau still remains in entropy variables.
 
 
 
-      call e3eig2 (u,               c,               a1,
+c      call e3eig2 (u,               c,               a1,
+      call e3eig2 (u,                                a1,
      &             a2,              a3,              rlam,
      &             Q,               eigmax)
 
@@ -425,7 +432,7 @@ c
            
            do i = 1, nflow       ! diff. corr for every mode of Tau
 
-              c(:) = pt33 * (
+              c_Mod(:) = pt33 * (
      &    Q(:,2,i) * ( compK(:, 1) * Q(:,2,i) + compK(:, 2) * Q(:,3,i)
      &               + compK(:, 4) * Q(:,4,i) + compK(:, 7) * Q(:,5,i) )
      &  + Q(:,3,i) * ( compK(:, 2) * Q(:,2,i) + compK(:, 3) * Q(:,3,i)
@@ -439,13 +446,11 @@ c
 c... get Peclet Number
               
 
-              Pe(:) = one / (c(:)*rlam(:,i)) 
-
+              Pe(:) = one / (c_Mod(:)*rlam(:,i)) 
 
 c
 c...  branch out into different polynomial orders
 c
-
 
               if (ipord == 1) then ! linears - l = l^a*(coth(Pe)-1/Pe)
                                    ! approx. l = l^a*min(1/3*Pe,1)
@@ -473,14 +478,14 @@ c
                  where(Pe.lt.5.0) ! approx. to hyp. cothangent
                     alphap = exp(Pe)
                     betaT = exp(-Pe)
-                    c = (alphap+betaT)/(alphap-betaT)
+                    c_Mod = (alphap+betaT)/(alphap-betaT)
                  elsewhere
-                    c = one
+                    c_Mod = one
                  endwhere
 
-                 B= -Pe*c + Ak
+                 B= -Pe*c_Mod + Ak
                  D= 0.4 * (Pe**2) + B
-                 E=-0.066666667 * (Pe**3) * c +D
+                 E=-0.066666667 * (Pe**3) * c_Mod +D
                  
                                 ! initial guess, use betaT
                  betaT(:) = Pe(:)*min(pt33*pt5*Pe(:),pt5)
@@ -754,6 +759,7 @@ c
 c
 c.... return
 c
+
       return
       end
 c

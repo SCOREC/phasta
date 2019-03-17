@@ -209,6 +209,7 @@ c.... well advective) correction factors for 1-D a-d equation w/ hier. b.
 
           call e3tau_nd  (rho,       cp,  rmu,   T,
      &         u1,              u2,             u3,
+     &         um1,	        um2,            um3,	  
      &         ac1,             ac2,             ac3,
      &         con,             dxidx,          rLyi,  
      &         rLymi,           PTau,           rk,
@@ -218,7 +219,6 @@ c.... well advective) correction factors for 1-D a-d equation w/ hier. b.
 
        endif
        
-
         ttim(25) = ttim(25) + secs(0.0)
 c
 c Warning:  to save space I have put the tau times the modified residual 

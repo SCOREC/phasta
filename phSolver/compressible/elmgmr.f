@@ -580,6 +580,7 @@ c
             dc_lag_l = zero
           endif          
 c
+
           select case (mat_eos(mater,1))
           case (ieos_ideal_gas,ieos_ideal_gas_2)
             getthm6_ptr => getthm6_ideal_gas
@@ -766,6 +767,7 @@ c
 #endif
 c
       ttim(80) = ttim(80) + secs(0.0)
+
 c
 c.... -------------------->   interface elements   <--------------------
 c... initialize the global date for interface error
@@ -1026,6 +1028,7 @@ c
 c
 c          get_vap_frac1 => e3if_empty
 c
+
           select case (mat_eos(mater1,1))
           case (ieos_ideal_gas)
             getthmif1_ptr => getthm7_ideal_gas
@@ -1339,6 +1342,7 @@ c
 c.... return
 c
       call timer ('Back    ')
+
       return
       end
 c
