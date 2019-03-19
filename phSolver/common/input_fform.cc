@@ -796,10 +796,12 @@ int input_fform(phSolver::Input& inp)
 
     if ((string)inp.GetValue("Error Estimation Option") == "False" ) {
       meshquality.errorEstimation = 0;
-    } else if ((string)inp.GetValue("Error Estimation Option") == "True" ) {
+    } else if ((string)inp.GetValue("Error Estimation Option") == "H1norm" ) {
       meshquality.errorEstimation = 1;
+    } else if ((string)inp.GetValue("Error Estimation Option") == "L2norm" ) {
+      meshquality.errorEstimation = 2;
     } else {
-      cout << " Error Estimation Option: Only Legal Values ( False, True)" <<endl;
+      cout << " Error Estimation Option: Only Legal Values ( False, H1norm, L2norm)" <<endl;
       exit(1);
     }
 

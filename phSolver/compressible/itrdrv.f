@@ -527,7 +527,7 @@ c
                      if (numrbs .gt. 0) call init_rbForce
 c
 c.... initialize max error variables
-                     if (errorEstimation .eq. 1) then
+                     if (errorEstimation .ge. 1) then
                        errorMaxMass = 0.0
                        errorMaxMomt = 0.0
                        errorMaxEngy = 0.0
@@ -943,7 +943,7 @@ c.... -------------------> post-processing  <-------------------
 c
 c.... if we need to collect some post-processing variables
             if ((imeshCFL        .eq. 1) .or.
-     &          (errorEstimation .eq. 1) ) then
+     &          (errorEstimation .ge. 1) ) then
               call ElmPost(y,             ac,            x,
      &                     shp,           shgl,          iBC,
      &                     BC,            shpb,          shglb,
@@ -984,7 +984,7 @@ c.... -----------------> end error calculation  <----------------
 c
 c.... ------------------> print out VMS error <------------------
 c
-            if (errorEstimation .eq. 1) then
+            if (errorEstimation .ge. 1) then
               call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMass, 1,
      &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
               call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMomt, 1,
@@ -1021,7 +1021,7 @@ c
               endif ! end check if mesh quality less than tolerance
 c
 c.... check if error larger than threshold
-              if (errorEstimation .eq. 1) then
+              if (errorEstimation .ge. 1) then
                 if (errorTriggerEqn .eq. 1) then
                   if (errorMaxMass .ge. errorTolMass) triggerNow = 1
                 else if (errorTriggerEqn .eq. 2) then
@@ -1082,10 +1082,10 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
      &                  myrank,'a'//char(0),'meshCFL'//char(0), 7,
      &                  meshCFL, 'd'//char(0), numel, 1,   lstep)
                  endif
-                 if (errorEstimation .eq. 1) then
+                 if (errorEstimation .ge. 1) then
                    call write_field(
-     &                  myrank,'a'//char(0),'errorH1'//char(0), 7,
-     &                  errorH1, 'd'//char(0), numel, 3, lstep)
+     &                  myrank,'a'//char(0),'VMS_error'//char(0), 9,
+     &                  VMS_error, 'd'//char(0), numel, 3, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1131,10 +1131,10 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
      &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
      &                meshCFL, 'd'//char(0), numel, 1,   lstep)
                endif
-               if (errorEstimation .eq. 1) then
+               if (errorEstimation .ge. 1) then
                  call write_field(
-     &                myrank,'a'//char(0),'errorH1'//char(0), 7,
-     &                errorH1, 'd'//char(0), numel, 3, lstep)
+     &                myrank,'a'//char(0),'VMS_error'//char(0), 9,
+     &                VMS_error, 'd'//char(0), numel, 3, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

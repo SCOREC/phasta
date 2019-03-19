@@ -198,8 +198,8 @@ void countfieldstowriterestart()
     nfields++; /* meshCFL */
   }
 
-  if(meshquality.errorEstimation == 1) {
-    nfields++; /* errorH1 */
+  if(meshquality.errorEstimation >= 1) {
+    nfields++; /* VMS_error */
   }
 
   if(outpar.ivort == 1){

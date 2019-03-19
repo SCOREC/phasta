@@ -314,9 +314,9 @@ c
         meshCFLblk(:) = meshCFLblk(:)/ngauss
       endif
 c
-      if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1)) then
+      if ((post_proc_loop .eq. 1) .and. (errorEstimation .ge. 1)) then
         do i = 1, npro
-          errorH1blk(i,:) = sqrt(errorH1blk(i,:))
+          VMS_errorblk(i,:) = sqrt(VMS_errorblk(i,:))
         enddo
       endif
 c

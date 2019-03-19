@@ -1,9 +1,9 @@
         module post_param_m
           integer :: post_proc_loop
           real*8, allocatable :: meshCFL(:)
-          real*8, allocatable :: errorH1(:,:)
+          real*8, allocatable :: VMS_error(:,:)
           real*8, allocatable :: meshCFLblk(:)
-          real*8, allocatable :: errorH1blk(:,:)
+          real*8, allocatable :: VMS_errorblk(:,:)
         end module
 c
         subroutine malloc_post_param
@@ -12,10 +12,10 @@ c
           use conpar_m
 c
           allocate( meshCFL(numel) )
-          allocate( errorH1(numel, 3) )
+          allocate( VMS_error(numel, 3) )
           post_proc_loop = 0
           meshCFL = zero
-          errorH1 = zero
+          VMS_error = zero
         end subroutine malloc_post_param
 c
         subroutine release_post_param
@@ -24,8 +24,8 @@ c
 c
           if (allocated(meshCFL))
      &      deallocate( meshCFL )
-          if (allocated(errorH1))
-     &      deallocate( errorH1 )
+          if (allocated(VMS_error))
+     &      deallocate( VMS_error )
 c
         end subroutine release_post_param
 c
@@ -171,7 +171,7 @@ c.... initialize the arrays
 c
         res    = zero
         meshCFL = zero
-        errorH1 = zero
+        VMS_error = zero
 c
 c.... loop over the element-blocks
 c
@@ -199,12 +199,12 @@ c
           allocate (tmpshp(nshl,MAXQPT))
           allocate (tmpshgl(nsd,nshl,MAXQPT))
           allocate (meshCFLblk(npro))
-          allocate (errorH1blk(npro,nflow))
+          allocate (VMS_errorblk(npro,nflow))
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
 c
           meshCFLblk = zero
-          errorH1blk = zero
+          VMS_errorblk = zero
 c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
@@ -244,22 +244,22 @@ c.... map local element to global
             meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
           enddo
 c
-          if (errorEstimation .eq. 1) then
+          if (errorEstimation .ge. 1) then
             do i = 1, npro
-              errorH1(mieMap(iblk)%p(i),1) = errorH1blk(i,1)
-              errorH1(mieMap(iblk)%p(i),2) = sqrt(
-     &                       errorH1blk(i,2)*errorH1blk(i,2)+
-     &                       errorH1blk(i,3)*errorH1blk(i,3)+
-     &                       errorH1blk(i,4)*errorH1blk(i,4))
-              errorH1(mieMap(iblk)%p(i),3) = errorH1blk(i,5)
+              VMS_error(mieMap(iblk)%p(i),1) = VMS_errorblk(i,1)
+              VMS_error(mieMap(iblk)%p(i),2) = sqrt(
+     &                       VMS_errorblk(i,2)*VMS_errorblk(i,2)+
+     &                       VMS_errorblk(i,3)*VMS_errorblk(i,3)+
+     &                       VMS_errorblk(i,4)*VMS_errorblk(i,4))
+              VMS_error(mieMap(iblk)%p(i),3) = VMS_errorblk(i,5)
 c.... record the max error
 c
-              if (errorH1(mieMap(iblk)%p(i),1) .gt. errorMaxMass)
-     &            errorMaxMass = errorH1(mieMap(iblk)%p(i),1)
-              if (errorH1(mieMap(iblk)%p(i),2) .gt. errorMaxMomt)
-     &            errorMaxMomt = errorH1(mieMap(iblk)%p(i),2)
-              if (errorH1(mieMap(iblk)%p(i),3) .gt. errorMaxEngy)
-     &            errorMaxEngy = errorH1(mieMap(iblk)%p(i),3)
+              if (VMS_error(mieMap(iblk)%p(i),1) .gt. errorMaxMass)
+     &            errorMaxMass = VMS_error(mieMap(iblk)%p(i),1)
+              if (VMS_error(mieMap(iblk)%p(i),2) .gt. errorMaxMomt)
+     &            errorMaxMomt = VMS_error(mieMap(iblk)%p(i),2)
+              if (VMS_error(mieMap(iblk)%p(i),3) .gt. errorMaxEngy)
+     &            errorMaxEngy = VMS_error(mieMap(iblk)%p(i),3)
             enddo
           endif
 c
@@ -268,7 +268,7 @@ c
           deallocate ( tmpshp )
           deallocate ( tmpshgl )
           deallocate ( meshCFLblk )
-          deallocate ( errorH1blk )
+          deallocate ( VMS_errorblk )
 c
 c.... end of interior element loop
 c

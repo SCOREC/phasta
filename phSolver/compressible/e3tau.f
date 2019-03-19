@@ -192,26 +192,46 @@ c
          tau(:,3)=tau(:,2)/cv*temper
 c
       endif
-c     
-c.... get error in H1 norm
 c
-      if ((post_proc_loop .eq. 1) .and. (errorEstimation .eq. 1))  then
-        errorH1blk(:,1) = errorH1blk(:,1)
-     &                  + (gijd(:,1)+gijd(:,3)+gijd(:,6))
-     &                  * tau(:,1) * tau(:,1)
-     &                  * rLyi(:,1) * rLyi(:,1) * WdetJ
-        errorH1blk(:,2) = errorH1blk(:,2)
-     &                  + 1.0/rmu * tau(:,2)
-     &                  * rLyi(:,2) * rLyi(:,2) * WdetJ
-        errorH1blk(:,3) = errorH1blk(:,3)
-     &                  + 1.0/rmu * tau(:,2)
-     &                  * rLyi(:,3) * rLyi(:,3) * WdetJ
-        errorH1blk(:,4) = errorH1blk(:,4)
-     &                  + 1.0/rmu * tau(:,2)
-     &                  * rLyi(:,4) * rLyi(:,4) * WdetJ
-        errorH1blk(:,5) = errorH1blk(:,5)
-     &                  + 1.0/con * tau(:,3)
-     &                  * rLyi(:,5) * rLyi(:,5) * WdetJ
+c.... get VMS error
+c
+      if (post_proc_loop .eq. 1)  then
+c.... get error in H1 norm if errorEstimation = 1
+        if (errorEstimation .eq. 1) then
+          VMS_errorblk(:,1) = VMS_errorblk(:,1)
+     &                    + (gijd(:,1)+gijd(:,3)+gijd(:,6))
+     &                    * tau(:,1) * tau(:,1)
+     &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
+          VMS_errorblk(:,2) = VMS_errorblk(:,2)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
+          VMS_errorblk(:,3) = VMS_errorblk(:,3)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
+          VMS_errorblk(:,4) = VMS_errorblk(:,4)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
+          VMS_errorblk(:,5) = VMS_errorblk(:,5)
+     &                    + 1.0/con * tau(:,3)
+     &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
+c.... get error in L2 norm if errorEstimation = 2
+        else if (errorEstimation .eq. 2) then
+          VMS_errorblk(:,1) = VMS_errorblk(:,1)
+     &                    + 4.0/3.0 * tau(:,1) * tau(:,1)
+     &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
+          VMS_errorblk(:,2) = VMS_errorblk(:,2)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
+          VMS_errorblk(:,3) = VMS_errorblk(:,3)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
+          VMS_errorblk(:,4) = VMS_errorblk(:,4)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
+          VMS_errorblk(:,5) = VMS_errorblk(:,5)
+     &                    + 4.0/3.0 * tau(:,3) * tau(:,3)
+     &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
+        endif
       endif
 c
 c
