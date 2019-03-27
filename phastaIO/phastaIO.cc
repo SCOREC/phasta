@@ -227,6 +227,8 @@ namespace{
     int skip_size, integer_value;
     int rewind_count=0;
 
+    MPI_Comm_rank(MPI_COMM_WORLD, &irank);
+
     if( !fgets( Line, 1024, fileObject ) && feof( fileObject ) ) {
       rewind( fileObject );
       clearerr( fileObject );

@@ -464,7 +464,6 @@ c of the diffusive flux vector, q, and lumped mass matrix, rmass
 c
         qres = zero
         rmass = zero
-        
         do iblk = 1, nelblk
 c
 c.... set up the parameters
@@ -489,14 +488,41 @@ c     and lumped mass matrix, rmass
 
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
-
+c
+          e3_malloc_ptr => e3_malloc
+          e3_mfree_ptr => e3_mfree
+c
+          select case (mat_eos(mater,1))
+          case (ieos_ideal_gas,ieos_ideal_gas_2)
+            getthm6_ptr => getthm6_ideal_gas
+            getthm7_ptr => getthm7_ideal_gas
+          case (ieos_ideal_gas_mixture)
+            getthm6_ptr => getthm6_ideal_gas_mixture
+            getthm7_ptr => getthm7_ideal_gas_mixture
+          case (ieos_liquid_1)
+            getthm6_ptr => getthm6_liquid_1
+            getthm7_ptr => getthm7_liquid_1
+          case (ieos_solid_1)
+            getthm6_ptr => getthm6_solid_1
+            getthm7_ptr => getthm7_solid_1
+            iblk_solid = iblk 
+            e3_malloc_ptr => e3_malloc_solid
+            e3_mfree_ptr => e3_mfree_solid
+          case default
+            call error ('getthm  ', 'wrong material', mater)
+          end select
+c
+          if (associated(e3_malloc_ptr)) call e3_malloc_ptr
+c
           call AsIq (y,                x,                       
      &               tmpshp,              
      &               tmpshgl,
      &               mien(iblk)%p,     mxmudmi(iblk)%p,
      &               qres,                   
      &               rmass)
-
+c
+          if (associated(e3_mfree_ptr)) call e3_mfree_ptr
+c
           deallocate ( tmpshp )
           deallocate ( tmpshgl ) 
        enddo
@@ -555,6 +581,7 @@ c
           tmpshp(1:nshl,:) = shp(lcsyst,1:nshl,:)
           tmpshgl(:,1:nshl,:) = shgl(lcsyst,:,1:nshl,:)
 c
+c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
 c... for DC lagging
@@ -572,7 +599,7 @@ c
             getthm6_ptr => getthm6_ideal_gas
             getthm7_ptr => getthm7_ideal_gas
           case (ieos_ideal_gas_mixture)
-            getthm6_ptr => getthm7_ideal_gas_mixture
+            getthm6_ptr => getthm6_ideal_gas_mixture
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm6_ptr => getthm6_liquid_1
@@ -596,12 +623,12 @@ c
      &                 mater,               res,
      &                 rmes,                BDiag,
      &                 qres,                EGmass,
-     &                 rerr,                umesh )
+     &                 rerr,                umesh)
 c
           if(lhs.eq.1) then
 c
 c.... satisfy the BCs on the implicit LHS
-c     
+c
              call bc3LHS (iBC,                  BC,  mien(iblk)%p, 
      &                    EGmass  ) 
 c
@@ -671,7 +698,7 @@ c
             getthm6_ptr => getthm6_ideal_gas
             getthm7_ptr => getthm7_ideal_gas
           case (ieos_ideal_gas_mixture)
-            getthm6_ptr => getthm7_ideal_gas_mixture
+            getthm6_ptr => getthm6_ideal_gas_mixture
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm6_ptr => getthm6_liquid_1

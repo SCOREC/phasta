@@ -2,7 +2,7 @@
      &                 shgl,    xl,      rl,      rml,    xmudmi,
      &                 BDiagl,  ql,      sgn,     rlsl,   EGmass,
      &                 rerrl,   ytargetl, uml)
-c                                                                      
+c
 c----------------------------------------------------------------------
 c
 c This routine is the 3D element routine for the N-S equations. 
@@ -46,6 +46,7 @@ c Chris Whiting, Winter 1998.  (LHS matrix formation)
 c----------------------------------------------------------------------
 c
         use e3_param_m
+        use post_param_m
 c
         include "common.h"
 c
@@ -60,6 +61,7 @@ c
      &            EGmass(npro,nedof,nedof),
 !     &            cv(npro),
      &            ytargetl(npro,nshl,nflow)
+        real*8    elementVol(npro)
 c
         dimension dui(npro,ndof),            aci(npro,ndof)
 c
@@ -307,8 +309,16 @@ c
 c.... end of integration loop
 c
       enddo
-
-      ttim(6) = ttim(6) + secs(0.0)
+c
+      if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
+        meshCFLblk(:) = meshCFLblk(:)/ngauss
+      endif
+c
+      if ((post_proc_loop .eq. 1) .and. (errorEstimation .ge. 1)) then
+        do i = 1, npro
+          VMS_errorblk(i,:) = sqrt(VMS_errorblk(i,:))
+        enddo
+      endif
 c
 c.... return
 c

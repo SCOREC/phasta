@@ -1,7 +1,7 @@
         subroutine e3q (ycl,      shp,     shgl,
      &                  xl,       ql,      rmassl, 
      &                  xmudmi,   sgn)
-c                                                                      
+c
 c----------------------------------------------------------------------
 c
 c This routine computes the element contribution to the 
@@ -19,6 +19,8 @@ c  rmassl     (npro,nshl)        : element lumped mass matrix
 c
 c----------------------------------------------------------------------
 c
+        use e3_param_m
+c
         include "common.h"
 c
         dimension ycl(npro,nshl,ndof),  
@@ -33,11 +35,11 @@ c
         dimension g1yi(npro,nflow),          g2yi(npro,nflow),
      &            g3yi(npro,nflow),          shg(npro,nshl,nsd),
      &            dxidx(npro,nsd,nsd),       WdetJ(npro),
-     &            T(npro),                   cp(npro),
+!     &            T(npro),     cp(npro),     rho(npro),
      &            u1(npro),                  u2(npro),
      &            u3(npro),                  rmu(npro),
      &            rlm(npro),                 rlm2mu(npro),
-     &            con(npro),                 rho(npro)
+     &            con(npro)
 c
         dimension qdi(npro,idflx),alph1(npro),alph2(npro)
 c
@@ -77,22 +79,23 @@ c.... calculate the integration variables necessary for the
 c     formation of q
 c
 
-        call e3qvar   (ycl,        shape,        shdrv,   
-     &                 rho,       xl,           g1yi,
-     &                 g2yi,      g3yi,         shg,
-     &                 dxidx,     WdetJ,        T,
-     &                 cp,        u1,           u2,
-     &                 u3                                 )              
+        call e3qvar   (ycl,        shape,        shdrv,
+     &                 xl,         g1yi,
+     &                 g2yi,       g3yi,         shg,
+     &                 dxidx,      WdetJ,
+!     &                 rho,        T,            cp,
+     &                 u1,         u2,           u3)
 c
 c.... compute diffusive flux vector at this integration point
 c
 c
 c.... get material properties
 c
-        call getDiff (T,        cp,       rho,        ycl,
-     &                rmu,      rlm,      rlm2mu,     con,  shape,
-     &                xmudmi,   xl)
-          
+c        call getDiff (T,        cp,       rho,        ycl,
+c     &                rmu,      rlm,      rlm2mu,     con,  shape,
+c     &                xmudmi,   xl)
+         call getdiff(rmu, rlm, rlm2mu, con, npro, mater)
+c
         idflow = 0
         if(idiff >= 1) then   !so taking care of all the idiff=1,2,3
         idflow = idflow+12

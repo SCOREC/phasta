@@ -54,38 +54,35 @@ c
 c.... x1-displacement
 c
         if ( btest(iBC(in),14) ) then
-c          do i = 1, ndofelas
-              Estiff(iel,i1,:) = zero
-              Estiff(iel,:,i1) = zero
-c          enddo
+          Estiff(iel,i1,:) = zero
+          Estiff(iel,:,i1) = zero
+          Estiff(iel,i1,i1) = one
         endif
 c
 c.... x2-displacement
 c
         if ( btest(iBC(in),15) ) then
-c          do i = 1, ndofelas
-              Estiff(iel,i2,:) = zero
-              Estiff(iel,:,i2) = zero
-c          enddo
+          Estiff(iel,i2,:) = zero
+          Estiff(iel,:,i2) = zero
+          Estiff(iel,i2,i2) = one
         endif
 c
 c.... x3-displacement
 c
         if ( btest(iBC(in),16) ) then
-c          do i = 1, ndofelas
-              Estiff(iel,i3,:) = zero
-              Estiff(iel,:,i3) = zero
-c          enddo
+          Estiff(iel,i3,:) = zero
+          Estiff(iel,:,i3) = zero
+          Estiff(iel,i3,i3) = one
         endif
-c        
+c
 c.... end loop over shape functions (nodes)
-c        
+c
       enddo
 c
 c.... end loop over elements
 c
       enddo
-c     
+c
 c.... return
 c
       return

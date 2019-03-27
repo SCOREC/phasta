@@ -1,8 +1,8 @@
-        subroutine AsIGMR (y,       ac,      x,        xmudmi,   
+        subroutine AsIGMR (y,       ac,      x,          xmudmi,   
      &                     shp,     shgl,    ien,     
      &                     mater,   res,     rmes,    
      &                     BDiag,   qres,    EGmass,   
-     &                     rerr,    umesh )
+     &                     rerr,    umesh)
 c
 c----------------------------------------------------------------------
 c

@@ -59,17 +59,17 @@ c
           real*8, dimension(npro,nflow) :: temp0, temp1 ! local temporary array
           integer :: iel                                                  
 c
-          u_ref_0(:,1) = 1.000000000000000d0 ! hacking, rho_ref, gas phase
-          u_ref_0(:,2) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
-          u_ref_0(:,3) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
-          u_ref_0(:,4) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
-          u_ref_0(:,5) = 2.114165517241379d5 ! hacking, rho_ref*(ei + 0.5*v_ref^2)
+          u_ref_0(:,1) = 1.000000000000000d-2 ! hacking, rho_ref, gas phase
+          u_ref_0(:,2) = 1.000000000000000d0 ! hacking, rho_ref*v_ref
+          u_ref_0(:,3) = 1.000000000000000d0 ! hacking, rho_ref*v_ref
+          u_ref_0(:,4) = 1.000000000000000d0 ! hacking, rho_ref*v_ref
+          u_ref_0(:,5) = 2.114165517241379d3 ! hacking, rho_ref*(ei + 0.5*v_ref^2)
 c
-          u_ref_1(:,1) = 1.000000000000000d2 ! hacking, rho_ref, liquid phase
-          u_ref_1(:,2) = 1.000000000000000d2  ! hacking, rho_ref*v_ref
-          u_ref_1(:,3) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
-          u_ref_1(:,4) = 1.000000000000000d2 ! hacking, rho_ref*v_ref
-          u_ref_1(:,5) = 4.204805000000000d7! hacking, rho_ref*(ei + 0.5*v_ref^2)
+          u_ref_1(:,1) = 1.000000000000000d0 ! hacking, rho_ref, liquid phase
+          u_ref_1(:,2) = 1.000000000000000d0  ! hacking, rho_ref*v_ref
+          u_ref_1(:,3) = 1.000000000000000d0 ! hacking, rho_ref*v_ref
+          u_ref_1(:,4) = 1.000000000000000d0 ! hacking, rho_ref*v_ref
+          u_ref_1(:,5) = 4.204805000000000d5! hacking, rho_ref*(ei + 0.5*v_ref^2)
 c... diag(U1_ref ... U5_ref) * flux_jump          
           temp0(:,1) = ( one/u_ref_0 (:,1) )*f_jump(:,1)
           temp0(:,2) = ( one/u_ref_0 (:,2) )*f_jump(:,2)

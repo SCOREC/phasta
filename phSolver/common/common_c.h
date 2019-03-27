@@ -272,6 +272,14 @@ extern "C" {
     double faceMeshqTol;
     int autoTrigger;
     int triggerNow;
+    double errorTolMass;
+    double errorTolMomt;
+    double errorTolEngy;
+    double errorMaxMass;
+    double errorMaxMomt;
+    double errorMaxEngy;
+    int errorEstimation;
+    int errorTriggerEqn;
   } meshquality ;
 
   extern struct {
@@ -612,6 +620,7 @@ extern "C" {
     int output_mode; //FIXME -1:streams, 0:posix, >0:syncio
     int conservation_probe;
     int write_residual;
+    int imeshCFL;
     /*  int iostats; */
 /*      int ipresref; */
   } outpar ;

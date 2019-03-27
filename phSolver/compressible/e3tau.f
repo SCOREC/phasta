@@ -4,7 +4,8 @@
      &                     con,    dxidx,  rLyi,
      &                     rLymi,  tau,    rk, 
      &                     giju,   rTLS,   raLS,
-     &                     A0inv,  dVdY,   cv)
+     &                     A0inv,  dVdY,   cv,
+     &                     WdetJ)
 c
 c----------------------------------------------------------------------
 c
@@ -39,6 +40,7 @@ c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
       use e3gij_m, only:e3gijd
+      use post_param_m
       include "common.h"
 c
       dimension rho(npro),                 con(npro), 
@@ -51,6 +53,8 @@ c
      &            rLymi(npro,nflow),         dVdY(npro,15), 
      &            rTLS(npro),                raLS(npro),
      &            rLyitemp(npro,nflow),      detgijI(npro)
+c     
+      dimension   WdetJ(npro)
 c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  uh1(npro),
@@ -174,13 +178,63 @@ c... ALE
          fact=sqrt(tau(:,2))
          tau(:,1)=pt125*fact/(gijd(:,1)+gijd(:,3)+gijd(:,6))*taucfct/rho
          tau(:,2)=one/fact
-c     
+c
+c
+        if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
+          meshCFLblk(:)= meshCFLblk(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
+     &        + two*((u2 - um2)*gijd(:,2) + (u3 - um3)*gijd(:,4)))
+     &        + (u2 - um2)*((u2 - um2)*gijd(:,3) + two*(u3-um3)*gijd(:,5))
+     &        + (u3 - um3)*(u3 - um3)*gijd(:,6))/(Dtgl*two)
+        endif
+c
 c.... energy tau   cv=cp/gamma  assumed
-c     
+c
          tau(:,3)=tau(:,2)/cv*temper
 c
       endif
-c     
+c
+c.... get VMS error
+c
+      if (post_proc_loop .eq. 1)  then
+c.... get error in H1 norm if errorEstimation = 1
+        if (errorEstimation .eq. 1) then
+          VMS_errorblk(:,1) = VMS_errorblk(:,1)
+     &                    + (gijd(:,1)+gijd(:,3)+gijd(:,6))
+     &                    * tau(:,1) * tau(:,1)
+     &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
+          VMS_errorblk(:,2) = VMS_errorblk(:,2)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
+          VMS_errorblk(:,3) = VMS_errorblk(:,3)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
+          VMS_errorblk(:,4) = VMS_errorblk(:,4)
+     &                    + 1.0/rmu * tau(:,2)
+     &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
+          VMS_errorblk(:,5) = VMS_errorblk(:,5)
+     &                    + 1.0/con * tau(:,3)
+     &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
+c.... get error in L2 norm if errorEstimation = 2
+        else if (errorEstimation .eq. 2) then
+          VMS_errorblk(:,1) = VMS_errorblk(:,1)
+     &                    + 4.0/3.0 * tau(:,1) * tau(:,1)
+     &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
+          VMS_errorblk(:,2) = VMS_errorblk(:,2)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
+          VMS_errorblk(:,3) = VMS_errorblk(:,3)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
+          VMS_errorblk(:,4) = VMS_errorblk(:,4)
+     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
+          VMS_errorblk(:,5) = VMS_errorblk(:,5)
+     &                    + 4.0/3.0 * tau(:,3) * tau(:,3)
+     &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
+        endif
+      endif
+c
+c
 c...  finally multiply this tau matrix times the
 c     two residual vectors
 c

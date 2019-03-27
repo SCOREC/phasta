@@ -45,6 +45,7 @@ c
       use interfaceflag
       use dc_lag_func_m
       use dc_lag_data_m
+      use post_param_m
 c
         include "common.h"
         include "mpif.h"
@@ -170,7 +171,6 @@ c
           endif
         endif
 c
-c
 c.... initialize
 c
         ifuncs  = 0                      ! func. evaluation counter
@@ -181,6 +181,7 @@ c
         acold  = ac
         umeshold = umesh
         xold   = x
+        triggerNow = 0
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
@@ -228,6 +229,7 @@ c ... allocate mesh-elastic solve related arrays only if mesh-elastic solve flag
         endif
 c
         if (numrbs .gt. 0) call malloc_rbForce
+        call malloc_post_param
 c
         call init_sum_vi_area(nshg,nsd)
         call ifbc_malloc
@@ -541,6 +543,13 @@ c
 c.... reset rigid body force
 c
                      if (numrbs .gt. 0) call init_rbForce
+c
+c.... initialize max error variables
+                     if (errorEstimation .ge. 1) then
+                       errorMaxMass = 0.0
+                       errorMaxMomt = 0.0
+                       errorMaxEngy = 0.0
+                     endif
 c
 c.... form the element data and solve the matrix problem
 c     
@@ -948,7 +957,21 @@ c
               endif
             endif
           !... Yi Chen Duct geometry8
-
+c
+c.... -------------------> post-processing  <-------------------
+c
+c.... if we need to collect some post-processing variables
+            if ((imeshCFL        .eq. 1) .or.
+     &          (errorEstimation .ge. 1) ) then
+              call ElmPost(y,             ac,            x,
+     &                     shp,           shgl,          iBC,
+     &                     BC,            shpb,          shglb,
+     &                     shpif,         shgif,
+     &                     res,           iper,          ilwork,
+     &                     rerr,          umesh)
+            endif
+c
+c.... -----------------> end post-processsing <-----------------
 c
 c.... -------------------> error calculation  <-----------------
             if(ierrcalc.eq.1.or.ioybar.eq.1) then
@@ -978,9 +1001,23 @@ c... compute err
 
 c.... -----------------> end error calculation  <----------------
 c
-c.... ----------------->   measure mesh quality   <----------------
+c.... ------------------> print out VMS error <------------------
 c
-            triggerNow = 0
+            if (errorEstimation .ge. 1) then
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMass, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxMomt, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, errorMaxEngy, 1,
+     &          MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierr )
+              if(myrank .eq. master) then
+                write(*,*) "error (mass, momt, engy):",
+     &                      errorMaxMass,errorMaxMomt,errorMaxEngy
+              endif
+            endif
+c
+c.... -----------------> check if auto trigger <-----------------
+c
             if (autoTrigger .eq. 1) then
               x1 = x(:,1)
               x2 = x(:,2)
@@ -1000,10 +1037,25 @@ c
                   write(*,*) "we need to trigger mesh adaptation!"
                 endif
                 triggerNow = 1
-              endif ! end check if less than tolerance
+              endif ! end check if mesh quality less than tolerance
+c
+c.... check if error larger than threshold
+              if (errorEstimation .ge. 1) then
+                if (errorTriggerEqn .eq. 1) then
+                  if (errorMaxMass .ge. errorTolMass) triggerNow = 1
+                else if (errorTriggerEqn .eq. 2) then
+                  if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
+                else if (errorTriggerEqn .eq. 3) then
+                  if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
+                else if (errorTriggerEqn .eq. 4) then
+                  if ((errorMaxMass .ge. errorTolMass) .or.
+     &                (errorMaxMomt .ge. errorTolMomt) .or.
+     &                (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
+                endif ! end check if error larger than threshold
+              endif ! end if error estimation option is on
             endif ! end auto_trigger option
 c
-c.... -----------------> end measure mesh quality <----------------
+c.... ---------------> end check if auto trigger <---------------
 c
             !here is where we save our averaged field.  In some cases we want to
             !write it less frequently
@@ -1044,6 +1096,16 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
      &                  myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                  meshq, 'd'//char(0), numel, 1,   lstep)
                  endif
+                 if (imeshCFL .eq. 1) then
+                   call write_field(
+     &                  myrank,'a'//char(0),'meshCFL'//char(0), 7,
+     &                  meshCFL, 'd'//char(0), numel, 1,   lstep)
+                 endif
+                 if (errorEstimation .ge. 1) then
+                   call write_field(
+     &                  myrank,'a'//char(0),'VMS_error'//char(0), 9,
+     &                  VMS_error, 'd'//char(0), numel, 3, lstep)
+                 endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
                  endif
@@ -1082,6 +1144,16 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'meshQ'//char(0), 5, 
      &                meshq, 'd'//char(0), numel, 1,   lstep)
+               endif
+               if (imeshCFL.eq.1)then
+                 call write_field(
+     &                myrank,'a'//char(0),'meshCFL'//char(0), 7,
+     &                meshCFL, 'd'//char(0), numel, 1,   lstep)
+               endif
+               if (errorEstimation .ge. 1) then
+                 call write_field(
+     &                myrank,'a'//char(0),'VMS_error'//char(0), 9,
+     &                VMS_error, 'd'//char(0), numel, 3, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam
@@ -1166,6 +1238,8 @@ c
       if (numrbs .gt. 0) then
         call release_rbForce
       endif
+c
+      call release_post_param
 c
         call destruct_sum_vi_area
         call ifbc_mfree

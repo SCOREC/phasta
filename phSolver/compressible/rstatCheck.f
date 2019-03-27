@@ -71,7 +71,8 @@ c
         totres = resnrm / float(nshgt)
         totres = sqrt(totres)
 c
-       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0d9*ResLast)) then !diverging
+c       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.10000.0*ResLast)) then !diverging
+       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0e32*ResLast)) then !debugging
                call restar('out ',y,res) ! 'res' is used instead of 'ac'
                if(myrank.eq.0) write(*,*) 'ResLast totres', ResLast, totres
                if(myrank.eq.0) write(*,*) 'resmax', resmax

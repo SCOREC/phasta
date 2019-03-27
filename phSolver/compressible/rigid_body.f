@@ -13,6 +13,9 @@ c
           real*8, allocatable  :: rbVelOld(:,:)
           real*8, allocatable  :: rbAcc(:,:)
           real*8, allocatable  :: rbAccOld(:,:)
+          real*8, allocatable  :: rbAng(:)
+          real*8, allocatable  :: rbAngOld(:)
+          real*8, allocatable  :: rbTotalAng(:)
         end module
 c
 c----------------------------------------------------------------------
@@ -37,20 +40,25 @@ c
         allocate( rbVelOld(numrbs, 3)  )
         allocate( rbAcc(numrbs, 3)  )
         allocate( rbAccOld(numrbs, 3)  )
+        allocate( rbAng(numrbs)  )
+        allocate( rbAngOld(numrbs)  )
+        allocate( rbTotalAng(numrbs)  )
 c
         rbForce  = zero
         rbTorque = zero
         rbDisp = zero
         rbVel = zero
         rbAcc = zero
+        rbAng = zero
 c
         rbTorqueOld = zero
 c
 c.... rbParam = rbTotalDisp + rbVelOld + rbAccOld + rbForceOld
+c             + rbTotalAng  + rbAngOld
 c
         if (rbUseReadData .eq. 1) then
 c
-          if (rbParamSize .ne. 12) then
+          if (rbParamSize .ne. 14) then
             if(myrank .eq. master)
      &        write(*,*) "change rigid body parameter size rbParamSize"
             call error('rbParamSize','change size',rbParamSize)
@@ -60,11 +68,15 @@ c
           rbVelOld(:,1:3) = rbParamRead(:,4:6)
           rbAccOld(:,1:3) = rbParamRead(:,7:9)
           rbForceOld(:,1:3) = rbParamRead(:,10:12)
+          rbTotalAng(:) = rbParamRead(:,13)
+          rbAngOld(:) = rbParamRead(:,14)
         else
           rbTotalDisp = zero
           rbVelOld = zero
           rbAccOld = zero
           rbForceOld = zero
+          rbTotalAng = zero
+          rbAngOld = zero
         endif
 c
         if (allocated(rbParamRead))
@@ -86,11 +98,29 @@ c
 c
         real*8    x(numnp,nsd)
         dimension iBC(nshg), BC(nshg,3), BC_flow(nshg,3)
+        real*8    t
+        real*8, dimension(nsd) :: ra, rc, r_disp
 c
 c.... loop over mesh vertices
         do i = 1,numnp
           if ( (ibits(iBC(i),14,3) .eq. 7) .and.
      &         (rbFlags(i) .gt. 0) ) then
+c.... calculate the displacement due to rotation
+            t = rbAngOld(rbFlags(i))/180.0*pi
+            ra = rb_prop(rbFlags(i),5:7)
+            rc = rb_prop(rbFlags(i),8:10)
+            r_disp(1) =
+     &               (cos(t)+ra(1)*ra(1)*(1-cos(t))-1)*(x(i,1)-rc(1))
+     &         + (ra(1)*ra(2)*(1-cos(t))-ra(3)*sin(t))*(x(i,2)-rc(2))
+     &         + (ra(1)*ra(3)*(1-cos(t))+ra(3)*sin(t))*(x(i,3)-rc(3))
+            r_disp(2) =
+     &           (ra(2)*ra(1)*(1-cos(t))+ra(3)*sin(t))*(x(i,1)-rc(1))
+     &             + (cos(t)+ra(2)*ra(2)*(1-cos(t))-1)*(x(i,2)-rc(2))
+     &         + (ra(2)*ra(3)*(1-cos(t))-ra(1)*sin(t))*(x(i,3)-rc(3))
+             r_disp(2) =
+     &           (ra(3)*ra(1)*(1-cos(t))-ra(2)*sin(t))*(x(i,1)-rc(1))
+     &         + (ra(3)*ra(2)*(1-cos(t))+ra(1)*sin(t))*(x(i,2)-rc(2))
+     &             + (cos(t)+ra(3)*ra(3)*(1-cos(t))-1)*(x(i,3)-rc(3))
 c.... update flow BC
             BC_flow(i,1:3) = rbVelOld(rbFlags(i), 1:3)
           endif
@@ -131,7 +161,8 @@ c
 c
         do i = 1, numrbs
 c.... XXX need to add rotation force
-          if (rbsMM(i) .ne. 1)
+c
+          if (rbsMM(i) .ne. 1 .and. rbsMM(i) .ne. 2)
      &      call error('rigidBodyBCElas','not support mode',rbsMM(i))
           if (iter .eq. nitr) then
             Forin  = (/ rbForce(i,1), rbForce(i,2), rbForce(i,3) /)
@@ -177,6 +208,12 @@ c
      &    deallocate( rbAcc )
         if (allocated(rbAccOld))
      &    deallocate( rbAccOld )
+        if (allocated(rbAng))
+     &    deallocate( rbAng )
+        if (allocated(rbAngOld))
+     &    deallocate( rbAngOld )
+        if (allocated(rbTotalAng))
+     &    deallocate( rbTotalAng )
 c
         return
         end
@@ -259,6 +296,7 @@ c
         real*8, dimension(nsd)        :: t_dir,  tmpAcc
         real*8, dimension(numrbs,nsd) :: t_acc
         real*8, dimension(3)          :: Forin1, Forin2
+        real*8, dimension(1)          :: Forin3
 c.... generalized-alpha parameters
         real*8  am, af, gm, bt
 c
@@ -269,10 +307,10 @@ c
 c
 c.... loop over rigid body
         do j = 1,numrbs
-          if (rbsMM(j) .ne. 1)
+          if (rbsMM(j) .ne. 1 .and. rbsMM(j) .ne. 2)
      &      call error('rigidBodyBCElas','not support mode',rbsMM(j))
 c.... debugging {
-c.... XXX need to implement rotation motion
+c.... XXX need to implement rotation motion calculation
 c          call core_get_centroid(rbMTs(j), cent(j,:))
 c.... debugging }
 c
@@ -283,6 +321,8 @@ c
      &                + t_dir(2)*t_dir(2)
      &                + t_dir(3)*t_dir(3) )
           if (t_mag .lt. 1e-12) then ! no constraint
+            write(*,*)
+     &      "WARNING: translation direction magnitude is too small!"
             t_dir(1:3) = 1.0
           else
             t_dir(1:3) = t_dir(1:3) / t_mag
@@ -302,44 +342,61 @@ c
           tmpAcc(1:3) = af/am/rb_prop(j,1) * rbForce(j,1:3)
      &                + (1-af)/am/rb_prop(j,1) * rbForceOld(j,1:3)
 c
-c.... get displacement
+c.... get translation displacement
 c
           rbDisp(j,1:3) = Delt(1) * rbVelOld(j,1:3)
      &                  + Delt(1) * Delt(1) * (
      &                    (0.5 + bt/am) * rbAccOld(j,1:3)
      &                  - bt * tmpAcc(1:3)    )
 c
-c.... get velocity
+c.... get translation velocity
 c
           rbVel(j,1:3) = rbVelOld(j,1:3)
      &                 + Delt(1) * (1.0 - gm/am) * rbAccOld(j,1:3)
      &                 + Delt(1) * gm * tmpAcc(1:3)
 c
-c.... get acceleration
+c.... get translation acceleration
 c
           rbAcc(j,1:3) = tmpAcc(1:3) - (1.0-am)/am * rbAccOld(j,1:3)
 c
+c
+c.... get rotation angle for this time step
+c
+          if (rbsMM(j) .eq. 2) then ! translation-spinning mode
+c.... the angle = spinning ratio * magitude of translation disp
+            rbAng(j) = rb_prop(j,11) * sqrt(rbDisp(j,1)*rbDisp(j,1)
+     &                                     +rbDisp(j,2)*rbDisp(j,2)
+     &                                     +rbDisp(j,3)*rbDisp(j,3))
+          endif
+c
 c.... broadcast rb velocity and displacement
+c.... broadcast rotation angle
 c
           if ((rb_commuMotion .eq. 1) .and. (numpe .gt. 1)) then
             Forin1  = (/ rbVel(j,1), rbVel(j,2), rbVel(j,3) /)
             call MPI_BCAST ( Forin1(1),  3,  MPI_DOUBLE_PRECISION,
      &                       master,     MPI_COMM_WORLD,  ierr)
-            rbVel(i,1:3) = Forin1(1:3)
+            rbVel(j,1:3) = Forin1(1:3)
 c
             Forin2  = (/ rbDisp(j,1),   rbDisp(j,2),   rbDisp(j,3) /)
             call MPI_BCAST ( Forin2(1),  3,  MPI_DOUBLE_PRECISION,
      &                       master,     MPI_COMM_WORLD,  ierr)
-            rbDisp(i,1:3) = Forin2(1:3)
+            rbDisp(j,1:3) = Forin2(1:3)
+
+            Forin3  = (/ rbAng(j) /)
+            call MPI_BCAST ( Forin3(1),  1,  MPI_DOUBLE_PRECISION,
+     &                       master,     MPI_COMM_WORLD,  ierr)
+            rbAng(j) = Forin3(1)
           endif
 c
 c.... debugging {
-          if (myrank .eq. master) then
-            write(*,*) "rbForce", rbForce(j,1)
-     &                ,"disp:", rbTotalDisp(j,1)
-     &                ,"vel:",rbVel(j,1)
-     &                ,"acc:",rbAcc(j,1)
-          endif
+c          if (myrank .eq. master) then
+c            write(*,*) "rbForce", rbForce(j,1)
+c     &                ,"disp:", rbTotalDisp(j,1)
+c     &                ,"vel:",rbVel(j,1)
+c     &                ,"acc:",rbAcc(j,1)
+c     &                ,"ang:",rbTotalAng(j)
+c          endif
 c.... debugging }
 c
         enddo
@@ -362,14 +419,17 @@ c
           rbAccOld(j,1:3) = rbAcc(j,1:3)
           rbVelOld(j,1:3) = rbVel(j,1:3)
           rbForceOld(j,1:3) = rbForce(j,1:3)
+          rbTotalAng(j) = rbTotalAng(j) + rbAng(j)
+          rbAngOld(j) = rbAng(j)
 c
 c.... debugging {
-          if (myrank .eq. master) then
-            write(*,*) "rbForce", rbForce(j,1)
-     &                ,"disp:", rbTotalDisp(j,1)
-     &                ,"vel:",rbVel(j,1)
-     &                ,"acc:",rbAcc(j,1)
-          endif
+c          if (myrank .eq. master) then
+c            write(*,*) "rbForce", rbForce(j,1)
+c     &                ,"disp:", rbTotalDisp(j,1)
+c     &                ,"vel:",rbVel(j,1)
+c     &                ,"acc:",rbAcc(j,1)
+c     &                ,"ang:",rbTotalAng(j)
+c          endif
 c.... debugging }
 c
         enddo
@@ -389,21 +449,20 @@ c
 c
         include "common.h"
 c
-        real*8, dimension(numrbs) :: ax, ay, az, px, py, pz, ag, sc
+        real*8, dimension(numrbs) :: ax, ay, az, px, py, pz, sc
 c
 c.... XXX need to add rotation motion here
         do j = 1,numrbs
-          if (rbsMM(j) .ne. 1)
+          if (rbsMM(j) .ne. 1 .and. rbsMM(j) .ne. 2)
      &      call error('rigidBodyBCElas','not support mode',rbsMM(j))
         enddo
 c
-        ax = 1.0
-        ay = 0.0
-        az = 0.0
-        px = 0.0
-        py = 0.0
-        pz = 0.0
-        ag = 0.0
+        ax = rb_prop(1:numrbs,5)
+        ay = rb_prop(1:numrbs,6)
+        az = rb_prop(1:numrbs,7)
+        px = rb_prop(1:numrbs,8)
+        py = rb_prop(1:numrbs,9)
+        pz = rb_prop(1:numrbs,10)
         sc = 0.0
 c
         call core_update_rbms(rbTotalDisp(:,1),
@@ -411,7 +470,7 @@ c
      &                        rbTotalDisp(:,3),
      &                        ax, ay, az,
      &                        px, py, pz,
-     &                        ag, sc,
+     &                        rbTotalAng(:), sc,
      &                        rbMTs(:), numrbs)
 c
         return
@@ -429,10 +488,11 @@ c
         include "common.h"
 c
 c.... rbParam = rbTotalDisp + rbVelOld + rbAccOld + rbForceOld
+c             + rbTotalAng  + rbAngOld
 c
         real*8, dimension(numrbs, rbParamSize) :: rbParam
 c
-        if (rbParamSize .ne. 12) then
+        if (rbParamSize .ne. 14) then
           if(myrank .eq. master)
      &      write(*,*) "change rigid body parameter size rbParamSize"
         endif
@@ -441,6 +501,8 @@ c
         rbParam(:,4:6)   = rbVelOld(:,1:3)
         rbParam(:,7:9)   = rbAccOld(:,1:3)
         rbParam(:,10:12) = rbForceOld(:,1:3)
+        rbParam(:,13)    = rbTotalAng(:)
+        rbParam(:,14)    = rbAngOld(:)
 c
         call write_field(
      &       myrank,  'a'//char(0),'rbParams'//char(0), 8,

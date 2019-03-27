@@ -164,10 +164,19 @@ c
       module meshquality_m
         use iso_c_binding
         implicit none
-        real(c_double), target :: volMeshqTol, faceMeshqTol
-        integer(c_int), target :: autoTrigger, triggerNow
-        common /meshquality/  volMeshqTol, faceMeshqTol,
-     &                        autoTrigger, triggerNow
+        real(c_double), target :: volMeshqTol,  faceMeshqTol,
+     &                            errorTolMass, errorTolMomt,
+     &                            errorTolEngy, errorMaxMass,
+     &                            errorMaxMomt, errorMaxEngy
+        integer(c_int), target :: autoTrigger,     triggerNow, 
+     &                            errorEstimation, errorTriggerEqn
+        common /meshquality/  volMeshqTol,  faceMeshqTol,
+     &                        autoTrigger,  triggerNow,
+     &                        errorTolMass, errorTolMomt,
+     &                        errorTolEngy, errorMaxMass,
+     &                        errorMaxMomt, errorMaxEngy,
+     &                        errorEstimation,
+     &                        errorTriggerEqn
       end module meshquality_m
 c
 c----------------------------------------------------------------------
@@ -189,7 +198,7 @@ c
         integer(c_int), target :: rbsMM(MAXTS)
         integer(c_int)         :: numrbs
         integer(c_int)         :: rb_commuMotion
-        integer                :: rbParamSize = 12
+        integer                :: rbParamSize = 14
         common /rigidbody/     rb_prop,   numrbs,   rbsTags,
      &                         rbsMM,     rb_commuMotion
       end module rigidbody_m
@@ -500,7 +509,7 @@ c
         integer(c_int) :: ntout,ioform,iowflux,iofieldv,ioybar,nstepsincycle,nphasesincycle,
      &    ncycles_startphaseavg,ivort,icomputevort,nsynciofiles,nsynciofieldswriterestart,
      &    iv_rankpercore,iv_corepernode,input_mode,output_mode,conservation_probe,
-     &    write_residual
+     &    write_residual, imeshCFL
         real(c_double) :: ro,vel,temper,press,entrop
         character(len=80) :: iotype
         common /outpar/ ro,     vel,    temper, press,  entrop, ntout,
@@ -510,7 +519,7 @@ c
      &                  nsynciofiles, nsynciofieldswriterestart, 
      &                  iv_rankpercore, iv_corepernode, 
      &                  input_mode, output_mode, conservation_probe,
-     &                  write_residual
+     &                  write_residual, imeshCFL
       end module outpar_m
 c
       module workfc_m
