@@ -1085,7 +1085,7 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                  if (errorEstimation .ge. 1) then
                    call write_field(
      &                  myrank,'a'//char(0),'VMS_error'//char(0), 9,
-     &                  VMS_error, 'd'//char(0), numel, 3, lstep)
+     &                  VMS_error, 'd'//char(0), numel, 5, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1134,7 +1134,7 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                if (errorEstimation .ge. 1) then
                  call write_field(
      &                myrank,'a'//char(0),'VMS_error'//char(0), 9,
-     &                VMS_error, 'd'//char(0), numel, 3, lstep)
+     &                VMS_error, 'd'//char(0), numel, 5, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

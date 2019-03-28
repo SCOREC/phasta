@@ -12,7 +12,7 @@ c
           use conpar_m
 c
           allocate( meshCFL(numel) )
-          allocate( VMS_error(numel, 3) )
+          allocate( VMS_error(numel, nflow) )
           post_proc_loop = 0
           meshCFL = zero
           VMS_error = zero
@@ -79,7 +79,9 @@ c
         dimension umesh(numnp, nsd)
 c
         real*8  rerr(nshg,10)
-
+c
+        real*8  tempMomtError
+c
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
 c
@@ -239,27 +241,28 @@ c
      &                  qres,
      &                  rerr,                umesh)
 
-c.... map local element to global
+c.... map local meshCFL to global
           do i = 1, npro
             meshCFL(mieMap(iblk)%p(i)) = meshCFLblk(i)
           enddo
 c
           if (errorEstimation .ge. 1) then
             do i = 1, npro
-              VMS_error(mieMap(iblk)%p(i),1) = VMS_errorblk(i,1)
-              VMS_error(mieMap(iblk)%p(i),2) = sqrt(
-     &                       VMS_errorblk(i,2)*VMS_errorblk(i,2)+
-     &                       VMS_errorblk(i,3)*VMS_errorblk(i,3)+
-     &                       VMS_errorblk(i,4)*VMS_errorblk(i,4))
-              VMS_error(mieMap(iblk)%p(i),3) = VMS_errorblk(i,5)
+c.... map local VMS_error to global
+              do j = 1, nflow
+                VMS_error(mieMap(iblk)%p(i),j) = VMS_errorblk(i,j)
+              enddo
 c.... record the max error
-c
-              if (VMS_error(mieMap(iblk)%p(i),1) .gt. errorMaxMass)
-     &            errorMaxMass = VMS_error(mieMap(iblk)%p(i),1)
-              if (VMS_error(mieMap(iblk)%p(i),2) .gt. errorMaxMomt)
-     &            errorMaxMomt = VMS_error(mieMap(iblk)%p(i),2)
-              if (VMS_error(mieMap(iblk)%p(i),3) .gt. errorMaxEngy)
-     &            errorMaxEngy = VMS_error(mieMap(iblk)%p(i),3)
+              if (VMS_errorblk(i,1) .gt. errorMaxMass)
+     &            errorMaxMass = VMS_errorblk(i,1)
+              tempMomtError = sqrt(
+     &                           VMS_errorblk(i,2)*VMS_errorblk(i,2)+
+     &                           VMS_errorblk(i,3)*VMS_errorblk(i,3)+
+     &                           VMS_errorblk(i,4)*VMS_errorblk(i,4) )
+              if (tempMomtError .gt. errorMaxMomt)
+     &            errorMaxMomt = tempMomtError
+              if (VMS_errorblk(i,5) .gt. errorMaxEngy)
+     &            errorMaxEngy = VMS_errorblk(i,5)
             enddo
           endif
 c
