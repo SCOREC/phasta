@@ -463,9 +463,14 @@ c
 c... calculate the numerical viscousity in DC using the converged solutions
 c    of last time step if dc lagging flag is on
             if ( i_dc_lag .eq.1) then
+c... initialize some global variables for the DC lagging
+              lhs = 1 - min(1,mod(ifuncs(1)-1,LHSupd(1))) 
+              iprec=lhs
+              nedof = nflow*nshape !notice the size of the nshape
+c
               dc_calc_flag = 1
-              call calc_dc_lag(yold,  acold,  xold,  umeshold,
-     &                         shp,   shgl)
+              call calc_dc_lag_pre(yold,  acold,  xold,  umeshold,
+     &                             shp,   shgl)
 c
               dc_calc_flag = 0 !reset the preprocessing flag for dc lagging       
             endif
@@ -1244,7 +1249,7 @@ c
         call destruct_sum_vi_area
         call ifbc_mfree
 c... for DC lag if needed
-      if ( i_dc_lag .eq.1) then
+      if ( i_dc_lag .eq. 1) then
         call dealloc_dc_lag
       endif
 c        
