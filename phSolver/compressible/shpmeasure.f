@@ -74,8 +74,12 @@ c
      &               + tetEdge(:,6,2) * tetEdge(:,6,2)
      &               + tetEdge(:,6,3) * tetEdge(:,6,3)
 c
+c.... get the cubed mean ratio
        meshq(:) = 15552.0 * tempVolume(:) * abs(tempVolume(:))
      &          / ( tetSumEdge(:) * tetSumEdge(:) * tetSumEdge(:) )
+c
+c.... get the mean ratio
+       meshq(:) = sign(abs(meshq(:))**(1.0/3.0), meshq(:))
 c
        do i = 1, npro
           if (meshq(i) .gt. 1.0000001) then
