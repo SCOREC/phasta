@@ -348,7 +348,7 @@ c
      &     rLymi,           Tau,            rk,
      &     giju,            rTLS,           raLS,
      &     cv,              compK,          pres,
-     &     A0inv,           dVdY)
+     &     A0inv,           dVdY,           WdetJ)
 c
 c----------------------------------------------------------------------
 c
@@ -380,6 +380,7 @@ c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
       use e3gij_m, only:e3gijd
+      use post_param_m
       include "common.h"
 c
       dimension rho(npro),                 con(npro), 
@@ -390,6 +391,8 @@ c
      &            rLymi(npro,nflow),         dVdY(npro,15), 
      &            rTLS(npro),                raLS(npro),
      &            rLyitemp(npro,nflow),      detgijI(npro)
+c
+      dimension   WdetJ(npro)
 c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  
@@ -688,7 +691,52 @@ c
 c...  done with conversion to pressure primitive variables
 c...  now need to interface with the rest of the computations
 c     
-        
+
+c
+c...  compute non-diagonal VMS based error estimation
+c...  || Y_{i} ||_{L2norm} = || tau_{ij} (Lu - f)_{j} ||_{L2norm}
+c
+      if (post_proc_loop .eq. 1)  then
+c.... get error in H1 norm if errorEstimation = 1
+        if (errorEstimation .eq. 1) then
+          if(myrank.eq.1) write(*,*)
+     &      "non-diag H1 norm is not implemented yet"
+c.... get error in L2 norm if errorEstimation = 2
+        else if (errorEstimation .eq. 2) then
+          VMS_errorblk(:,1) = VMS_errorblk(:,1)
+     &         + Tau(:,1,1) * Tau(:,1,1) * rLyi(:,1) * rLyi(:,1) * WdetJ
+     &         + Tau(:,1,2) * Tau(:,1,2) * rLyi(:,2) * rLyi(:,2) * WdetJ
+     &         + Tau(:,1,3) * Tau(:,1,3) * rLyi(:,3) * rLyi(:,3) * WdetJ
+     &         + Tau(:,1,4) * Tau(:,1,4) * rLyi(:,4) * rLyi(:,4) * WdetJ
+     &         + Tau(:,1,5) * Tau(:,1,5) * rLyi(:,5) * rLyi(:,5) * WdetJ
+          VMS_errorblk(:,2) = VMS_errorblk(:,2)
+     &         + Tau(:,2,1) * Tau(:,2,1) * rLyi(:,1) * rLyi(:,1) * WdetJ
+     &         + Tau(:,2,2) * Tau(:,2,2) * rLyi(:,2) * rLyi(:,2) * WdetJ
+     &         + Tau(:,2,3) * Tau(:,2,3) * rLyi(:,3) * rLyi(:,3) * WdetJ
+     &         + Tau(:,2,4) * Tau(:,2,4) * rLyi(:,4) * rLyi(:,4) * WdetJ
+     &         + Tau(:,2,5) * Tau(:,2,5) * rLyi(:,5) * rLyi(:,5) * WdetJ
+          VMS_errorblk(:,3) = VMS_errorblk(:,3)
+     &         + Tau(:,3,1) * Tau(:,3,1) * rLyi(:,1) * rLyi(:,1) * WdetJ
+     &         + Tau(:,3,2) * Tau(:,3,2) * rLyi(:,2) * rLyi(:,2) * WdetJ
+     &         + Tau(:,3,3) * Tau(:,3,3) * rLyi(:,3) * rLyi(:,3) * WdetJ
+     &         + Tau(:,3,4) * Tau(:,3,4) * rLyi(:,4) * rLyi(:,4) * WdetJ
+     &         + Tau(:,3,5) * Tau(:,3,5) * rLyi(:,5) * rLyi(:,5) * WdetJ
+          VMS_errorblk(:,4) = VMS_errorblk(:,4)
+     &         + Tau(:,4,1) * Tau(:,4,1) * rLyi(:,1) * rLyi(:,1) * WdetJ
+     &         + Tau(:,4,2) * Tau(:,4,2) * rLyi(:,2) * rLyi(:,2) * WdetJ
+     &         + Tau(:,4,3) * Tau(:,4,3) * rLyi(:,3) * rLyi(:,3) * WdetJ
+     &         + Tau(:,4,4) * Tau(:,4,4) * rLyi(:,4) * rLyi(:,4) * WdetJ
+     &         + Tau(:,4,5) * Tau(:,4,5) * rLyi(:,5) * rLyi(:,5) * WdetJ
+          VMS_errorblk(:,5) = VMS_errorblk(:,5)
+     &         + Tau(:,5,1) * Tau(:,5,1) * rLyi(:,1) * rLyi(:,1) * WdetJ
+     &         + Tau(:,5,2) * Tau(:,5,2) * rLyi(:,2) * rLyi(:,2) * WdetJ
+     &         + Tau(:,5,3) * Tau(:,5,3) * rLyi(:,3) * rLyi(:,3) * WdetJ
+     &         + Tau(:,5,4) * Tau(:,5,4) * rLyi(:,4) * rLyi(:,4) * WdetJ
+     &         + Tau(:,5,5) * Tau(:,5,5) * rLyi(:,5) * rLyi(:,5) * WdetJ
+        endif
+      endif
+c
+c
 c...  finally multiply this tau matrix times the
 c     two residual vectors
 c
@@ -842,6 +890,7 @@ c Zdenek Johan, Summer 1990.  (Modified from e2tau.f)
 c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+      use post_param_m
       include "common.h"
 c
       dimension rho(npro),                 con(npro), 
@@ -1152,6 +1201,22 @@ c...  done with conversion to pressure primitive variables
 c...  now need to interface with the rest of the computations
 c     
         
+c
+c...  compute non-diagonal VMS based error estimation
+c...  || Y_{i} ||_{L2norm} = || tau_{ij} (Lu - f)_{j} ||_{L2norm}
+c
+      if (post_proc_loop .eq. 1)  then
+c.... get error in H1 norm if errorEstimation = 1
+        if (errorEstimation .eq. 1) then
+          if(myrank.eq.1) write(*,*)
+     &      "non-diag modal H1 norm is not implemented yet"
+c.... get error in L2 norm if errorEstimation = 2
+        else if (errorEstimation .eq. 2) then
+          if(myrank.eq.1) write(*,*)
+     &      "non-diag modal L2 norm is not implemented yet"
+        endif
+      endif
+c
 c...  finally multiply this tau matrix times the
 c     two residual vectors
 c

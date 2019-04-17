@@ -214,7 +214,7 @@ c.... well advective) correction factors for 1-D a-d equation w/ hier. b.
      &         rLymi,           PTau,           rk,
      &         giju,            rTLS,           raLS,
      &         cv,              compK,          pres,
-     &         A0inv,           dVdY)
+     &         A0inv,           dVdY,           WdetJ)
 
        endif
        
