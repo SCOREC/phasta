@@ -56,6 +56,8 @@ c
 c     
       dimension   WdetJ(npro)
 c
+      dimension   tauErr(npro,3)
+c
       dimension   rmu(npro),	 cv(npro),
      &		  gijd(npro,6),  uh1(npro),
      &		  fact(npro),	 h2o2u(npro),   giju(npro,6),
@@ -179,6 +181,9 @@ c... ALE
          tau(:,1)=pt125*fact/(gijd(:,1)+gijd(:,3)+gijd(:,6))*taucfct/rho
          tau(:,2)=one/fact
 c
+c.... energy tau   cv=cp/gamma  assumed
+c
+         tau(:,3)=tau(:,2)/cv*temper
 c
         if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
           meshCFLblk(:)= meshCFLblk(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
@@ -187,16 +192,49 @@ c
      &        + (u3 - um3)*(u3 - um3)*gijd(:,6))/(Dtgl*two)
         endif
 c
-c.... energy tau   cv=cp/gamma  assumed
-c
-         tau(:,3)=tau(:,2)/cv*temper
-c
       endif
 c
 c.... get VMS error
 c
       if (post_proc_loop .eq. 1)  then
 c.... get error in H1 norm if errorEstimation = 1
+c
+c.... The folloing error parameters come from advection-diffusion
+c     equation; see more in Hauke's paper:
+c     Proper intrinsic scales for a-posteriori multiscale
+c     error estimation. CMAME. 2006
+         tauErr(:,2) = 3.0/4.0*(
+     &         rho*rho*( (u1 - um1)*(u1 - um1)*gijd(:,1)
+     &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
+     &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
+     &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
+     &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
+     &                 + (u3 - um3)*(u3 - um3)*gijd(:,6) )
+     &        +10.0*rmu**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
+     &               + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2)))
+         tauErr(:,2) = one/sqrt(tauErr(:,2))
+c
+         tauErr(:,3) = 3.0/4.0*(
+     &   rho*rho*cv*cv*( (u1 - um1)*(u1 - um1)*gijd(:,1)
+     &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
+     &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
+     &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
+     &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
+     &                 + (u3 - um3)*(u3 - um3)*gijd(:,6) )
+     &  +10.0*con**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
+     &         + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2)))
+         tauErr(:,3) = one/sqrt(tauErr(:,3))
+c
+         tauErr(:,1) =   (u1 - um1)*(u1 - um1)*gijd(:,1)
+     &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
+     &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
+     &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
+     &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
+     &                 + (u3 - um3)*(u3 - um3)*gijd(:,6)
+         tauErr(:,1) = sqrt( ((u1 - um1)*(u1 - um1)
+     &                      + (u2 - um2)*(u2 - um2)
+     &                      + (u3 - um3)*(u3 - um3))/tauErr(:,1) )
+c
         if (errorEstimation .eq. 1) then
           VMS_errorblk(:,1) = VMS_errorblk(:,1)
      &                    + (gijd(:,1)+gijd(:,3)+gijd(:,6))
@@ -217,19 +255,19 @@ c.... get error in H1 norm if errorEstimation = 1
 c.... get error in L2 norm if errorEstimation = 2
         else if (errorEstimation .eq. 2) then
           VMS_errorblk(:,1) = VMS_errorblk(:,1)
-     &                    + 4.0/3.0 * tau(:,1) * tau(:,1)
+     &                    + tauErr(:,1) * tauErr(:,1)
      &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
           VMS_errorblk(:,2) = VMS_errorblk(:,2)
-     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    + tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
           VMS_errorblk(:,3) = VMS_errorblk(:,3)
-     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    + tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
           VMS_errorblk(:,4) = VMS_errorblk(:,4)
-     &                    + 4.0/3.0 * tau(:,2) * tau(:,2)
+     &                    + tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
           VMS_errorblk(:,5) = VMS_errorblk(:,5)
-     &                    + 4.0/3.0 * tau(:,3) * tau(:,3)
+     &                    + tauErr(:,3) * tauErr(:,3)
      &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
         endif
       endif
