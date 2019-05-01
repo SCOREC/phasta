@@ -280,6 +280,7 @@ extern "C" {
     double errorMaxEngy;
     int errorEstimation;
     int errorTriggerEqn;
+    int errorTimeTerm;
   } meshquality ;
 
   extern struct {

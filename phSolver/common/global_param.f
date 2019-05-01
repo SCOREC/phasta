@@ -169,14 +169,16 @@ c
      &                            errorTolEngy, errorMaxMass,
      &                            errorMaxMomt, errorMaxEngy
         integer(c_int), target :: autoTrigger,     triggerNow, 
-     &                            errorEstimation, errorTriggerEqn
+     &                            errorEstimation, errorTriggerEqn,
+     &                            errorTimeTerm
         common /meshquality/  volMeshqTol,  faceMeshqTol,
      &                        autoTrigger,  triggerNow,
      &                        errorTolMass, errorTolMomt,
      &                        errorTolEngy, errorMaxMass,
      &                        errorMaxMomt, errorMaxEngy,
      &                        errorEstimation,
-     &                        errorTriggerEqn
+     &                        errorTriggerEqn,
+     &                        errorTimeTerm
       end module meshquality_m
 c
 c----------------------------------------------------------------------

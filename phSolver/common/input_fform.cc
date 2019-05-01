@@ -805,6 +805,15 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
 
+    if ((string)inp.GetValue("Include Time Term in Error Tau") == "True" ) {
+      meshquality.errorTimeTerm = 1;
+    } else if ((string)inp.GetValue("Include Time Term in Error Tau") == "False" ) {
+      meshquality.errorTimeTerm = 0;
+    } else {
+      cout << " Include Time Term in Error Tau: Only Legal Values ( True, False )" <<endl;
+      exit(1);
+    }
+
     if ((string)inp.GetValue("Error Trigger Equation Option") == "Mass" ) {
       meshquality.errorTriggerEqn = 1;
     } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Momentum" ) {

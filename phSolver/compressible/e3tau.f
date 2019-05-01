@@ -208,77 +208,104 @@ c
 c.... get VMS error
 c
       if (post_proc_loop .eq. 1)  then
-c.... get error in H1 norm if errorEstimation = 1
-c
+        if(itau.eq.1) then ! Hauke
+          tauErr(:,1) = tau(:,1)
+          tauErr(:,2) = tau(:,2)
+          tauErr(:,3) = tau(:,3)
+        else if(itau.eq.0) then ! Shakib
 c.... The folloing error parameters come from advection-diffusion
 c     equation; see more in Hauke's paper:
 c     Proper intrinsic scales for a-posteriori multiscale
 c     error estimation. CMAME. 2006
-         tauErr(:,2) = 3.0/4.0*(
-     &         rho*rho*( (u1 - um1)*(u1 - um1)*gijd(:,1)
+c
+          if (errorTimeTerm .eq. 0) then ! no time term
+            tauErr(:,2) = rho*rho*
+     &                 ( (u1 - um1)*(u1 - um1)*gijd(:,1)
      &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
      &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
      &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
      &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
      &                 + (u3 - um3)*(u3 - um3)*gijd(:,6) )
-     &        +10.0*rmu**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
-     &               + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2)))
-         tauErr(:,2) = one/sqrt(tauErr(:,2))
+     &        +fff*rmu**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
+     &               + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2))
+            tauErr(:,2) = one/sqrt(tauErr(:,2))
 c
-         tauErr(:,3) = 3.0/4.0*(
-     &   rho*rho*cv*cv*( (u1 - um1)*(u1 - um1)*gijd(:,1)
+            tauErr(:,3) = rho*rho*cv*cv*
+     &                 ( (u1 - um1)*(u1 - um1)*gijd(:,1)
      &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
      &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
      &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
      &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
      &                 + (u3 - um3)*(u3 - um3)*gijd(:,6) )
-     &  +10.0*con**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
-     &         + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2)))
-         tauErr(:,3) = one/sqrt(tauErr(:,3))
+     &  +fff*con**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2
+     &         + two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2))
+            tauErr(:,3) = one/sqrt(tauErr(:,3))
 c
-         tauErr(:,1) =   (u1 - um1)*(u1 - um1)*gijd(:,1)
-     &           + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
-     &                 + (u2 - um2)*(u2 - um2)*gijd(:,3)
-     &           + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
-     &           + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
-     &                 + (u3 - um3)*(u3 - um3)*gijd(:,6)
-         tauErr(:,1) = sqrt( ((u1 - um1)*(u1 - um1)
-     &                      + (u2 - um2)*(u2 - um2)
-     &                      + (u3 - um3)*(u3 - um3))/tauErr(:,1) )
+            tauErr(:,1) = (u1 - um1)*(u1 - um1)*gijd(:,1)
+     &            + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
+     &                  + (u2 - um2)*(u2 - um2)*gijd(:,3)
+     &            + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
+     &            + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
+     &                  + (u3 - um3)*(u3 - um3)*gijd(:,6)
+            tauErr(:,1) = sqrt( ((u1 - um1)*(u1 - um1)
+     &                         + (u2 - um2)*(u2 - um2)
+     &                         + (u3 - um3)*(u3 - um3))/tauErr(:,1) )
+          else if (errorTimeTerm .eq. 1) then ! include time term
+            tauErr(:,2) = tau(:,2)
+            tauErr(:,3) = tau(:,3)
+c
+            tauErr(:,1) = (u1 - um1)*(u1 - um1)*gijd(:,1)
+     &            + two * (u1 - um1)*(u2 - um2)*gijd(:,2)
+     &                  + (u2 - um2)*(u2 - um2)*gijd(:,3)
+     &            + two * (u1 - um1)*(u3 - um3)*gijd(:,4)
+     &            + two * (u2 - um2)*(u3 - um3)*gijd(:,5)
+     &                  + (u3 - um3)*(u3 - um3)*gijd(:,6)
+            tauErr(:,1) = sqrt( ((u1 - um1)*(u1 - um1)
+     &                         + (u2 - um2)*(u2 - um2)
+     &                         + (u3 - um3)*(u3 - um3))/tauErr(:,1) )
+          endif
+        endif
 c
         if (errorEstimation .eq. 1) then
+c.... get error in H1 norm if errorEstimation = 1
+          if((rmu .lt. 1.0e-12) .or. (con .lt. 1.0e-12)) then
+            write(*,*) "mu or kappa is too small for H1-norm 
+     &                  error estimation, try L2-norm"
+            stop
+          endif
+c
           VMS_errorblk(:,1) = VMS_errorblk(:,1)
      &                    + (gijd(:,1)+gijd(:,3)+gijd(:,6))
-     &                    * tau(:,1) * tau(:,1)
+     &                    * tauErr(:,1) * tauErr(:,1)
      &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
           VMS_errorblk(:,2) = VMS_errorblk(:,2)
-     &                    + 1.0/rmu * tau(:,2)
+     &                    + 1.0/rmu * tauErr(:,2)
      &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
           VMS_errorblk(:,3) = VMS_errorblk(:,3)
-     &                    + 1.0/rmu * tau(:,2)
+     &                    + 1.0/rmu * tauErr(:,2)
      &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
           VMS_errorblk(:,4) = VMS_errorblk(:,4)
-     &                    + 1.0/rmu * tau(:,2)
+     &                    + 1.0/rmu * tauErr(:,2)
      &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
           VMS_errorblk(:,5) = VMS_errorblk(:,5)
-     &                    + 1.0/con * tau(:,3)
+     &                    + 1.0/con * tauErr(:,3)
      &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
 c.... get error in L2 norm if errorEstimation = 2
         else if (errorEstimation .eq. 2) then
           VMS_errorblk(:,1) = VMS_errorblk(:,1)
-     &                    + tauErr(:,1) * tauErr(:,1)
+     &                    + 4.0/3.0 * tauErr(:,1) * tauErr(:,1)
      &                    * rLyi(:,1) * rLyi(:,1) * WdetJ
           VMS_errorblk(:,2) = VMS_errorblk(:,2)
-     &                    + tauErr(:,2) * tauErr(:,2)
+     &                    + 4.0/3.0 * tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,2) * rLyi(:,2) * WdetJ
           VMS_errorblk(:,3) = VMS_errorblk(:,3)
-     &                    + tauErr(:,2) * tauErr(:,2)
+     &                    + 4.0/3.0 * tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,3) * rLyi(:,3) * WdetJ
           VMS_errorblk(:,4) = VMS_errorblk(:,4)
-     &                    + tauErr(:,2) * tauErr(:,2)
+     &                    + 4.0/3.0 * tauErr(:,2) * tauErr(:,2)
      &                    * rLyi(:,4) * rLyi(:,4) * WdetJ
           VMS_errorblk(:,5) = VMS_errorblk(:,5)
-     &                    + tauErr(:,3) * tauErr(:,3)
+     &                    + 4.0/3.0 * tauErr(:,3) * tauErr(:,3)
      &                    * rLyi(:,5) * rLyi(:,5) * WdetJ
         endif
       endif
