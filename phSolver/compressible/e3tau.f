@@ -179,6 +179,20 @@ c... ALE
          tau(:,1)=pt125*fact/(gijd(:,1)+gijd(:,3)+gijd(:,6))*taucfct/rho
          tau(:,2)=one/fact
 c
+c.... energy tau   cv=cp/gamma  assumed
+c
+c         tau(:,3)=tau(:,2)/cv*temper ! old implementation
+c.... in the new implementation, the rmu*cv in diffusive 
+c     term is replaced by con
+         tau(:,3)=rho*rho*cv*cv*((two*dts)**2
+     &        + (u1 - um1)*((u1 - um1)*gijd(:,1)
+     &        + two*((u2 - um2)*gijd(:,2) + (u3 - um3)*gijd(:,4)))
+     &        + (u2 - um2)*((u2 - um2)*gijd(:,3) + two*(u3-um3)*gijd(:,5))
+     &        + (u3 - um3)*(u3 - um3)*gijd(:,6))
+     &        +fff*con**2*(gijd(:,1)**2 + gijd(:,3)**2 + gijd(:,6)**2 +
+     &        two*(gijd(:,2)**2 + gijd(:,4)**2 + gijd(:,5)**2))
+c
+         tau(:,3)=one/sqrt(tau(:,3))*temper
 c
         if ((post_proc_loop .eq. 1) .and. (imeshCFL .eq. 1)) then
           meshCFLblk(:)= meshCFLblk(:) + sqrt((u1 - um1)*((u1 - um1)*gijd(:,1)
@@ -186,10 +200,6 @@ c
      &        + (u2 - um2)*((u2 - um2)*gijd(:,3) + two*(u3-um3)*gijd(:,5))
      &        + (u3 - um3)*(u3 - um3)*gijd(:,6))/(Dtgl*two)
         endif
-c
-c.... energy tau   cv=cp/gamma  assumed
-c
-         tau(:,3)=tau(:,2)/cv*temper
 c
       endif
 c
