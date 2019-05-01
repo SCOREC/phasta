@@ -268,11 +268,13 @@ c
 c
         if (errorEstimation .eq. 1) then
 c.... get error in H1 norm if errorEstimation = 1
-          if((rmu .lt. 1.0e-12) .or. (con .lt. 1.0e-12)) then
-            write(*,*) "mu or kappa is too small for H1-norm 
-     &                  error estimation, try L2-norm"
-            stop
-          endif
+          do i = 1, npro
+            if ((rmu(i) .lt. 1.0e-12) .or. (con(i) .lt. 1.0e-12)) then
+              write(*,*) "mu or kappa is too small for H1-norm 
+     &                    error estimation, try L2-norm"
+              stop
+            endif
+          enddo
 c
           VMS_errorblk(:,1) = VMS_errorblk(:,1)
      &                    + (gijd(:,1)+gijd(:,3)+gijd(:,6))
