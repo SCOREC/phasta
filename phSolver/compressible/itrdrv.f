@@ -46,6 +46,7 @@ c
       use dc_lag_func_m
       use dc_lag_data_m
       use post_param_m
+      use interface_pair_func_m
 c
         include "common.h"
         include "mpif.h"
@@ -239,6 +240,9 @@ c ... allocation and initialization for DC lag if need
         endif
 c        
 c
+c-------------Initializing of the interface pair inf0-------------------
+        call alloc_init_interface_pair
+c-----------------------------------------------------------------------
 c..........................................
         rerr = zero
         ybar(:,1:ndof) = y(:,1:ndof)
@@ -1253,6 +1257,9 @@ c... for DC lag if needed
         call dealloc_dc_lag
       endif
 c        
+c---------deallocation of the continuous interface field------------
+      call dealloc_interface_pair
+c----------------------------------------------------------------------
 c
 c.... ---------------------->  Post Processing  <----------------------
 c
