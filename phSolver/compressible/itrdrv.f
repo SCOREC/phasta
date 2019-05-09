@@ -944,7 +944,7 @@ c
 c.... if we need to collect some post-processing variables
             if ((imeshCFL        .eq. 1) .or.
      &          (errorEstimation .ge. 1) ) then
-              call ElmPost(y,             ac,            x,
+              call ElmPost(yold,          acold,         x,
      &                     shp,           shgl,          iBC,
      &                     BC,            shpb,          shglb,
      &                     shpif,         shgif,
