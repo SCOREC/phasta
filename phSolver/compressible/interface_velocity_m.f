@@ -97,8 +97,8 @@ c... the lighter phase (air)
             if ((ifFlag(inode) .eq. 1).and.(i_if_pair(inode) .ne. inode)) then ! this is a interface slave (liquid)
               jnode = i_if_pair(inode) !master node number
               call calc_interface_vi(actual_vi(inode,:), y(inode,1:3),
-     &                             y(jnode,4), w_normal_global(jnode,:)) ! check the slots of the y,
-                                                                         ! make sure it is consistant with the other part of the code
+     &                             y(jnode,4), vi_normal_global(jnode,:)) ! check the slots of the y,
+                                                                          ! make sure it is consistant with the other part of the code
               actual_vi(jnode,:) = actual_vi(inode,:) !cp to master(gas) side
             endif
           enddo
