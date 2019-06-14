@@ -47,6 +47,7 @@ c
       use dc_lag_data_m
       use post_param_m
       use interface_pair_func_m
+      use interface_velocity_m
 c
         include "common.h"
         include "mpif.h"
@@ -243,6 +244,9 @@ c
 c-------------Initializing of the interface pair inf0-------------------
         call alloc_init_interface_pair
 c-----------------------------------------------------------------------
+c... for calculation of interface velocity globally
+        allocate(vi_normal_global(nshg,nsd))
+        vi_normal_global = zero
 c..........................................
         rerr = zero
         ybar(:,1:ndof) = y(:,1:ndof)
@@ -717,11 +721,14 @@ c
 c.... update interface mesh bc based on umesh
 c.... we should have correct umesh at this point
 c... hack when to update the interface velocity
-                     call set_if_velocity (BC,  iBC, 
-     &                                umesh,    disp, x,  Delt(1),   ilwork,
-     &                                nshg,  ndofBC,
-     &                                nsd,   nelblif, nlwork, ndof )
-c
+c                     call set_if_velocity (BC,  iBC, 
+c     &                                umesh,    disp, x,  Delt(1),   ilwork,
+c     &                                nshg,  ndofBC,
+c     &                                nsd,   nelblif, nlwork, ndof )
+c... testing calculating the interface velocity direction at global level
+                    call set_interface_velocity(umesh,  y,    BC, iBC,
+     &                                          ilwork, nlwork)
+c... end of testing
 c
                     do inode = 1, nshg
                       if ( ifFlag(inode) .eq. 1 ) then
@@ -1260,7 +1267,8 @@ c
 c---------deallocation of the continuous interface field------------
       call dealloc_interface_pair
 c----------------------------------------------------------------------
-c
+c... for interface velocity calculation at global level
+      deallocate(vi_normal_global)
 c.... ---------------------->  Post Processing  <----------------------
 c
 c.... print out the last step
