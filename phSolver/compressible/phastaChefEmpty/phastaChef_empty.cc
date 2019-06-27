@@ -18,6 +18,10 @@ void core_measure_mesh (double x1[], double x2[], double x3[], int numnp,
   printf("This is a dummy function. Please compile with core at phastaChef level.\n");
 }
 
+void core_phasta_get_err_param(double err_correct_f) {
+  printf("This is a dummy function. Please compile with core at phastaChef level.\n");
+}
+
 void core_update_rbms (double tx[], double ty[], double tz[],
                          double ax[], double ay[], double az[],
                          double px[], double py[], double pz[],

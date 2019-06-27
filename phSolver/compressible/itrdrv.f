@@ -42,6 +42,7 @@ c
       use probe_m
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
+      use core_error        ! to access core_phasta_get_err_param
       use interfaceflag
       use post_param_m
 c
@@ -109,7 +110,7 @@ c
 c.... For mesh quality measure
 c
        real*8  x1(numnp), x2(numnp), x3(numnp)
-       real*8  minvq, minfq
+       real*8  minvq, minfq, err_tri_f, err_correct_f
 c
        logical alive
 
@@ -1014,24 +1015,27 @@ c
               endif
               if ( (minvq .lt. volMeshqTol) .or.
      &             (minfq .lt. faceMeshqTol) ) then
-                if(myrank .eq. master) then
-                  write(*,*) "we need to trigger mesh adaptation!"
-                endif
                 triggerNow = 1
               endif ! end check if mesh quality less than tolerance
 c
 c.... check if error larger than threshold
               if (errorEstimation .ge. 1) then
+                call core_phasta_get_err_param(err_correct_f)
+                err_tri_f = errorTriggerFactor * err_correct_f
                 if (errorTriggerEqn .eq. 1) then
-                  if (errorMaxMass .ge. errorTolMass) triggerNow = 1
+                  if (errorMaxMass .ge. errorTolMass * err_tri_f)
+     &              triggerNow = 1
                 else if (errorTriggerEqn .eq. 2) then
-                  if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
+                  if (errorMaxMomt .ge. errorTolMomt * err_tri_f)
+     &              triggerNow = 1
                 else if (errorTriggerEqn .eq. 3) then
-                  if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
+                  if (errorMaxEngy .ge. errorTolEngy * err_tri_f)
+     &              triggerNow = 1
                 else if (errorTriggerEqn .eq. 4) then
-                  if ((errorMaxMass .ge. errorTolMass) .or.
-     &                (errorMaxMomt .ge. errorTolMomt) .or.
-     &                (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
+                  if((errorMaxMass .ge. errorTolMass * err_tri_f)
+     &          .or. (errorMaxMomt .ge. errorTolMomt * err_tri_f)
+     &          .or. (errorMaxEngy .ge. errorTolEngy * err_tri_f))
+     &              triggerNow = 1
                 endif ! end check if error larger than threshold
               endif ! end if error estimation option is on
             endif ! end auto_trigger option

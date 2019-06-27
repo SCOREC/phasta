@@ -272,6 +272,7 @@ extern "C" {
     double faceMeshqTol;
     int autoTrigger;
     int triggerNow;
+    double errorTriggerFactor;
     double errorTolMass;
     double errorTolMomt;
     double errorTolEngy;

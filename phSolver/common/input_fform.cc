@@ -827,9 +827,10 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
 
-    meshquality.errorTolMass = inp.GetValue("Error Threshold for Mass Equation");
-    meshquality.errorTolMomt = inp.GetValue("Error Threshold for Momentum Equation");
-    meshquality.errorTolEngy = inp.GetValue("Error Threshold for Energy Equation");
+    meshquality.errorTriggerFactor = inp.GetValue("Error Trigger Buffer Factor");
+    meshquality.errorTolMass = inp.GetValue("Target Error for Mass Equation");
+    meshquality.errorTolMomt = inp.GetValue("Target Error for Momentum Equation");
+    meshquality.errorTolEngy = inp.GetValue("Target Error for Energy Equation");
 
 //for auto trigger mesh adaptation----------------------------
 
