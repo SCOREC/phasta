@@ -165,14 +165,16 @@ c
         use iso_c_binding
         implicit none
         real(c_double), target :: volMeshqTol,  faceMeshqTol,
+     &                            errorTriggerFactor,
      &                            errorTolMass, errorTolMomt,
      &                            errorTolEngy, errorMaxMass,
      &                            errorMaxMomt, errorMaxEngy
-        integer(c_int), target :: autoTrigger,     triggerNow, 
+        integer(c_int), target :: autoTrigger,     triggerNow,
      &                            errorEstimation, errorTriggerEqn,
      &                            errorTimeTerm
         common /meshquality/  volMeshqTol,  faceMeshqTol,
      &                        autoTrigger,  triggerNow,
+     &                        errorTriggerFactor,
      &                        errorTolMass, errorTolMomt,
      &                        errorTolEngy, errorMaxMass,
      &                        errorMaxMomt, errorMaxEngy,
