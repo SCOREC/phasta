@@ -25,6 +25,10 @@ c
         integer, allocatable :: ifFlag(:)
       end module
 
+      module minSizeFlag
+        real*8, allocatable  :: hmin_f(:)
+      end module
+
       module BLparameters
         real*8, allocatable  :: BLflt(:)
         real*8, allocatable  :: BLgr(:)
@@ -37,6 +41,7 @@ c
 
       use m2gfields
       use interfaceflag
+      use minSizeFlag
       use rigidBodyReadData
       use BLparameters
 
@@ -87,6 +92,7 @@ c
       integer, target, allocatable :: tmpifFlag(:)
       integer, target, allocatable :: tmprbIDs(:), tmprbMTs(:), tmprbFlags(:)
       real*8, target, allocatable  :: tmprbParamRead(:,:)
+      real*8, target, allocatable  :: tmphmin_f(:)
       integer fncorpsize
       character*10 cname2, cname2nd
       character*8 mach2
@@ -964,6 +970,38 @@ c read in umesh
        endif
 c
 c.... end read ALE stuff
+c
+c
+c.... read in h_min flag
+c
+      intfromfile=0
+       call phio_readheader(fhandle,
+     & c_char_'hmin_flag' //char(0),
+     & c_loc(intfromfile), ione, dataInt, iotype)
+       allocate( hmin_f(numnp) )
+       if(intfromfile(1).ne.0) then
+          numnp2=intfromfile(1)
+
+          if (numnp2 .ne. numnp)
+     &        call error ('restar  ', 'numnp   ', numnp)
+
+          allocate( tmphmin_f(numnp) )
+          tmphmin_f=zero
+
+          call phio_readdatablock(fhandle,
+     &    c_char_'mesh_vel' // char(0),
+     &    c_loc(tmphmin_f), numnp, dataDbl,iotype)
+          hmin_f = tmphmin_f
+          deallocate(tmphmin_f)
+       else
+          if (myrank.eq.master) then
+             warning='Min Size Flag is set to zero (SAFE)'
+             write(*,*) warning
+          endif
+         hmin_f=zero
+       endif
+c
+c.... end read h_min flag
 c
 c
 c.... read in rigid body data

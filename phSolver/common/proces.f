@@ -291,6 +291,8 @@ c
 c
         deallocate(ifFlag)
 c
+        deallocate(hmin_f)
+c
         deallocate(rbIDs)
         deallocate(rbMTs)
         deallocate(rbFlags)
