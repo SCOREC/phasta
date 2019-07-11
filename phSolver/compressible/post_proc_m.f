@@ -54,7 +54,6 @@ c
         use e3_solid_m
         use probe_m
         use post_param_m
-        use minSizeFlag
 c
         include "common.h"
         include "mpif.h"
@@ -253,15 +252,6 @@ c.... map local VMS_error to global
               do j = 1, nflow
                 VMS_error(mieMap(iblk)%p(i),j) = VMS_errorblk(i,j)
               enddo
-c.... check if reach the min mesh size
-              hmin_f_l = 1
-              do j = 1, nenl
-                if(hmin_f(mien(iblk)%p(i,j)) .lt. 0.5) then
-                  hmin_f_l = 0
-                  EXIT
-                endif
-              enddo
-              if (hmin_f_l  .eq. 1) CYCLE
 c.... record the max error
               if (VMS_errorblk(i,1) .gt. errorMaxMass)
      &            errorMaxMass = VMS_errorblk(i,1)
