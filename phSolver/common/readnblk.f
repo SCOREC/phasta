@@ -25,6 +25,10 @@ c
         integer, allocatable :: ifFlag(:)
       end module
 
+      module timeBoundFactor
+        real*8,  allocatable :: tbFactor(:)
+      end module
+
       module BLparameters
         real*8, allocatable  :: BLflt(:)
         real*8, allocatable  :: BLgr(:)
@@ -37,6 +41,7 @@ c
 
       use m2gfields
       use interfaceflag
+      use timeBoundFactor
       use rigidBodyReadData
       use BLparameters
 
@@ -87,6 +92,7 @@ c
       integer, target, allocatable :: tmpifFlag(:)
       integer, target, allocatable :: tmprbIDs(:), tmprbMTs(:), tmprbFlags(:)
       real*8, target, allocatable  :: tmprbParamRead(:,:)
+      real*8, target, allocatable  :: tmptbFactor(:)
       integer fncorpsize
       character*10 cname2, cname2nd
       character*8 mach2
@@ -965,6 +971,36 @@ c read in umesh
 c
 c.... end read ALE stuff
 c
+c.... read in time resource bound factor
+c
+      intfromfile=0
+       call phio_readheader(fhandle,
+     & c_char_'tb_factor' //char(0),
+     & c_loc(intfromfile), ione, dataInt, iotype)
+       allocate( tbFactor(numnp) )
+       if(intfromfile(1).ne.0) then
+          numnp2=intfromfile(1)
+
+          if (numnp2 .ne. numnp)
+     &        call error ('restar  ', 'numnp   ', numnp)
+
+          allocate( tmptbFactor(numnp) )
+          tmptbFactor=zero
+
+          call phio_readdatablock(fhandle,
+     &    c_char_'tbFactor' // char(0),
+     &    c_loc(tmptbFactor), numnp, dataDbl,iotype)
+          tbFactor = tmptbFactor
+          deallocate(tmptbFactor)
+       else
+          if (myrank.eq.master) then
+             warning='Time resource bound factor is set to one (SAFE)'
+             write(*,*) warning
+          endif
+         tbFactor=one
+       endif
+c
+c.... end read time resource bound factor
 c
 c.... read in rigid body data
 c

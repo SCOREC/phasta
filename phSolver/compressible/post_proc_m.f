@@ -54,6 +54,7 @@ c
         use e3_solid_m
         use probe_m
         use post_param_m
+        use timeBoundFactor
 c
         include "common.h"
         include "mpif.h"
@@ -81,6 +82,7 @@ c
         real*8  rerr(nshg,10)
 c
         real*8  tempMomtError
+        real*8  avgtbFactor
 c
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
@@ -252,17 +254,26 @@ c.... map local VMS_error to global
               do j = 1, nflow
                 VMS_error(mieMap(iblk)%p(i),j) = VMS_errorblk(i,j)
               enddo
+c.... multiply time resource bound factor
+              avgtbFactor = 0.0
+              do j = 1, nenl
+                avgtbFactor = avgtbFactor + tbFactor(mien(iblk)%p(i,j))
+              enddo
+              avgtbFactor = avgtbFactor/real(nenl, 8)
+              if (avgtbFactor .le. 1.0) then
+                avgtbFactor = 1.0
+              endif
 c.... record the max error
-              if (VMS_errorblk(i,1) .gt. errorMaxMass)
-     &            errorMaxMass = VMS_errorblk(i,1)
+              if (VMS_errorblk(i,1)/avgtbFactor .gt. errorMaxMass)
+     &            errorMaxMass = VMS_errorblk(i,1)/avgtbFactor
               tempMomtError = sqrt(
      &                           VMS_errorblk(i,2)*VMS_errorblk(i,2)+
      &                           VMS_errorblk(i,3)*VMS_errorblk(i,3)+
      &                           VMS_errorblk(i,4)*VMS_errorblk(i,4) )
-              if (tempMomtError .gt. errorMaxMomt)
-     &            errorMaxMomt = tempMomtError
-              if (VMS_errorblk(i,5) .gt. errorMaxEngy)
-     &            errorMaxEngy = VMS_errorblk(i,5)
+              if (tempMomtError/avgtbFactor .gt. errorMaxMomt)
+     &            errorMaxMomt = tempMomtError/avgtbFactor
+              if (VMS_errorblk(i,5)/avgtbFactor .gt. errorMaxEngy)
+     &            errorMaxEngy = VMS_errorblk(i,5)/avgtbFactor
             enddo
           endif
 c

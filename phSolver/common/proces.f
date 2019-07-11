@@ -291,6 +291,8 @@ c
 c
         deallocate(ifFlag)
 c
+        deallocate(tbFactor)
+c
         deallocate(rbIDs)
         deallocate(rbMTs)
         deallocate(rbFlags)
