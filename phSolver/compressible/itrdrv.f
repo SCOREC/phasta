@@ -1069,6 +1069,9 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'VMS_error'//char(0), 9,
      &                  VMS_error, 'd'//char(0), numel, 5, lstep)
+                   call write_field(
+     &                  myrank,'a'//char(0),'err_tri_f'//char(0), 9,
+     &                  err_tri_factor, 'd'//char(0), numel, 1, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1118,6 +1121,9 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'VMS_error'//char(0), 9,
      &                VMS_error, 'd'//char(0), numel, 5, lstep)
+                 call write_field(
+     &                myrank,'a'//char(0),'err_tri_f'//char(0), 9,
+     &                err_tri_factor, 'd'//char(0), numel, 1, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

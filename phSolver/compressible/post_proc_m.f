@@ -2,6 +2,7 @@
           integer :: post_proc_loop
           real*8, allocatable :: meshCFL(:)
           real*8, allocatable :: VMS_error(:,:)
+          real*8, allocatable :: err_tri_factor(:)
           real*8, allocatable :: meshCFLblk(:)
           real*8, allocatable :: VMS_errorblk(:,:)
         end module
@@ -13,9 +14,11 @@ c
 c
           allocate( meshCFL(numel) )
           allocate( VMS_error(numel, nflow) )
+          allocate( err_tri_factor(numel) )
           post_proc_loop = 0
           meshCFL = zero
           VMS_error = zero
+          err_tri_factor = zero
         end subroutine malloc_post_param
 c
         subroutine release_post_param
@@ -26,6 +29,8 @@ c
      &      deallocate( meshCFL )
           if (allocated(VMS_error))
      &      deallocate( VMS_error )
+          if (allocated(err_tri_factor))
+     &      deallocate( err_tri_factor )
 c
         end subroutine release_post_param
 c
@@ -187,6 +192,7 @@ c
         res    = zero
         meshCFL = zero
         VMS_error = zero
+        err_tri_factor = zero
 c
 c.... loop over the element-blocks
 c
@@ -277,6 +283,7 @@ c.... multiply time resource bound factor
 c.... get error factor to determine if trigger adapter
               err_tri_f = errorTriggerFactor *
      &                   (err_f_cn * avgtbFactor)**(3.5-err_f_m)
+              err_tri_factor(mieMap(iblk)%p(i)) = err_tri_f
 c.... record the max error
               if (VMS_errorblk(i,1) .gt. errorMaxMass)
      &            errorMaxMass = VMS_errorblk(i,1)
