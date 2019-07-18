@@ -281,8 +281,8 @@ c.... multiply time resource bound factor
                 avgtbFactor = 1.0
               endif
 c.... get error factor to determine if trigger adapter
-              err_tri_f = errorTriggerFactor *
-     &                   (err_f_cn * avgtbFactor)**(3.5-err_f_m)
+              err_tri_f = (errorTriggerFactor * err_f_cn *
+     &                     avgtbFactor)**(3.5-err_f_m)
               err_tri_factor(mieMap(iblk)%p(i)) = err_tri_f
 c.... record the max error
               if (VMS_errorblk(i,1) .gt. errorMaxMass)
