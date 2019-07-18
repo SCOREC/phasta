@@ -1018,28 +1018,6 @@ c
                 triggerNow = 1
               endif ! end check if mesh quality less than tolerance
 c
-c.... check if error larger than threshold
-              if (errorEstimation .ge. 1) then
-                call core_phasta_get_err_param(err_correct_f)
-                err_tri_f = errorTriggerFactor * err_correct_f
-                if (errorTriggerEqn .eq. 1) then
-                  if (errorMaxMass .ge. errorTolMass * err_tri_f)
-     &              triggerNow = 1
-                else if (errorTriggerEqn .eq. 2) then
-                  if (errorMaxMomt .ge. errorTolMomt * err_tri_f)
-     &              triggerNow = 1
-                else if (errorTriggerEqn .eq. 3) then
-                  if (errorMaxEngy .ge. errorTolEngy * err_tri_f)
-     &              triggerNow = 1
-                else if (errorTriggerEqn .eq. 4) then
-                  if((errorMaxMass .ge. errorTolMass * err_tri_f)
-     &          .or. (errorMaxMomt .ge. errorTolMomt * err_tri_f)
-     &          .or. (errorMaxEngy .ge. errorTolEngy * err_tri_f))
-     &              triggerNow = 1
-                endif ! end check if error larger than threshold
-              endif ! end if error estimation option is on
-            endif ! end auto_trigger option
-c
 c.... ---------------> end check if auto trigger <---------------
 c
             !here is where we save our averaged field.  In some cases we want to
