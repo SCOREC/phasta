@@ -1017,6 +1017,7 @@ c
      &             (minfq .lt. faceMeshqTol) ) then
                 triggerNow = 1
               endif ! end check if mesh quality less than tolerance
+            endif ! end auto_trigger option
 c
 c.... ---------------> end check if auto trigger <---------------
 c
