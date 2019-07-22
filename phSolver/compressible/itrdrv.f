@@ -1019,6 +1019,11 @@ c
               endif ! end check if mesh quality less than tolerance
             endif ! end auto_trigger option
 c
+c.... allreduce triggerNow
+c
+            call MPI_ALLREDUCE(MPI_IN_Place, triggerNow, 1,
+     &           MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierr )
+c
 c.... ---------------> end check if auto trigger <---------------
 c
             !here is where we save our averaged field.  In some cases we want to
