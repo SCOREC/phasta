@@ -311,7 +311,8 @@ c
         use ifbc_def_m
         use weighted_normal_data_m !for weighted normal
         use interfaceflag ! for weighted normal
-        use dgifinp_m, only: i_w_normal     
+        use dgifinp_m, only: i_w_normal
+        use dc_lag_data_m     
 c
         include "common.h"
         include "mpif.h"
@@ -583,6 +584,15 @@ c
 c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
+c... for DC lagging
+          if ( i_dc_lag .eq.1) then
+            allocate(dc_lag_blk(npro))
+c... mapping from global to local            
+            do i = 1,npro
+              dc_lag_blk(i) = dc_lag_g(mieMap(iblk)%p(i))
+            enddo
+c            
+          endif                    
 c
           select case (mat_eos(mater,1))
           case (ieos_ideal_gas,ieos_ideal_gas_2)
@@ -629,6 +639,10 @@ c
           endif
 c
           if (associated(e3_mfree_ptr)) call e3_mfree_ptr
+c... for DC lagging
+          if ( i_dc_lag .eq.1) then
+            deallocate(dc_lag_blk)
+          endif          
 c
           deallocate ( EGmass )
           deallocate ( tmpshp )

@@ -601,3 +601,41 @@ c
         common /sclrs/ scdiff,tdecay,nsclr,isclr,nsolt,nosource,
      &            consrv_sclr_conv_vel
       end module sclrs_m
+c
+c-----------------------------------------------------------------------
+c
+c.... common /precis/   : finite difference interval data
+c
+c epsM          : square root of machine precision
+c iabres        : absolute value residual flag
+c
+      module precis_m
+        use iso_c_binding
+        implicit none
+c
+        real(c_double) :: epsM
+        integer(c_int) :: iabres
+        common /precis/ epsM,   iabres      
+      end module precis_m
+c
+c----------------------------------------------------------------------
+c
+c.... common /solpar/   : solution parameters
+c
+c imap          : permutation mapping flag
+c ivart         : variational formulation type
+c iDC           : DC type
+c iPcond        : type of preconditioner
+c Kspace        : dimension of Krylov space
+c nGMRES        : maximum number of GMRES iterations
+      module solpar_m
+        use iso_c_binding
+        implicit none
+c
+        integer(c_int) :: imap, ivart, iDC, i_dc_lag, iPcond, Kspace, nGMRES,
+     &                    iconvflow, iconvsclr, idcsclr(2)
+        common /solpar/ imap, ivart, iDC, i_dc_lag, iPcond, Kspace, nGMRES,
+     &                  iconvflow, iconvsclr, idcsclr
+      end module solpar_m
+c
+c-----------------------------------------------------------------------

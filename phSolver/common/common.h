@@ -36,6 +36,8 @@ c
       use mio_m
       use mioname_m
       use sclrs_m
+      use precis_m
+      use solpar_m
 
 	IMPLICIT REAL*8 (a-h,o-z)
 c
@@ -176,12 +178,8 @@ c /*         common /andres/ fwr1,ngaussf,idim,nlist */
 c
         common /point / mbeg,   mend,   mprec
 c
-        common /precis/ epsM,   iabres
-c
         common /resdat/ resfrt, resfrts
 c
-        common /solpar/ imap,   ivart,  iDC,    iPcond, Kspace, nGMRES,
-     &                  iconvflow, iconvsclr, idcsclr(2)
 c
         common /msympar/ indsym(5,5)
 c
@@ -348,27 +346,9 @@ c mprec         : precision of the floating point data
 c
 c----------------------------------------------------------------------
 c
-c.... common /precis/   : finite difference interval data
-c
-c epsM          : square root of machine precision
-c iabres        : absolute value residual flag
-c
-c----------------------------------------------------------------------
-c
 c....common /resdat/    : residual statistics data
 c
 c resfrt        : first residual of convergence
-c
-c----------------------------------------------------------------------
-c
-c.... common /solpar/   : solution parameters
-c
-c imap          : permutation mapping flag
-c ivart         : variational formulation type
-c iDC           : DC type
-c iPcond        : type of preconditioner
-c Kspace        : dimension of Krylov space
-c nGMRES        : maximum number of GMRES iterations
 c
 c----------------------------------------------------------------------
 c

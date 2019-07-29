@@ -61,6 +61,7 @@ c
         use post_param_m
         use timeBoundFactor
         use core_error        ! to access core_phasta_get_err_param
+        use dc_lag_data_m
 c
         include "common.h"
         include "mpif.h"
@@ -229,6 +230,14 @@ c
 c
           e3_malloc_ptr => e3_malloc
           e3_mfree_ptr => e3_mfree
+c... for DC lagging
+          if ( i_dc_lag .eq.1) then
+            allocate(dc_lag_blk(npro))
+c... mapping from global to local
+            do i = 1,npro
+              dc_lag_blk(i) = dc_lag_g(mieMap(iblk)%p(i))
+            enddo
+          endif
 c
           select case (mat_eos(mater,1))
           case (ieos_ideal_gas,ieos_ideal_gas_2)
@@ -315,6 +324,10 @@ c.... check if trigger mesh adapter or not
           endif
 c
           if (associated(e3_mfree_ptr)) call e3_mfree_ptr
+c... for DC lagging
+          if ( i_dc_lag .eq.1) then
+            deallocate(dc_lag_blk)
+          endif
 c
           deallocate ( tmpshp )
           deallocate ( tmpshgl )

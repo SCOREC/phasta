@@ -44,6 +44,8 @@ c
       use core_mesh_quality ! to call core_measure_mesh
       use core_error        ! to access core_phasta_get_err_param
       use interfaceflag
+      use dc_lag_func_m
+      use dc_lag_data_m
       use post_param_m
 c
         include "common.h"
@@ -232,6 +234,11 @@ c
 c
         call init_sum_vi_area(nshg,nsd)
         call ifbc_malloc
+c ... allocation and initialization for DC lag if need
+        if ( i_dc_lag .eq.1) then
+          call alloc_init_dc_lag
+        endif
+c        
 c
 c..........................................
         rerr = zero
@@ -453,6 +460,22 @@ c
                call asbwmod(yold,   acold,   x,      BC,     iBC,
      &                      iper,   ilwork,  ifath,  velbar)
             endif
+c           
+c... calculate the numerical viscousity in DC using the converged solutions
+c    of last time step if dc lagging flag is on
+            if ( i_dc_lag .eq.1) then
+c... initialize some global variables for the DC lagging
+              lhs = 1 - min(1,mod(ifuncs(1)-1,LHSupd(1))) 
+              iprec=lhs
+              nedof = nflow*nshape !notice the size of the nshape
+c
+              dc_calc_flag = 1
+              call calc_dc_lag_pre(yold,  acold,  xold,  umeshold,
+     &                             shp,   shgl)
+c
+              dc_calc_flag = 0 !reset the preprocessing flag for dc lagging       
+            endif
+c... end of dc lagging         
 c
 c.... -----------------------> predictor phase <-----------------------
 c
@@ -580,7 +603,6 @@ c                        write(*,*) 'lhs=',lhs
      &                       shpif,         shgif,
      &                       solinc,        rerr,          umesh)
 c
-
                     endif
                       else if (mod(impl(1),100)/10 .eq. 2) then ! mfg solve
 c     
@@ -689,13 +711,14 @@ c
                       lhs = 1  
                       iprec=lhs
 c
+c.... update interface mesh bc based on umesh
+c.... we should have correct umesh at this point
+c... hack when to update the interface velocity
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
      &                                nshg,  ndofBC,
      &                                nsd,   nelblif, nlwork, ndof )
 c
-c.... update interface mesh bc based on umesh
-c.... we should have correct umesh at this point
 c
                     do inode = 1, nshg
                       if ( ifFlag(inode) .eq. 1 ) then
@@ -1219,6 +1242,11 @@ c
 c
         call destruct_sum_vi_area
         call ifbc_mfree
+c... for DC lag if needed
+      if ( i_dc_lag .eq. 1) then
+        call dealloc_dc_lag
+      endif
+c        
 c
 c.... ---------------------->  Post Processing  <----------------------
 c
