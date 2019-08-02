@@ -44,6 +44,7 @@ c
       use core_mesh_quality ! to call core_measure_mesh
       use interfaceflag
       use post_param_m
+      use timing_m
 c
         include "common.h"
         include "mpif.h"
@@ -180,6 +181,10 @@ c
         umeshold = umesh
         xold   = x
         triggerNow = 0
+c
+        tot_time = zero
+        GMRES_time = zero
+        commu_time = zero
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable

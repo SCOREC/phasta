@@ -11,6 +11,7 @@ C Nahid Razmara, Spring 2000. (Sparse Matrix)
 C============================================================================
 
 c
+      use timing_m
       include "common.h"
 c
 c
@@ -25,12 +26,16 @@ c
 c     
 c.... communicate:: copy the master's portion of uBrg to each slave
 c
+c      commu_start = MPI_Wtime()
       if (numpe > 1) then
          call commu (p, ilwork, nvar, 'out')
       endif
+c      commu_stop = MPI_Wtime()
+c      commu_time  = commu_time + commu_stop-commu_start
 c
 c.... local periodic boundary conditions (no communications)
 c
+        GMRES_start = MPI_Wtime()
         do j=1,nvar
            p(:,j)=p(iper(:),j)
         enddo
@@ -73,14 +78,21 @@ c
         if((iabc==1))           !are there any axisym bc's
      &       call rotabc(p(1,2), iBC, 'in ')
 c
+        GMRES_stop = MPI_Wtime()
+        GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
         if (numpe > 1) then
 c
 c.... send slave's copy of uBrg to the master
 c
+c           commu_start = MPI_Wtime()   
            call commu (p  , ilwork, nvar, 'in ')
+c           commu_stop = MPI_Wtime()
+c           commu_time = commu_time + commu_stop-commu_start
 c     
 c.... nodes treated on another processor are eliminated
-c     
+c
+           GMRES_start = MPI_Wtime()     
            numtask = ilwork(1)
            itkbeg = 1
 
@@ -101,6 +113,8 @@ c
               itkbeg = itkbeg + 4 + 2*numseg
 
            enddo
+           GMRES_stop = MPI_Wtime()
+           GMRES_time = GMRES_time + GMRES_stop - GMRES_start
         endif
 c
 	return

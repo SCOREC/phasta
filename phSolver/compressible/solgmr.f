@@ -399,6 +399,7 @@ c Zdenek Johan,  Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
       use pointer_data
+      use timing_m
         
       include "common.h"
       include "mpif.h"
@@ -439,6 +440,7 @@ c
 c.... set the parameters for flux and surface tension calculations
 c
 c
+      tot_start = MPI_Wtime()
       idflx = 0 
       if(idiff >= 1)  idflx= idflx + (nflow-1) * nsd
       if (isurf == 1) idflx=idflx + nsd
@@ -473,15 +475,25 @@ c
 c.... LU decompose the block diagonals
 c
       if (iprec .ne. 0) then
+         GMRES_start = MPI_Wtime()
          call i3LU (BDiag, res, nflow,  'LU_Fact ')
+         GMRES_stop = MPI_Wtime()
+         GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
          if (numpe > 1) then
+c            commu_start = MPI_Wtime()
             call commu (BDiag  , ilwork, nflow*nflow  , 'out')
+c            commu_stop = MPI_Wtime()                                                    
+c            commu_time = commu_time + commu_stop - commu_start
          endif
       endif
 c
 c.... block diagonal precondition residual
 c
+      GMRES_start = MPI_Wtime()
       call i3LU (BDiag, res, nflow,  'forward ')
+      GMRES_stop = MPI_Wtime()       
+      GMRES_time = GMRES_time + GMRES_stop - GMRES_start  
 c
 c Check the residual for divering trend
 c
@@ -489,6 +501,7 @@ c
 c
 c.... initialize Dy
 c
+      GMRES_start = MPI_Wtime()
       Dy = zero
 c
 c.... Pre-precondition the LHS mass matrix and set up the sparse 
@@ -503,14 +516,23 @@ c
 c.... calculate norm of residual
 c
       temp  = res**2
-
+      GMRES_stop = MPI_Wtime()
+      GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
+c      commu_start = MPI_Wtime()
       call sumgat (temp, nflow, summed)
+c      commu_stop = MPI_Wtime()
+c      commu_time = commu_time + commu_stop - commu_start
+c
+      GMRES_start = MPI_Wtime()
       unorm = sqrt(summed)
 c
 c.... check if GMRES iterations are required
 c
       iKs    = 0
       lGMRES = 0
+      GMRES_stop = MPI_Wtime()
+      GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c
 c.... if we are down to machine precision, don't bother solving
 c
@@ -520,7 +542,10 @@ c
 c
 c.... set up tolerance of the Hessenberg's problem
 c
+      GMRES_start = MPI_Wtime()
       epsnrm = etol * unorm
+      GMRES_stop = MPI_Wtime()
+      GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c
 c.... ------------------------>  GMRES Loop  <-------------------------
 c
@@ -536,15 +561,18 @@ c
 c
 c.... right precondition Dy
 c
+            GMRES_start = MPI_Wtime()
             temp = Dy
-           
+            GMRES_stop = MPI_Wtime()
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c
 c.... perform the A x product
 c
             call SparseAp (iper,ilwork,iBC, nflow, col, row, lhsK,  temp)
 c           call tnanq(temp,5, 'q_spAPrs')
 
-c     
+c
+            GMRES_start = MPI_Wtime()     
 c.... periodic nodes have to assemble results to their partners
 c
             call bc3per (iBC,  temp,  iper, ilwork, nflow) 
@@ -558,8 +586,18 @@ c
 c.... calculate the norm
 c
             temp  = temp**2
+            GMRES_stop = MPI_Wtime() 
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
+c            commu_start = MPI_Wtime()
             call sumgat (temp, nflow, summed)
+c            commu_stop = MPI_Wtime()
+c            commu_time = commu_time + commu_stop - commu_start
+c
+            GMRES_start = MPI_Wtime()
             unorm = sqrt(summed)
+            GMRES_stop = MPI_Wtime()
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c     
 c.... flop count
 c     
@@ -569,19 +607,25 @@ c
 c
 c.... set up RHS of the Hessenberg's problem
 c
+         GMRES_start = MPI_Wtime()
          call clear (eBrg, Kspace+1)
          eBrg(1) = unorm
 c
 c.... normalize the first Krylov vector
 c
          uBrg(:,:,1) = uBrg(:,:,1) / unorm
+         GMRES_stop = MPI_Wtime()
+         GMRES_time = GMRES_time + GMRES_stop - GMRES_start 
 c
 c.... loop through GMRES iterations
 c
          do 1000 iK = 1, Kspace
+            GMRES_start = MPI_Wtime()
             iKs = iK
 
             uBrg(:,:,iKs+1) = uBrg(:,:,iKs)
+            GMRES_stop = MPI_Wtime()         
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c
 c.... Au product  ( u_{i+1} <-- EGmass u_{i+1} )
 c
@@ -593,7 +637,10 @@ c           call tnanq(uBrg(:,:,iKS+1),5, 'q_spAP')
 c     
 c.... periodic nodes have to assemble results to their partners
 c
+            GMRES_start = MPI_Wtime()
             call bc3per (iBC,  uBrg(:,:,iKs+1),  iper, ilwork, nflow)
+            GMRES_stop = MPI_Wtime()
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c           call tnanq(uBrg(:,:,iKS+1),5, 'q_bc')
 
 c
@@ -603,21 +650,38 @@ c
 c
                if (jK .eq. 1) then
 c
-                  temp = uBrg(:,:,iKs+1) * uBrg(:,:,1) ! {u_{i+1}*u_1} vector 
+                  GMRES_start = MPI_Wtime()
+                  temp = uBrg(:,:,iKs+1) * uBrg(:,:,1) ! {u_{i+1}*u_1} vector
+                  GMRES_stop = MPI_Wtime()
+                  GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
+c                  commu_start = MPI_Wtime() 
                   call sumgat (temp, nflow, beta) ! sum vector=(u_{i+1},u_1)
+c                  commu_stop = MPI_Wtime()
+c                  commu_time = commu_time + commu_stop-commu_start
 c
                else
 c
 c project off jK-1 vector
 c
+                  GMRES_start = MPI_Wtime()
                   uBrg(:,:,iKs+1)=uBrg(:,:,iKs+1)-beta * uBrg(:,:,jK-1)
 c
                   temp = uBrg(:,:,iKs+1) * uBrg(:,:,jK) !{u_{i+1}*u_j} vector
+                  GMRES_stop = MPI_Wtime()
+                  GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
+c                  commu_start = MPI_Wtime()
                   call sumgat (temp, nflow, beta) ! sum vector=(u_{i+1},u_j)
+c                  commu_stop = MPI_Wtime()
+c                  commu_time = commu_time + commu_stop-commu_start
 c
                endif
 c
+               GMRES_start = MPI_Wtime()
                HBrg(jK,iKs) = beta ! put this in the Hessenberg Matrix
+               GMRES_stop = MPI_Wtime()
+               GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c
             enddo
 c
@@ -627,12 +691,15 @@ c  the last inner product was with what was left of the vector (after
 c  projecting off all of the previous vectors
 c
         if(beta.le.0) write(*,*) 'beta in solgmr non-positive'
+            GMRES_start = MPI_Wtime()
             unorm           = sqrt(beta)
             HBrg(iKs+1,iKs) = unorm ! this fills the 1 sub diagonal band
 c
 c.... normalize the Krylov vector
 c
             uBrg(:,:,iKs+1) = uBrg(:,:,iKs+1) / unorm ! normalize the next Krylov
+            GMRES_stop = MPI_Wtime()
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c vector
 c
 c.... construct and reduce the Hessenberg Matrix
@@ -645,7 +712,8 @@ c  will be unaffected by this rotation.
         
 c     
 c     H Y = E ========>   R_i H Y = R_i E
-c     
+c
+            GMRES_start = MPI_Wtime()    
             do jK = 1, iKs-1
                tmp            =  Rcos(jK) * HBrg(jK,  iKs) +
      &                           Rsin(jK) * HBrg(jK+1,iKs)
@@ -670,6 +738,8 @@ c.... check for convergence
 c     
             ntotGM = ntotGM + 1
             echeck=abs(eBrg(iKs+1))
+            GMRES_stop = MPI_Wtime()
+            GMRES_time = GMRES_time + GMRES_stop - GMRES_start
 c      if (MOD(iks,1) == 0 .AND. myrank == 0) 
 c     & write(*,'(a,i2,a,i4,2(x,e24.16))')'[',myrank,']', iKs, echeck, epsnrm
             if (echeck .le. epsnrm.and. iKs .ge. minIters) exit
@@ -685,6 +755,7 @@ c.... if converged or end of Krylov space
 c
 c.... solve for yBrg
 c
+         GMRES_start = MPI_Wtime()
          do jK = iKs, 1, -1
             yBrg(jK) = eBrg(jK) / HBrg(jK,jK)
             do lK = 1, jK-1
@@ -705,6 +776,8 @@ c
 c.... check for convergence
 c     
         echeck=abs(eBrg(iKs+1))
+        GMRES_stop = MPI_Wtime()
+        GMRES_time = GMRES_time + GMRES_stop - GMRES_start
         if (echeck .le. epsnrm) exit
         if(myrank.eq.master) write(*,*)'solver tolerance %satisfaction',
      &  (one-echeck*etol/epsnrm)/(one-etol)*100
@@ -724,7 +797,13 @@ c
 c     
 c.... back block-diagonal precondition the results 
 c
+      GMRES_start = MPI_Wtime()
       call i3LU (BDiag, Dy, nflow, 'backward')
+      GMRES_stop = MPI_Wtime()
+      GMRES_time = GMRES_time + GMRES_stop - GMRES_start
+c
+      
+      
 c     
 c
 c.... output the statistics
@@ -739,10 +818,22 @@ c
      &  (one-echeck*etol/epsnrm)/(one-etol)*100
         endif
       endif
-c    
+c
+      tot_stop = MPI_Wtime()
+      tot_time = tot_time + tot_stop - tot_start
+c      tmp_res  = MPI_WTICK()   
 c.... stop the timer
 c     
  3002 continue                  ! no solve just res.
+c
+      call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+c      write(*,*) 'process', myrank, 'res(s)', tmp_res
+      write(*,*) 'process', myrank, 'tot time(s)', tot_time,
+     &           'GMRES time(s)', GMRES_time,
+     &           'ratio', GMRES_time/tot_time,
+     &           'non_zero', nnz_tot
+      call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+c     
       call timer ('Back    ')
 c     
 c.... end

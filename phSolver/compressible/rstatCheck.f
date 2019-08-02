@@ -15,6 +15,7 @@ c
 c Zdenek Johan, Winter 1991.  (Fortran 90)
 c----------------------------------------------------------------------
 c
+        use timing_m
         include "common.h"
         include "mpif.h"
         include "auxmpi.h"
@@ -26,7 +27,8 @@ c
 c        integer TMRC
         real*8 y(nshg,ndof),ac(nshg,ndof)
         save ResLast
-
+c
+        GMRES_start = MPI_Wtime()
         if (numpe == 1) nshgt=nshg   ! global = this processor
 c
 c.... ----------------------->  Convergence  <-------------------------
@@ -37,13 +39,23 @@ c
         do i = 1, nflow
           rtmp = rtmp + res(:,i)**2
         enddo
- 
+        GMRES_stop = MPI_Wtime()
+        GMRES_time  = GMRES_time + GMRES_stop - GMRES_start
+c
+c        commu_start = MPI_Wtime() 
         call sumgat (rtmp, 1, resnrm)
-      
+c        commu_stop = MPI_Wtime()
+c        commu_time  = commu_time + commu_stop-commu_start
+c
+        GMRES_start = MPI_Wtime()      
         resmaxl = maxval(rtmp)
 
         irecvcount = 1
         resvec = resmaxl
+        GMRES_stop = MPI_Wtime()
+        GMRES_time  = GMRES_time + GMRES_stop - GMRES_start
+c
+c        commu_start = MPI_Wtime()
         if (numpe > 1) then
         call MPI_ALLREDUCE (resvec, resmax, irecvcount,
      &                    MPI_DOUBLE_PRECISION, MPI_MAX, MPI_COMM_WORLD,
@@ -54,6 +66,10 @@ c     &                    ierr)
         else
           resmax=resmaxl
         endif
+c        commu_stop = MPI_Wtime()
+c        commu_time  = commu_time + commu_stop-commu_start
+c
+        GMRES_start = MPI_Wtime()
         nrsmax = maxloc(rtmp)
 c
 c.... correct the residuals
@@ -70,16 +86,21 @@ c.... approximate the number of entries
 c
         totres = resnrm / float(nshgt)
         totres = sqrt(totres)
+        GMRES_stop = MPI_Wtime()
+        GMRES_time  = GMRES_time + GMRES_stop - GMRES_start
 c
-c       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.10000.0*ResLast)) then !diverging
-       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0e32*ResLast)) then !debugging
+
+       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0d10*ResLast)) then !diverging
                call restar('out ',y,res) ! 'res' is used instead of 'ac'
                if(myrank.eq.0) write(*,*) 'ResLast totres', ResLast, totres
                if(myrank.eq.0) write(*,*) 'resmax', resmax
                if (numpe > 1) call MPI_BARRIER(MPI_COMM_WORLD, ierr)
                call error('rstat    ','Diverge', iter)
        endif
+       GMRES_start = MPI_Wtime()
        ResLast=totres
+       GMRES_stop = MPI_Wtime()
+       GMRES_time  = GMRES_time + GMRES_stop - GMRES_start
 	ttim(68) = ttim(68) + secs(0.0)
 
 c
