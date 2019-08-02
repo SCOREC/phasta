@@ -101,6 +101,7 @@ c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
      &         umeshold(numnp, nsd), xold(numnp,nsd)
+       real*8  xoldold(numnp,nsd)
 c
 c.... For surface mesh snapping
 c
@@ -181,6 +182,7 @@ c
         umeshold = umesh
         xold   = x
         triggerNow = 0
+        ntoutv=max(ntout,100) 
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
@@ -855,10 +857,45 @@ c
                alfi =alfit
                gami =gamit
                almi =almit  
-            endif          
+            endif
+c
+            xoldold = xold
+            call itrUpdateElas ( xold, x)
+c
+c.... -----------------> check mesh quality <-----------------
+c
+            if (autoTrigger .eq. 1) then
+              x1 = x(:,1)
+              x2 = x(:,2)
+              x3 = x(:,3)
+              call core_measure_mesh(x1, x2, x3, numnp, minvq, minfq)
+              ! allreduce to minimum
+              call MPI_ALLREDUCE(MPI_IN_Place, minvq, 1,
+     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, minfq, 1,
+     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
+              if(myrank .eq. master) then
+                write(*,*) "minvq = ", minvq, "minfq = ", minfq
+              endif
+              if ( (minvq .lt. volMeshqTol) .or.
+     &             (minfq .lt. faceMeshqTol) ) then
+                triggerNow = 1
+              endif ! end check if mesh quality less than tolerance
+c.... allreduce triggerNow
+              call MPI_ALLREDUCE(MPI_IN_Place, triggerNow, 1,
+     &             MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierr )
+              if (triggerNow == 1) then
+                if(myrank .eq. master) then
+                  write(*,*) "revert one time step!!!!!!"
+                endif
+                xold = xoldold
+                goto 8888
+              endif
+            endif ! end auto_trigger option
+c
+c.... -----------------> end check mesh quality <-----------------
 c
             call itrUpdate( yold,  acold,   y,    ac)
-            call itrUpdateElas ( xold, x)
             umeshold = umesh
             if (numrbs .gt. 0) then
               call update_rbParam
@@ -887,7 +924,6 @@ c               call itrBC (y,  ac,  iBC,  BC, iper, ilwork)
 c     
             istep = istep + 1
             lstep = lstep + 1
-            ntoutv=max(ntout,100) 
             !boundary flux output moved after the error calculation so
             !everything can be written out in a single chunk of code -
 c
@@ -998,34 +1034,13 @@ c
               endif
             endif
 c
-c.... -----------------> check if auto trigger <-----------------
-c
-            if (autoTrigger .eq. 1) then
-              x1 = x(:,1)
-              x2 = x(:,2)
-              x3 = x(:,3)
-              call core_measure_mesh(x1, x2, x3, numnp, minvq, minfq)
-              ! allreduce to minimum
-              call MPI_ALLREDUCE(MPI_IN_Place, minvq, 1,
-     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
-              call MPI_ALLREDUCE(MPI_IN_Place, minfq, 1,
-     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
-              if(myrank .eq. master) then
-                write(*,*) "minvq = ", minvq, "minfq = ", minfq
-              endif
-              if ( (minvq .lt. volMeshqTol) .or.
-     &             (minfq .lt. faceMeshqTol) ) then
-                triggerNow = 1
-              endif ! end check if mesh quality less than tolerance
-            endif ! end auto_trigger option
-c
 c.... allreduce triggerNow
 c
             call MPI_ALLREDUCE(MPI_IN_Place, triggerNow, 1,
      &           MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierr )
 c
-c.... ---------------> end check if auto trigger <---------------
-c
+ 8888    continue
+
             !here is where we save our averaged field.  In some cases we want to
             !write it less frequently
             if( (irs >= 1) .and. (
@@ -1054,10 +1069,10 @@ c... write solution and fields
                  if (iALE .gt. 0) then 
                    call write_field(
      &                  myrank,'a'//char(0),'motion_coords'//char(0),13,
-     &                  x,     'd'//char(0), numnp, nsd, lstep)
+     &                  xold,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'mesh_vel'//char(0),  8,
-     &                  umesh, 'd'//char(0), numnp, nsd, lstep)
+     &                  umeshold, 'd'//char(0), numnp, nsd, lstep)
 c                   call write_field(
 c     &                  myrank,'a'//char(0),'xdot'//char(0), 4,
 c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
@@ -1106,10 +1121,10 @@ c
                if (iALE .gt. 0) then 
                  call write_field(
      &                myrank,'a'//char(0),'motion_coords'//char(0),13,
-     &                x,     'd'//char(0), numnp, nsd, lstep)
+     &                xold,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'mesh_vel'//char(0),  8,
-     &                umesh, 'd'//char(0), numnp, nsd, lstep)
+     &                umeshold, 'd'//char(0), numnp, nsd, lstep)
 c                 call write_field(
 c     &                myrank,'a'//char(0),'xdot'//char(0), 4,
 c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
