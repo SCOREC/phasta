@@ -42,9 +42,9 @@ c
       use probe_m
       use ifbc_m
       use core_mesh_quality ! to call core_measure_mesh
-      use core_error        ! to access core_phasta_get_err_param
       use interfaceflag
       use post_param_m
+      use resourceBoundFactor
 c
         include "common.h"
         include "mpif.h"

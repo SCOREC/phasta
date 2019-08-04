@@ -2,7 +2,6 @@
           integer :: post_proc_loop
           real*8, allocatable :: meshCFL(:)
           real*8, allocatable :: VMS_error(:,:)
-          real*8, allocatable :: err_tri_factor(:)
           real*8, allocatable :: meshCFLblk(:)
           real*8, allocatable :: VMS_errorblk(:,:)
         end module
@@ -14,11 +13,9 @@ c
 c
           allocate( meshCFL(numel) )
           allocate( VMS_error(numel, nflow) )
-          allocate( err_tri_factor(numel) )
           post_proc_loop = 0
           meshCFL = zero
           VMS_error = zero
-          err_tri_factor = zero
         end subroutine malloc_post_param
 c
         subroutine release_post_param
@@ -29,8 +26,6 @@ c
      &      deallocate( meshCFL )
           if (allocated(VMS_error))
      &      deallocate( VMS_error )
-          if (allocated(err_tri_factor))
-     &      deallocate( err_tri_factor )
 c
         end subroutine release_post_param
 c
@@ -59,8 +54,7 @@ c
         use e3_solid_m
         use probe_m
         use post_param_m
-        use timeBoundFactor
-        use core_error        ! to access core_phasta_get_err_param
+        use resourceBoundFactor
 c
         include "common.h"
         include "mpif.h"
@@ -88,8 +82,7 @@ c
         real*8  rerr(nshg,10)
 c
         real*8  tempMomtError
-        real*8  avgtbFactor
-        real*8  err_tri_f,    err_f_cn,   err_f_m
+        real*8  err_tri_f,    err_ct_cn,   err_f_m
 c
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
@@ -180,7 +173,6 @@ c.... loop over element blocks to compute element residuals
 c
 c.... get variables for error estimation
 c
-        call core_phasta_get_err_param(err_f_cn)
         if (errorEstimation .eq. 1) then
           err_f_m = 1.0
         else if (errorEstimation .eq. 2) then
@@ -192,7 +184,6 @@ c
         res    = zero
         meshCFL = zero
         VMS_error = zero
-        err_tri_factor = zero
 c
 c.... loop over the element-blocks
 c
@@ -271,19 +262,6 @@ c.... map local VMS_error to global
               do j = 1, nflow
                 VMS_error(mieMap(iblk)%p(i),j) = VMS_errorblk(i,j)
               enddo
-c.... multiply time resource bound factor
-              avgtbFactor = 0.0
-              do j = 1, nenl
-                avgtbFactor = avgtbFactor + tbFactor(mien(iblk)%p(i,j))
-              enddo
-              avgtbFactor = avgtbFactor/real(nenl, 8)
-              if (avgtbFactor .le. 1.0) then
-                avgtbFactor = 1.0
-              endif
-c.... get error factor to determine if trigger adapter
-              err_tri_f = (errorTriggerFactor * err_f_cn *
-     &                     avgtbFactor)**(3.5-err_f_m)
-              err_tri_factor(mieMap(iblk)%p(i)) = err_tri_f
 c.... record the max error
               if (VMS_errorblk(i,1) .gt. errorMaxMass)
      &            errorMaxMass = VMS_errorblk(i,1)
@@ -295,22 +273,29 @@ c.... record the max error
      &            errorMaxMomt = tempMomtError
               if (VMS_errorblk(i,5) .gt. errorMaxEngy)
      &            errorMaxEngy = VMS_errorblk(i,5)
+c
+c.... if auto trigger mesh adaptation
+              if (autoTrigger .eq. 1) then
+c.... get error factor to determine if trigger adapter
+                err_ct_cn=err_tri_factor(mieMap(iblk)%p(i))
+                err_tri_f=(errorTriggerFactor*err_ct_cn)**(3.5-err_f_m)
 c.... check if trigger mesh adapter or not
-              if (errorTriggerEqn .eq. 1) then
-                if (VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
-     &            triggerNow = 1
-              else if (errorTriggerEqn .eq. 2) then
-                if (tempMomtError     .ge. errorTolMomt * err_tri_f)
-     &            triggerNow = 1
-              else if (errorTriggerEqn .eq. 3) then
-                if (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f)
-     &            triggerNow = 1
-              else if (errorTriggerEqn .eq. 4) then
-                if((VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
-     &        .or. (tempMomtError     .ge. errorTolMomt * err_tri_f)
-     &        .or. (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f))
-     &            triggerNow = 1
-              endif ! end check if error larger than threshold
+                if (errorTriggerEqn .eq. 1) then
+                  if (VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
+     &              triggerNow = 1
+                else if (errorTriggerEqn .eq. 2) then
+                 if (tempMomtError     .ge. errorTolMomt * err_tri_f)
+     &               triggerNow = 1
+                else if (errorTriggerEqn .eq. 3) then
+                  if (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f)
+     &              triggerNow = 1
+                else if (errorTriggerEqn .eq. 4) then
+                  if((VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
+     &          .or. (tempMomtError     .ge. errorTolMomt * err_tri_f)
+     &          .or. (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f))
+     &              triggerNow = 1
+                endif ! end check if error larger than threshold
+              endif ! end check if auto trigger
             enddo
           endif
 c

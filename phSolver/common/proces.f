@@ -291,7 +291,7 @@ c
 c
         deallocate(ifFlag)
 c
-        deallocate(tbFactor)
+        deallocate(err_tri_factor)
 c
         deallocate(rbIDs)
         deallocate(rbMTs)
