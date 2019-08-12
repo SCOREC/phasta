@@ -367,6 +367,14 @@ c.... the angle = spinning ratio * magitude of translation disp
             rbAng(j) = rb_prop(j,11) * sqrt(rbDisp(j,1)*rbDisp(j,1)
      &                                     +rbDisp(j,2)*rbDisp(j,2)
      &                                     +rbDisp(j,3)*rbDisp(j,3))
+c
+c.... hardcoding for cylinder rotation case {
+            rbDisp(j,1:3) = 0.0
+            rbVel(j,1:3)  = 0.0
+            rbAcc(j,1:3)  = 0.0
+            rbAng(j)      = rb_prop(j,11) * Delt(1)
+c.... hardcoding for cylinder rotation case }
+c
           endif
 c
 c.... broadcast rb velocity and displacement
