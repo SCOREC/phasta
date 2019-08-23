@@ -46,6 +46,7 @@ c
       use dc_lag_func_m
       use dc_lag_data_m
       use post_param_m
+      use hack_vp_m
 c
         include "common.h"
         include "mpif.h"
@@ -182,7 +183,13 @@ c
         umeshold = umesh
         xold   = x
         triggerNow = 0
-
+c... find the burning node
+        allocate(burn_info(nshg))
+        burn_info = zero
+c
+        call find_burn_face
+c
+c... end of finding the burning node
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
 ! fix the yold values to the reset BC
@@ -962,6 +969,8 @@ c
               endif
             endif
           !... Yi Chen Duct geometry8
+c... Find avg x coord for buring face
+            call calc_burn_face_location(x)
 c
 c.... -------------------> post-processing  <-------------------
 c
@@ -1248,6 +1257,10 @@ c
 c
         call destruct_sum_vi_area
         call ifbc_mfree
+c... for finding the burning surface
+      if (allocated(burn_info)) then
+        deallocate(burn_info)
+      endif
 c... for DC lag if needed
       if ( i_dc_lag .eq. 1) then
         call dealloc_dc_lag
