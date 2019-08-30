@@ -47,6 +47,8 @@ c
       use dc_lag_data_m
       use post_param_m
       use hack_vp_m
+      use interface_pair_func_m
+
 c
         include "common.h"
         include "mpif.h"
@@ -185,7 +187,7 @@ c
         triggerNow = 0
 c... find the burning node
         allocate(burn_info(nshg))
-        burn_info = zero
+        burn_info = 0
 c
         call find_burn_face
 c
@@ -244,7 +246,10 @@ c ... allocation and initialization for DC lag if need
         if ( i_dc_lag .eq.1) then
           call alloc_init_dc_lag
         endif
-c        
+c
+c-------------Initializing of the interface pair inf0-------------------
+        call alloc_init_interface_pair
+c-----------------------------------------------------------------------
 c
 c..........................................
         rerr = zero
@@ -723,7 +728,7 @@ c... hack when to update the interface velocity
                      call set_if_velocity (BC,  iBC, 
      &                                umesh,    disp, x,  Delt(1),   ilwork,
      &                                nshg,  ndofBC,
-     &                                nsd,   nelblif, nlwork, ndof )
+     &                                nsd,   nelblif, nlwork, ndof, y(:,1:3) )
 c
 c
                     do inode = 1, nshg
@@ -1265,7 +1270,10 @@ c... for DC lag if needed
       if ( i_dc_lag .eq. 1) then
         call dealloc_dc_lag
       endif
-c        
+c
+c---------deallocation of the continuous interface field------------
+      call dealloc_interface_pair
+c----------------------------------------------------------------------        
 c
 c.... ---------------------->  Post Processing  <----------------------
 c

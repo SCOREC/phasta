@@ -9,6 +9,8 @@ c----------------------------------------
         use pointer_data
         use blkdat_m
         use interfaceflag
+        use interface_pair_data_m
+        use hack_vp_m
 c	use bc_on_vi_m
 c
         implicit none
@@ -34,9 +36,10 @@ c
       subroutine set_if_velocity 
      & (
      &  BC, iBC, umesh, disp, x, dt, ilwork,
-     &  nshg, ndofBC, nsd, nelblif, nlwork, ndof
-     & )
+     &  nshg, ndofBC, nsd, nelblif, nlwork, ndof,
+     &  v)
 c
+        use dgifinp_m
         include "mpif.h"
 c
         real*8,  intent(inout) ::  BC(nshg,ndofBC)
@@ -49,7 +52,8 @@ c
 c
         integer :: iblk, iel, npro,inode, i0, i1, n, ierr
         integer, pointer :: ienif0(:,:), ienif1(:,:)
-	real*8, dimension(nshg,3) :: actual_vi
+        real*8, dimension(nshg,3) :: actual_vi
+        real*8, dimension(nshg,3),intent(in) :: v
 
         if (numpe > 1) then
           call commu (sum_vi_area(:,1:3), ilwork, nsd, 'in ')
@@ -67,7 +71,15 @@ c
         do inode = 1, nshg
           if ( ifFlag(inode) .eq. 1 ) then
 c            write(*,*) "rank",myrank,"i",inode,"x=",x(inode,:)
-            actual_vi(inode,:) = sum_vi_area(inode,:) / sum_vi_area(inode,nsd+1)
+c            actual_vi(inode,:) = sum_vi_area(inode,:) / sum_vi_area(inode,nsd+1)
+              if(burn_info(inode) .eq.2) then
+                actual_vi(inode,1) = (-1.0*vi_mag  + v(i_if_pair(inode),1))
+                actual_vi(inode,2) = (v(i_if_pair(inode),2))
+                actual_vi(inode,3) = (v(i_if_pair(inode),3))
+              else
+                actual_vi(inode,:) = v(i_if_pair(inode),:) !!zero 
+              endif
+c
           endif
         enddo
 c
