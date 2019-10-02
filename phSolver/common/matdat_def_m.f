@@ -13,6 +13,7 @@ c
      &,                       ieos_ideal_gas_mixture = 3
      &,                       ieos_liquid_1  = 4
      &,                       ieos_solid_1   = 10
+     &,                       ieos_gas_linear= 6
 c
         integer, parameter :: iprop_ideal_gas_mw     = 1  ! molecular weight
      &,                       iprop_ideal_gas_gamma  = 2
@@ -38,6 +39,17 @@ c......Adding the solid capability
      &,                       iprop_solid_1_cond     = 8
 C      &,                       iprop_solid_1_shearMod = 7
 C      &,                       iprop_solid_1_bulkMod  = 8
+c... Adding for the linearized law (based on ideal gas or nobel abel)
+c... for gas
+       integer, parameter ::  iprop_gas_linear_mw        = 1
+     &,                       iprop_gas_linear_gamma     = 2
+     &,                       iprop_gas_linear_rho_ref   = 3
+     &,                       iprop_gas_linear_p_ref     = 4
+     &,                       iprop_gas_linear_T_ref     = 5
+     &,                       iprop_gas_linear_betaT     = 6
+     &,                       iprop_gas_linear_visc      = 7
+     &,                       iprop_gas_linear_cond      = 8
+     &,                       iprop_gas_linear_covolume  = 9
 
 c
         integer :: surface_tension_flag

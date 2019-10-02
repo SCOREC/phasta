@@ -439,7 +439,8 @@ c
         use iso_c_binding
         implicit none
         real(c_double) :: Rgas, gamma, gamma1, mw
-        real(c_double) :: pr,     Planck, Stefan, Nh,     Rh,
+        real(c_double) :: pr
+        real(c_double) :: Planck, Stefan, Nh,     Rh,
      &                    s0, const,  xN2,    xO2,
      &                    yN2,    yO2,    Msh(5), cpsh(5),s0sh(5),h0sh(5),
      &                    Rs(5),  cps(5), cvs(5), h0s(5), Trot(5),sigs(5),

@@ -100,6 +100,7 @@
 #define ieos_ideal_gas_mixture 3
 #define ieos_liquid_1  4
 #define ieos_solid_1 10
+#define ieos_gas_linear 6
 
 #define idg_no_vi 1
 #define idg_const_vi 2

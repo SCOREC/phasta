@@ -37,6 +37,8 @@ c
 c
 c          call getthm_solid_1
 c
+        case (ieos_gas_linear)
+c
         case default
           call error ('getthm  ', 'wrong material', mater)
         end select

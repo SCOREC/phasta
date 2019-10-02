@@ -502,6 +502,9 @@ c
           case (ieos_liquid_1)
             getthm6_ptr => getthm6_liquid_1
             getthm7_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthm6_ptr => getthm6_gas_linear
+            getthm7_ptr => getthm7_gas_linear
           case (ieos_solid_1)
             getthm6_ptr => getthm6_solid_1
             getthm7_ptr => getthm7_solid_1
@@ -604,6 +607,9 @@ c
           case (ieos_liquid_1)
             getthm6_ptr => getthm6_liquid_1
             getthm7_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthm6_ptr => getthm6_gas_linear
+            getthm7_ptr => getthm7_gas_linear
           case (ieos_solid_1)
             getthm6_ptr => getthm6_solid_1
             getthm7_ptr => getthm7_solid_1
@@ -703,6 +709,9 @@ c
           case (ieos_liquid_1)
             getthm6_ptr => getthm6_liquid_1
             getthm7_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthm6_ptr => getthm6_gas_linear
+            getthm7_ptr => getthm7_gas_linear
           case (ieos_solid_1)
             getthm6_ptr => getthm6_solid_1
             getthm7_ptr => getthm7_solid_1
@@ -968,6 +977,8 @@ c
             get_vap_frac0 => get_vapor_fraction0
           case (ieos_liquid_1)
             getthmif0_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthmif0_ptr => getthm7_gas_linear
           case default
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           end select
@@ -984,6 +995,8 @@ c            get_vap_frac1 => get_vapor_fraction1
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           case (ieos_liquid_1)
             getthmif1_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthmif1_ptr => getthm7_gas_linear
           case default
             call error ('getthm  ', 'WE DO NOT SUPPORT THIS MATERIAL (3)', mater1)
           end select
@@ -1386,6 +1399,8 @@ c
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm7_ptr => getthm7_liquid_1
+          case(ieos_gas_linear)
+            getthm7_ptr => getthm7_gas_linear
           case default
             call error ('getthm  ', 'wrong material', mater)
           end select
@@ -1463,6 +1478,8 @@ c
             getthm7_ptr => getthm7_ideal_gas_mixture
           case (ieos_liquid_1)
             getthm7_ptr => getthm7_liquid_1
+          case (ieos_gas_linear)
+            getthm7_ptr => getthm7_gas_linear
           case default
             call error ('getthm  ', 'wrong material', mater )
           end select
