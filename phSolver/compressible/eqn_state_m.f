@@ -165,7 +165,8 @@ c
 c        
 c        rho = gas_rho_ref * (one - alphaP*(T-gas_T_ref) 
 c     &                   + betaT*(pres-gas_p_ref))
-        rho = pres/(Rgas*T + pres*gas_colv)
+        rho = gas_p_ref/(Rgas*T + gas_p_ref*gas_colv) 
+     &      + gamma/gas_speed_sound**two*(pres-gas_p_ref) 
         betaT = gamma/gas_speed_sound**two/rho 
         ei  = Rgas / gamma1*T
 c
