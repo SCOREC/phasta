@@ -140,14 +140,14 @@ c... gas law
 c...........................................................
 c
         real*8 :: gas_mw, gas_gamma, gas_rho_ref, gas_p_ref,
-     &            gas_T_ref, gas_beta_T, gas_colv
+     &            gas_T_ref, gas_speed_sound, gas_colv
 c
         gas_mw      = mat_prop(mater,iprop_gas_linear_mw, 1)
         gas_gamma   = mat_prop(mater,iprop_gas_linear_gamma,1)
         gas_rho_ref = mat_prop(mater,iprop_gas_linear_rho_ref,1)
         gas_p_ref   = mat_prop(mater,iprop_gas_linear_p_ref,1)
         gas_T_ref   = mat_prop(mater,iprop_gas_linear_T_ref,1)
-        gas_beta_T  = mat_prop(mater,iprop_gas_linear_betaT,1)
+        gas_speed_sound  = mat_prop(mater,iprop_gas_linear_betaT,1)
         gas_colv = mat_prop(mater,iprop_gas_linear_covolume,1)
 c
         mw = gas_mw 
@@ -157,14 +157,16 @@ c
 c
         alphaP = Rgas / (Rgas*T + pres*gas_colv)
 c        alphaP = one/288
-        betaT  = gas_beta_T
+c        betaT  = gas_beta_T
 c        betaT = Rgas*T / (Rgas*T*pres + pres**2*gas_colv)
 c
         cp = Rgas*gamma/gamma1
         if (associated(cv)) cv  = Rgas / gamma1
 c        
-        rho = gas_rho_ref * (one - alphaP*(T-gas_T_ref) 
-     &                   + betaT*(pres-gas_p_ref))
+c        rho = gas_rho_ref * (one - alphaP*(T-gas_T_ref) 
+c     &                   + betaT*(pres-gas_p_ref))
+        rho = pres/(Rgas*T + pres*gas_colv)
+        betaT = gamma/gas_speed_sound**two/rho 
         ei  = Rgas / gamma1*T
 c
       end subroutine getthm6_gas_linear
@@ -177,6 +179,7 @@ c.......................................................................
 c
         h   = ei + pres/rho
         if (associated(gamb)) gamb = gamma1
+c        if (associated(c)) c =  sqrt(one*gamma/(rho*betaT))
         if (associated(c)) c =  sqrt(one*gamma/(rho*betaT))
 c
       end subroutine getthm7_gas_linear
