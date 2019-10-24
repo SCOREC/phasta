@@ -155,7 +155,7 @@ c
         Rgas = Ru/mw*1.0d3 ! the global varible get overwriten
         gamma1 = gamma - one !the global varible get overwriten
 c
-        alphaP = Rgas / (Rgas*T + pres*gas_colv)
+c        alphaP = Rgas / (Rgas*T + pres*gas_colv)
 c        alphaP = one/288
 c        betaT  = gas_beta_T
 c        betaT = Rgas*T / (Rgas*T*pres + pres**2*gas_colv)
@@ -166,8 +166,11 @@ c
 c        rho = gas_rho_ref * (one - alphaP*(T-gas_T_ref) 
 c     &                   + betaT*(pres-gas_p_ref))
         rho = gas_p_ref/(Rgas*T + gas_p_ref*gas_colv) 
-     &      + gamma/gas_speed_sound**two*(pres-gas_p_ref) 
-        betaT = gamma/gas_speed_sound**two/rho 
+c     &      + (gamma/gas_speed_sound**2.0)*(pres-gas_p_ref) 
+c        betaT = 1.0d4*Rgas*T/((Rgas*T+pres*gas_colv)*pres)
+        betaT = gamma/gas_speed_sound**2.0/rho
+        alphaP = (-Rgas*gas_p_ref/(Rgas*T + gas_p_ref*gas_colv)**2.0)
+     &           /(-rho)
         ei  = Rgas / gamma1*T
 c
       end subroutine getthm6_gas_linear
