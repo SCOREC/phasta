@@ -140,14 +140,14 @@ c... gas law
 c...........................................................
 c
         real*8 :: gas_mw, gas_gamma, gas_rho_ref, gas_p_ref,
-     &            gas_T_ref, gas_speed_sound, gas_colv
+     &            gas_T_ref, gas_c_factor, gas_colv
 c
         gas_mw      = mat_prop(mater,iprop_gas_linear_mw, 1)
         gas_gamma   = mat_prop(mater,iprop_gas_linear_gamma,1)
         gas_rho_ref = mat_prop(mater,iprop_gas_linear_rho_ref,1)
         gas_p_ref   = mat_prop(mater,iprop_gas_linear_p_ref,1)
         gas_T_ref   = mat_prop(mater,iprop_gas_linear_T_ref,1)
-        gas_speed_sound  = mat_prop(mater,iprop_gas_linear_betaT,1)
+        gas_c_factor= mat_prop(mater,iprop_gas_linear_factor,1)
         gas_colv = mat_prop(mater,iprop_gas_linear_covolume,1)
 c
         mw = gas_mw 
@@ -166,12 +166,21 @@ c
 c        rho = gas_rho_ref * (one - alphaP*(T-gas_T_ref) 
 c     &                   + betaT*(pres-gas_p_ref))
         rho = gas_p_ref/(Rgas*T + gas_p_ref*gas_colv) 
-c     &      + (gamma/gas_speed_sound**2.0)*(pres-gas_p_ref) 
+     &      + ((gas_c_factor)**two
+     &      *(Rgas*T/ (Rgas*T + pres*gas_colv)**two))*(pres-gas_p_ref) 
 c        betaT = 1.0d4*Rgas*T/((Rgas*T+pres*gas_colv)*pres)
-        betaT = gamma/gas_speed_sound**2.0/rho
-        alphaP = (-Rgas*gas_p_ref/(Rgas*T + gas_p_ref*gas_colv)**2.0)
+        betaT = ( (gas_c_factor)**two
+     &          * (Rgas*T*(Rgas*T-pres*gas_colv+two*gas_p_ref*gas_colv))
+     &          / (Rgas*T + pres*gas_colv)**three )
+     &          /rho
+        alphaP = ( (-Rgas*gas_p_ref/(Rgas*T + gas_p_ref*gas_colv)**two)
+     &           + (gas_c_factor)**two 
+     &           * (Rgas*(pres-gas_p_ref)/(Rgas*T + pres*gas_colv)**two)
+     &           - (gas_c_factor)**two 
+     &           * (two*Rgas*Rgas*T*(pres-gas_p_ref)
+     &           / (Rgas*T + pres*gas_colv)**three) )              
      &           /(-rho)
-        ei  = Rgas / gamma1*T
+        ei  = T * Rgas / gamma1
 c
       end subroutine getthm6_gas_linear
 c
@@ -183,7 +192,6 @@ c.......................................................................
 c
         h   = ei + pres/rho
         if (associated(gamb)) gamb = gamma1
-c        if (associated(c)) c =  sqrt(one*gamma/(rho*betaT))
         if (associated(c)) c =  sqrt(one*gamma/(rho*betaT))
 c
       end subroutine getthm7_gas_linear

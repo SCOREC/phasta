@@ -46,7 +46,7 @@ c... for gas
      &,                       iprop_gas_linear_rho_ref   = 3
      &,                       iprop_gas_linear_p_ref     = 4
      &,                       iprop_gas_linear_T_ref     = 5
-     &,                       iprop_gas_linear_betaT     = 6
+     &,                       iprop_gas_linear_factor    = 6
      &,                       iprop_gas_linear_visc      = 7
      &,                       iprop_gas_linear_cond      = 8
      &,                       iprop_gas_linear_covolume  = 9
