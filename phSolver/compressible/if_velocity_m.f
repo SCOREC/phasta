@@ -76,7 +76,7 @@ c...
 c            write(*,*) "rank",myrank,"i",inode,"x=",x(inode,:)
 c            actual_vi(inode,:) = sum_vi_area(inode,:) / sum_vi_area(inode,nsd+1)
               if(burn_info(inode) .eq.2) then
-                actual_vi(inode,1) = (-1.0*vi_mag  + v(i_if_pair(inode),1))
+                actual_vi(inode,1) = (-one*vi_mag  + v(i_if_pair(inode),1))
                 actual_vi(inode,2) = (v(i_if_pair(inode),2))
                 actual_vi(inode,3) = (v(i_if_pair(inode),3))
               else
