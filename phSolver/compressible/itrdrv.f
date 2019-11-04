@@ -187,7 +187,10 @@ c
         triggerNow = 0
 c... find the burning node
         allocate(burn_info(nshg))
+        allocate(front_edge_info(nshg))
+c
         burn_info = 0
+        front_edge_info = 0
 c
         call find_burn_face
 c
@@ -974,8 +977,6 @@ c
               endif
             endif
           !... Yi Chen Duct geometry8
-c... Find avg x coord for buring face
-            call calc_burn_face_location(x)
 c
 c.... -------------------> post-processing  <-------------------
 c
@@ -1265,6 +1266,10 @@ c
 c... for finding the burning surface
       if (allocated(burn_info)) then
         deallocate(burn_info)
+      endif
+c
+      if (allocated(front_edge_info)) then
+        deallocate(front_edge_info)
       endif
 c... for DC lag if needed
       if ( i_dc_lag .eq. 1) then

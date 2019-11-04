@@ -67,6 +67,9 @@ c
           call MPI_BARRIER (MPI_COMM_WORLD,ierr)
         endif
 c
+c... get the location of front edge
+        call calc_burn_edge_location(x)
+c...
         actual_vi = zero
         do inode = 1, nshg
           if ( ifFlag(inode) .eq. 1 ) then
@@ -77,7 +80,12 @@ c            actual_vi(inode,:) = sum_vi_area(inode,:) / sum_vi_area(inode,nsd+1
                 actual_vi(inode,2) = (v(i_if_pair(inode),2))
                 actual_vi(inode,3) = (v(i_if_pair(inode),3))
               else
-                actual_vi(inode,:) = v(i_if_pair(inode),:) !!zero 
+                actual_vi(inode,1) = -one*(x(inode,1)/burn_edge_avg_x)
+     &                               * vi_mag
+     &                               + v(i_if_pair(inode),1) ! linearly distribute the phase change
+                                                             ! rate along x axis
+                actual_vi(inode,2) = (v(i_if_pair(inode),2))
+                actual_vi(inode,3) = (v(i_if_pair(inode),3))
               endif
 c
           endif
