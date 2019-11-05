@@ -55,9 +55,8 @@ c
         real*8, dimension(nshg,3) :: actual_vi
         real*8, dimension(nshg,3),intent(in) :: v
 c
-
-        real*8 :: sum_edge_x
-        real*8 :: sum_edge_x_rank, tot_front_edge_rank !sum over all rank
+        integer:: tot_front_edge_rank 
+        real*8 :: sum_edge_x, sum_edge_x_rank !sum over all rank
 c
 c        if (numpe > 1) then
 c          call commu (sum_vi_area(:,1:3), ilwork, nsd, 'in ')
