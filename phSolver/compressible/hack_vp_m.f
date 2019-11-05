@@ -92,9 +92,13 @@ c
 c
           do inode = 1, nshg
             if(front_edge_info(inode) .eq. 1) then !this is front edge
-              burn_edge_avg_x = burn_edge_avg_x + (1/tot_front_edge)
-     &                                          * x(inode,1)
-            endif
+              if (tot_front_edge .ne. 0) then
+                burn_edge_avg_x = burn_edge_avg_x + x(inode,1)
+     &                                            /tot_front_edge
+              else
+                call error ('calc_burn_edge', 'no node no front edge', tot_front_edge)
+              endif
+            endif      
           enddo
 c
         end subroutine calc_burn_edge_location   
