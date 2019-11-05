@@ -54,21 +54,44 @@ c
         integer, pointer :: ienif0(:,:), ienif1(:,:)
         real*8, dimension(nshg,3) :: actual_vi
         real*8, dimension(nshg,3),intent(in) :: v
+c
 
+        real*8 :: sum_edge_x
+        real*8 :: sum_edge_x_rank, tot_front_edge_rank !sum over all rank
+c
+c        if (numpe > 1) then
+c          call commu (sum_vi_area(:,1:3), ilwork, nsd, 'in ')
+c          call commu (sum_vi_area(:,4), ilwork, 1, 'in ')
+c          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+c        endif
+c
+c        if (numpe > 1) then
+c          call commu (sum_vi_area(:,1:3), ilwork, nsd, 'out')
+c          call commu (sum_vi_area(:,4), ilwork, 1, 'out')
+c          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+c        endif
+c
+c... calculate the avg x of the front edge
+        call sum_front_edge_location(sum_edge_x,x)
+c... communication
         if (numpe > 1) then
-          call commu (sum_vi_area(:,1:3), ilwork, nsd, 'in ')
-          call commu (sum_vi_area(:,4), ilwork, 1, 'in ')
-          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
+          call MPI_ALLREDUCE(sum_edge_x, sum_edge_x_rank, 1,
+     &                       MPI_DOUBLE_PRECISION, MPI_SUM,
+     &                       MPI_COMM_WORLD, ierr)
+c
+          call MPI_ALLREDUCE(tot_front_edge, tot_front_edge_rank, 1,
+     &                       MPI_INTEGER, MPI_SUM,
+     &                       MPI_COMM_WORLD, ierr)
+        else
+          sum_edge_x_rank = sum_edge_x
+          tot_front_edge_rank = tot_front_edge
         endif
 c
-        if (numpe > 1) then
-          call commu (sum_vi_area(:,1:3), ilwork, nsd, 'out')
-          call commu (sum_vi_area(:,4), ilwork, 1, 'out')
-          call MPI_BARRIER (MPI_COMM_WORLD,ierr)
-        endif
-c
-c... get the location of front edge
-        call calc_burn_edge_location(x)
+         if(tot_front_edge_rank .ne. 0) then
+           burn_edge_avg_x = sum_edge_x_rank / tot_front_edge_rank
+         else
+           call error ('set_if_velocity', 'zero nodes on edge', tot_front_edge_rank) 
+         endif 
 c...
         actual_vi = zero
         do inode = 1, nshg

@@ -75,7 +75,7 @@ c...
           enddo
         end subroutine find_burn_face
 c
-        subroutine calc_burn_edge_location(x)
+        subroutine sum_front_edge_location(sum_edge_x,x)
 c...............................................
 c  Find the avg x coord of the front edge                                                         
 c...............................................
@@ -85,22 +85,18 @@ c...............................................
           implicit none
 c
           real*8, dimension(numnp,nsd),intent(in) :: x
+          real*8, intent(out) :: sum_edge_x
 c
           integer inode         
 c
-          burn_edge_avg_x = zero
+          sum_edge_x = zero
 c
           do inode = 1, nshg
             if(front_edge_info(inode) .eq. 1) then !this is front edge
-              if (tot_front_edge .ne. 0) then
-                burn_edge_avg_x = burn_edge_avg_x + x(inode,1)
-     &                                            /tot_front_edge
-              else
-                call error ('calc_burn_edge', 'no node no front edge', tot_front_edge)
-              endif
+                sum_edge_x = sum_edge_x + x(inode,1)
             endif      
           enddo
 c
-        end subroutine calc_burn_edge_location   
+        end subroutine sum_front_edge_location   
       end module hack_vp_m
 
