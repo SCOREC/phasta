@@ -166,7 +166,7 @@ c
      &,                       Kij0, Kij1
      &,                       ni0, ni1, WdetJ0
      &,                       nshl0, nshl1
-     &,                       code )
+     &,                       code, A0_1 )
         real*8, dimension(:,:,:),   intent(inout) :: egmass
         real*8, dimension(:,:),     intent(in)    :: shp0, shp1
         real*8, dimension(:,:,:),   intent(in)    :: shg0, shg1
@@ -174,11 +174,13 @@ c
         real*8, dimension(:,:,:,:,:), intent(in) :: Kij0, Kij1
         real*8, dimension(:,:),     intent(in)    :: ni0, ni1
         real*8, dimension(:),       intent(in)    :: WdetJ0
+        real*8, dimension(:,:,:), intent(in):: A0_1 
         integer, intent(in)  :: nshl0,nshl1
 c
         integer :: i,j,i0,j0,il,jl,iflow,jflow,kflow,isd,jsd
         real*8 :: this_mu(npro,nflow,nflow)
-        real*8, dimension(npro) :: Ai1Na1ni0,Kij1Naj1ni0,Kij0Nbj0CNa1ni1,CNb0ni0CNa1ni1
+        real*8, dimension(npro) :: Ai1Na1ni0,Kij1Naj1ni0,Kij0Nbj0CNa1ni1,
+     &                             CNb0ni0CNa1ni1,A01Na1
         real*8 :: factor
         character*4 code
 c------------------------------------------------------------------------------
@@ -225,6 +227,9 @@ c
                 Kij0Nbj0CNa1ni1 = zero
                 CNb0ni0CNa1ni1  = zero
 c
+
+                A01Na1 = A0_1(:,iflow,jflow)*shp1(:,j)
+c
                 do isd = 1,nsd
                   Ai1Na1ni0 = Ai1Na1ni0 + Ai1(:,isd,iflow,jflow)*shp1(:,j)*ni0(:,isd)
                   do jsd = 1,nsd
@@ -247,7 +252,9 @@ c
 c
                 egmass(:,il,jl) = egmass(:,il,jl)
      &          + ( 
+c     &              pt50 * shp0(:,i) * (- Kij1Naj1ni0)
      &              pt50 * shp0(:,i) * ( factor*Ai1Na1ni0 - Kij1Naj1ni0)
+     &          -   factor * shp0(:,i) * pt50 * alpha_LF(:) * A01Na1
      &          -   factor * pt50 * s * Kij0Nbj0CNa1ni1
      &          -   factor * e /length_h * CNb0ni0CNa1ni1
      &            ) * WdetJ0

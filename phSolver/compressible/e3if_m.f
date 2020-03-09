@@ -205,10 +205,22 @@ c               call calc_egmass_(egmass00,shp0,shp0,shg0,shg0,Ai0,Kij0,Kij0,nv0
 c               call calc_egmass_(egmass01,shp0,shp1,shg0,shg1,Ai1,Kij0,Kij1,nv0,nv1,WdetJif0,nshl0,nshl1)
 c               call calc_egmass_(egmass10,shp1,shp0,shg1,shg0,Ai0,Kij1,Kij0,nv1,nv0,WdetJif1,nshl1,nshl0)
 c               call calc_egmass_(egmass11,shp1,shp1,shg1,shg1,Ai1,Kij1,Kij1,nv1,nv1,WdetJif1,nshl1,nshl1)
-               call calc_egmass_fix_sign(egmass00,shp0,shp0,shg0,shg0,Ai0,Kij0,Kij0,nv0,nv0,WdetJif0,nshl0,nshl0,'same')
-               call calc_egmass_fix_sign(egmass01,shp0,shp1,shg0,shg1,Ai1,Kij0,Kij1,nv0,nv1,WdetJif0,nshl0,nshl1,'diff')
-               call calc_egmass_fix_sign(egmass10,shp1,shp0,shg1,shg0,Ai0,Kij1,Kij0,nv1,nv0,WdetJif1,nshl1,nshl0,'diff')
-               call calc_egmass_fix_sign(egmass11,shp1,shp1,shg1,shg1,Ai1,Kij1,Kij1,nv1,nv1,WdetJif1,nshl1,nshl1,'same')
+               call calc_egmass_fix_sign(egmass00,shp0,shp0,shg0,shg0,
+     &                                   Ai0,Kij0,Kij0,nv0,nv0,
+     &                                   WdetJif0,nshl0,nshl0,
+     &                                   'same',A0_0)
+               call calc_egmass_fix_sign(egmass01,shp0,shp1,shg0,shg1,
+     &                                   Ai1,Kij0,Kij1,nv0,nv1,
+     &                                   WdetJif0,nshl0,nshl1,
+     &                                   'diff',A0_1)
+               call calc_egmass_fix_sign(egmass10,shp1,shp0,shg1,shg0,
+     &                                   Ai0,Kij1,Kij0,nv1,nv0,
+     &                                   WdetJif1,nshl1,nshl0,
+     &                                   'diff',A0_0)
+               call calc_egmass_fix_sign(egmass11,shp1,shp1,shg1,shg1,
+     &                                   Ai1,Kij1,Kij1,nv1,nv1,
+     &                                   WdetJif1,nshl1,nshl1,
+     &                                   'same',A0_1)
 c
             endif
 c
@@ -312,7 +324,8 @@ c
           real*8 :: etot, diff_flux(nsd,nflow), dTdx0
           real*8 :: kappa0(nsd), kappa1(nsd), k0,k1 ! mean curvature
 c
-          real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
+          real*8 :: alpha,jump_u01(5),climit,jump_y(5),A0_jump_y(5)
+          real*8 :: eig0_1, eig0_2, eig0_3, eig1_1, eig1_2, eig1_3
 c
           element_loop: do iel = 1,npro
 c
@@ -382,40 +395,40 @@ c
 c
 c... Here is the additional stability terms from the Lax-Friedrichs flux calculations
 c
-            climit = zero
-c            climit = one
-CC            climit = 1.e-1
-            alpha_LF(iel) = climit * max(abs(dot_product(u0(iel,:)-um0(iel,:),nv0(iel,:))-c0(iel)),
-     &                  abs(dot_product(u1(iel,:)-um1(iel,:),nv1(iel,:))-c1(iel)))
+c            climit = zero
+            climit = one
+c            climit = 1.e-3
+c... get the eigenvalue of the {A_i n_i} matrix for each phase, each phase should have
+c... 5 eigenvalues but 3 would be the same.
+            eig0_1 = dot_product(u0(iel,:)-um0(iel,:),nv0(iel,:)) - c0(iel)
+            eig0_2 = dot_product(u0(iel,:)-um0(iel,:),nv0(iel,:))
+            eig0_3 = dot_product(u0(iel,:)-um0(iel,:),nv0(iel,:)) + c0(iel)
+c
+            eig1_1 = dot_product(u1(iel,:)-um1(iel,:),nv1(iel,:)) - c1(iel)
+            eig1_2 = dot_product(u1(iel,:)-um1(iel,:),nv1(iel,:))
+            eig1_3 = dot_product(u1(iel,:)-um1(iel,:),nv1(iel,:)) + c1(iel)
+c... calculate the factor alpha for LF flux
+            alpha_LF(iel) = climit * max( abs(eig0_1),abs(eig0_2),
+     &                                    abs(eig0_3),abs(eig1_1),
+     &                                    abs(eig1_2),abs(eig1_3) )
             alpha = alpha_LF(iel)
-c
-            jump_u(1) = rho0(iel) - rho1(iel)
-            jump_u(2) = rho0(iel)*u0(iel,1) - rho1(iel)*u1(iel,1)
-            jump_u(3) = rho0(iel)*u0(iel,2) - rho1(iel)*u1(iel,2)
-            jump_u(4) = rho0(iel)*u0(iel,3) - rho1(iel)*u1(iel,3)
-            jump_u(5) = rho0(iel)*(ei0(iel)+pt50*dot_product(u0(iel,:),u0(iel,:))) 
-     &                - rho1(iel)*(ei1(iel)+pt50*dot_product(u1(iel,:),u1(iel,:)))
-c
-            jump_y(1) = pres0(iel) - pres1(iel)
-            jump_y(2) = u0(iel,1) - u1(iel,1)
-            jump_y(3) = u0(iel,2) - u1(iel,2)
-            jump_y(4) = u0(iel,3) - u1(iel,3)
-            jump_y(5) = T0(iel) - T1(iel)
-c
-            A0_jump_y = zero
-c
-            do iflow = 1,nflow
-              do jflow = 1,nflow
-                A0_jump_y(iflow) = A0_jump_y(iflow) + pt50*(A0_0(iel,iflow,jflow)+A0_1(iel,iflow,jflow))*jump_y(jflow)
-              enddo 
-            enddo
+c... calculate the jump of the conservative varibles U0-U1 and U1-U0 
+            jump_u01(1) = rho0(iel) - rho1(iel)
+            jump_u01(2) = rho0(iel)*u0(iel,1) - rho1(iel)*u1(iel,1)
+            jump_u01(3) = rho0(iel)*u0(iel,2) - rho1(iel)*u1(iel,2)
+            jump_u01(4) = rho0(iel)*u0(iel,3) - rho1(iel)*u1(iel,3)
+            jump_u01(5) = rho0(iel)*(ei0(iel)
+     &                  +pt50*dot_product(u0(iel,:),u0(iel,:))) 
+     &                  - rho1(iel)*(ei1(iel)
+     &                  +pt50*dot_product(u1(iel,:),u1(iel,:)))
 c
 CC      ri0(iel,16:20) = ri0(iel,16:20) + pt50*alpha*jump_u(1:5)
 CC      ri1(iel,16:20) = ri1(iel,16:20) - pt50*alpha*jump_u(1:5)
 c      write(*,11) 'ri0 a: ',iel,ri0(iel,16:20)
 c      write(*,11) 'ri1 a: ',iel,ri1(iel,16:20)
-      ri0(iel,16:20) = ri0(iel,16:20) + alpha*A0_jump_y(1:5)
-      ri1(iel,16:20) = ri1(iel,16:20) - alpha*A0_jump_y(1:5)
+      ri0(iel,16:20) = ri0(iel,16:20) + pt50*alpha*jump_u01(1:5)
+c
+      ri1(iel,16:20) = ri1(iel,16:20) - pt50*alpha*jump_u01(1:5)
 c
 C... Do we account for surface tension in jump?
 c
