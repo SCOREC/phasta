@@ -758,6 +758,8 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
     dgifinp.if_e_dc = (double)inp.GetValue("DG Interface DC Factor");
+// DG interface HEAT OF REACTION input parameters
+    dgifinp.if_reaction_heat = (double)inp.GetValue("DG Interface Heat of Reaction (J/kg)");
 
 //for mesh-elastic--------------------------------------------
     if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "True"){
