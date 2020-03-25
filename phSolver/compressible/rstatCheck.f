@@ -72,7 +72,7 @@ c
         totres = sqrt(totres)
 c
 c       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.10000.0*ResLast)) then !diverging
-       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0e32*ResLast)) then !debugging
+       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.1.0e12*ResLast)) then !change the standard for diverging
                call restar('out ',y,res) ! 'res' is used instead of 'ac'
                if(myrank.eq.0) write(*,*) 'ResLast totres', ResLast, totres
                if(myrank.eq.0) write(*,*) 'resmax', resmax
@@ -80,7 +80,7 @@ c       if((istep.gt.1).and.(iter.gt.1).and.(totres.gt.10000.0*ResLast)) then !d
                call error('rstat    ','Diverge', iter)
        endif
        ResLast=totres
-	ttim(68) = ttim(68) + secs(0.0)
+       ttim(68) = ttim(68) + secs(0.0)
 
 c
 c.... return

@@ -13,6 +13,7 @@ c
      &,                       ieos_ideal_gas_mixture = 3
      &,                       ieos_liquid_1  = 4
      &,                       ieos_solid_1   = 10
+     &,                       ieos_noble_abel = 5
 c
         integer, parameter :: iprop_ideal_gas_mw     = 1  ! molecular weight
      &,                       iprop_ideal_gas_gamma  = 2
@@ -38,7 +39,12 @@ c......Adding the solid capability
      &,                       iprop_solid_1_cond     = 8
 C      &,                       iprop_solid_1_shearMod = 7
 C      &,                       iprop_solid_1_bulkMod  = 8
-
+! Adding EOS parametrs  for Noble Abel EOS
+     &,                       iprop_noble_abel_mw     = 1  ! molecular weight
+     &,                       iprop_noble_abel_gamma  = 2
+     &,                       iprop_noble_abel_visc   = 3
+     &,                       iprop_noble_abel_cond   = 4
+     &, 		      iprop_noble_abel_coVol  = 5  ! Covolume, parameter b
 c
         integer :: surface_tension_flag
         integer :: datelas_volume_YM

@@ -54,6 +54,9 @@ c
           e3_mfree_ptr => e3_mfree_solid
           getthm6_ptr => getthm6_solid_1
           getthm7_ptr => getthm7_solid_1
+	case (ieos_noble_abel)
+          getthm6_ptr => getthm6_noble_abel
+          getthm7_ptr => getthm7_noble_abel
         case default
           call error ('getthm  ', 'wrong material', mattyp)
         end select

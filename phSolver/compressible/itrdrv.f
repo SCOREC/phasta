@@ -709,14 +709,16 @@ c
 c
                       lhs = 1  
                       iprec=lhs
+
 c
 c.... update interface mesh bc based on umesh
 c.... we should have correct umesh at this point
 c... hack when to update the interface velocity
                      call set_if_velocity (BC,  iBC, 
-     &                                umesh,    disp, x,  Delt(1),   ilwork,
-     &                                nshg,  ndofBC,
-     &                                nsd,   nelblif, nlwork, ndof )
+     &                                     umesh,    disp, x,  Delt(1),
+     &                                     ilwork,   nshg, ndofBC,
+     &                                     nsd,   nelblif, nlwork,
+     &                                     ndof)
 c
 c
                     do inode = 1, nshg
