@@ -25,6 +25,10 @@ c
         integer, allocatable :: ifFlag(:)
       end module
 
+      module resourceBoundFactor
+        real*8,  allocatable :: err_tri_factor(:)
+      end module
+
       module BLparameters
         real*8, allocatable  :: BLflt(:)
         real*8, allocatable  :: BLgr(:)
@@ -37,6 +41,7 @@ c
 
       use m2gfields
       use interfaceflag
+      use resourceBoundFactor
       use rigidBodyReadData
       use BLparameters
 
@@ -87,6 +92,7 @@ c
       integer, target, allocatable :: tmpifFlag(:)
       integer, target, allocatable :: tmprbIDs(:), tmprbMTs(:), tmprbFlags(:)
       real*8, target, allocatable  :: tmprbParamRead(:,:)
+      real*8, target, allocatable  :: tmperr_tri_factor(:)
       integer fncorpsize
       character*10 cname2, cname2nd
       character*8 mach2
@@ -965,6 +971,34 @@ c read in umesh
 c
 c.... end read ALE stuff
 c
+c.... read in error trigger factor (c_t*c_N)
+c
+      intfromfile=0
+       call phio_readheader(fhandle,
+     & c_char_'err_tri_f' //char(0),
+     & c_loc(intfromfile), ione, dataInt, iotype)
+       allocate( err_tri_factor(numel) )
+       if(intfromfile(1).ne.0) then
+          if (intfromfile(1) .ne. numel)
+     &        call error ('restar  ', 'err_tri  ', numel)
+
+          allocate( tmperr_tri_factor(numel) )
+          tmperr_tri_factor=zero
+
+          call phio_readdatablock(fhandle,
+     &    c_char_'err_tri_f' // char(0),
+     &    c_loc(tmperr_tri_factor), numel, dataDbl,iotype)
+          err_tri_factor = tmperr_tri_factor
+          deallocate(tmperr_tri_factor)
+       else
+          if (myrank.eq.master) then
+             warning='Error trigger factor is set to one (SAFE)'
+             write(*,*) warning
+          endif
+          err_tri_factor=one
+       endif
+c
+c.... end read time resource bound factor
 c
 c.... read in rigid body data
 c

@@ -46,6 +46,7 @@ c
       use dc_lag_func_m
       use dc_lag_data_m
       use post_param_m
+      use resourceBoundFactor
 c
         include "common.h"
         include "mpif.h"
@@ -102,6 +103,7 @@ c
        real*8  umesh(numnp,nsd),    meshq(numel),
      &         disp(numnp, nsd),    elasDy(nshg,nelas),
      &         umeshold(numnp, nsd), xold(numnp,nsd)
+       real*8  xoldold(numnp,nsd)
 c
 c.... For surface mesh snapping
 c
@@ -111,7 +113,7 @@ c
 c.... For mesh quality measure
 c
        real*8  x1(numnp), x2(numnp), x3(numnp)
-       real*8  minvq, minfq
+       real*8  minvq, minfq, err_tri_f, err_correct_f
 c
        logical alive
 
@@ -182,6 +184,7 @@ c
         umeshold = umesh
         xold   = x
         triggerNow = 0
+        ntoutv=max(ntout,100) 
 
 !Blower Setup
        call BC_init(Delt, lstep, BC)  !Note: sets BC_enable
@@ -880,10 +883,45 @@ c
                alfi =alfit
                gami =gamit
                almi =almit  
-            endif          
+            endif
+c
+            xoldold = xold
+            call itrUpdateElas ( xold, x)
+c
+c.... -----------------> check mesh quality <-----------------
+c
+            if (autoTrigger .eq. 1) then
+              x1 = x(:,1)
+              x2 = x(:,2)
+              x3 = x(:,3)
+              call core_measure_mesh(x1, x2, x3, numnp, minvq, minfq)
+              ! allreduce to minimum
+              call MPI_ALLREDUCE(MPI_IN_Place, minvq, 1,
+     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
+              call MPI_ALLREDUCE(MPI_IN_Place, minfq, 1,
+     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
+              if(myrank .eq. master) then
+                write(*,*) "minvq = ", minvq, "minfq = ", minfq
+              endif
+              if ( (minvq .lt. volMeshqTol) .or.
+     &             (minfq .lt. faceMeshqTol) ) then
+                triggerNow = 1
+              endif ! end check if mesh quality less than tolerance
+c.... allreduce triggerNow
+              call MPI_ALLREDUCE(MPI_IN_Place, triggerNow, 1,
+     &             MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierr )
+              if (triggerNow == 1) then
+                if(myrank .eq. master) then
+                  write(*,*) "revert one time step!!!!!!"
+                endif
+                xold = xoldold
+                goto 8888
+              endif
+            endif ! end auto_trigger option
+c
+c.... -----------------> end check mesh quality <-----------------
 c
             call itrUpdate( yold,  acold,   y,    ac)
-            call itrUpdateElas ( xold, x)
             umeshold = umesh
             if (numrbs .gt. 0) then
               call update_rbParam
@@ -912,7 +950,6 @@ c               call itrBC (y,  ac,  iBC,  BC, iper, ilwork)
 c     
             istep = istep + 1
             lstep = lstep + 1
-            ntoutv=max(ntout,100) 
             !boundary flux output moved after the error calculation so
             !everything can be written out in a single chunk of code -
 c
@@ -970,7 +1007,7 @@ c
 c.... if we need to collect some post-processing variables
             if ((imeshCFL        .eq. 1) .or.
      &          (errorEstimation .ge. 1) ) then
-              call ElmPost(y,             ac,            x,
+              call ElmPost(yold,          acold,         x,
      &                     shp,           shgl,          iBC,
      &                     BC,            shpb,          shglb,
      &                     shpif,         shgif,
@@ -1023,47 +1060,13 @@ c
               endif
             endif
 c
-c.... -----------------> check if auto trigger <-----------------
+c.... allreduce triggerNow
 c
-            if (autoTrigger .eq. 1) then
-              x1 = x(:,1)
-              x2 = x(:,2)
-              x3 = x(:,3)
-              call core_measure_mesh(x1, x2, x3, numnp, minvq, minfq)
-              ! allreduce to minimum
-              call MPI_ALLREDUCE(MPI_IN_Place, minvq, 1,
-     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
-              call MPI_ALLREDUCE(MPI_IN_Place, minfq, 1,
-     &          MPI_REAL8, MPI_MIN, MPI_COMM_WORLD, ierr )
-              if(myrank .eq. master) then
-                write(*,*) "minvq = ", minvq, "minfq = ", minfq
-              endif
-              if ( (minvq .lt. volMeshqTol) .or.
-     &             (minfq .lt. faceMeshqTol) ) then
-                if(myrank .eq. master) then
-                  write(*,*) "we need to trigger mesh adaptation!"
-                endif
-                triggerNow = 1
-              endif ! end check if mesh quality less than tolerance
+            call MPI_ALLREDUCE(MPI_IN_Place, triggerNow, 1,
+     &           MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierr )
 c
-c.... check if error larger than threshold
-              if (errorEstimation .ge. 1) then
-                if (errorTriggerEqn .eq. 1) then
-                  if (errorMaxMass .ge. errorTolMass) triggerNow = 1
-                else if (errorTriggerEqn .eq. 2) then
-                  if (errorMaxMomt .ge. errorTolMomt) triggerNow = 1
-                else if (errorTriggerEqn .eq. 3) then
-                  if (errorMaxEngy .ge. errorTolEngy) triggerNow = 1
-                else if (errorTriggerEqn .eq. 4) then
-                  if ((errorMaxMass .ge. errorTolMass) .or.
-     &                (errorMaxMomt .ge. errorTolMomt) .or.
-     &                (errorMaxEngy .ge. errorTolEngy)) triggerNow = 1
-                endif ! end check if error larger than threshold
-              endif ! end if error estimation option is on
-            endif ! end auto_trigger option
-c
-c.... ---------------> end check if auto trigger <---------------
-c
+ 8888    continue
+
             !here is where we save our averaged field.  In some cases we want to
             !write it less frequently
             if( (irs >= 1) .and. (
@@ -1092,10 +1095,10 @@ c... write solution and fields
                  if (iALE .gt. 0) then 
                    call write_field(
      &                  myrank,'a'//char(0),'motion_coords'//char(0),13,
-     &                  x,     'd'//char(0), numnp, nsd, lstep)
+     &                  xold,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'mesh_vel'//char(0),  8,
-     &                  umesh, 'd'//char(0), numnp, nsd, lstep)
+     &                  umeshold, 'd'//char(0), numnp, nsd, lstep)
 c                   call write_field(
 c     &                  myrank,'a'//char(0),'xdot'//char(0), 4,
 c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
@@ -1112,6 +1115,9 @@ c     &                  xdot,  'd'//char(0), numnp, nsd, lstep)
                    call write_field(
      &                  myrank,'a'//char(0),'VMS_error'//char(0), 9,
      &                  VMS_error, 'd'//char(0), numel, 5, lstep)
+                   call write_field(
+     &                  myrank,'a'//char(0),'err_tri_f'//char(0), 9,
+     &                  err_tri_factor, 'd'//char(0), numel, 1, lstep)
                  endif
                  if (numrbs .gt. 0) then
                    call write_rbParam
@@ -1141,10 +1147,10 @@ c
                if (iALE .gt. 0) then 
                  call write_field(
      &                myrank,'a'//char(0),'motion_coords'//char(0),13,
-     &                x,     'd'//char(0), numnp, nsd, lstep)
+     &                xold,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'mesh_vel'//char(0),  8,
-     &                umesh, 'd'//char(0), numnp, nsd, lstep)
+     &                umeshold, 'd'//char(0), numnp, nsd, lstep)
 c                 call write_field(
 c     &                myrank,'a'//char(0),'xdot'//char(0), 4,
 c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
@@ -1161,6 +1167,9 @@ c     &                xdot,  'd'//char(0), numnp, nsd, lstep)
                  call write_field(
      &                myrank,'a'//char(0),'VMS_error'//char(0), 9,
      &                VMS_error, 'd'//char(0), numel, 5, lstep)
+                 call write_field(
+     &                myrank,'a'//char(0),'err_tri_f'//char(0), 9,
+     &                err_tri_factor, 'd'//char(0), numel, 1, lstep)
                endif
                if (numrbs .gt. 0) then
                  call write_rbParam

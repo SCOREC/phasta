@@ -55,6 +55,7 @@ c
         use probe_m
         use post_param_m
         use dc_lag_data_m
+        use resourceBoundFactor
 c
         include "common.h"
         include "mpif.h"
@@ -82,6 +83,7 @@ c
         real*8  rerr(nshg,10)
 c
         real*8  tempMomtError
+        real*8  err_tri_f,    err_ct_cn,   err_f_m
 c
         real*8, allocatable :: tmpshp(:,:), tmpshgl(:,:,:)
         real*8, allocatable :: tmpshpb(:,:), tmpshglb(:,:,:)
@@ -172,6 +174,14 @@ c
       endif                     ! computation of global diffusive flux
 c
 c.... loop over element blocks to compute element residuals
+c
+c.... get variables for error estimation
+c
+        if (errorEstimation .eq. 1) then
+          err_f_m = 1.0
+        else if (errorEstimation .eq. 2) then
+          err_f_m = 0.0
+        endif
 c
 c.... initialize the arrays
 c
@@ -278,6 +288,29 @@ c.... record the max error
      &            errorMaxMomt = tempMomtError
               if (VMS_errorblk(i,5) .gt. errorMaxEngy)
      &            errorMaxEngy = VMS_errorblk(i,5)
+c
+c.... if auto trigger mesh adaptation
+              if (autoTrigger .eq. 1) then
+c.... get error factor to determine if trigger adapter
+                err_ct_cn=err_tri_factor(mieMap(iblk)%p(i))
+                err_tri_f=(errorTriggerFactor*err_ct_cn)**(3.5-err_f_m)
+c.... check if trigger mesh adapter or not
+                if (errorTriggerEqn .eq. 1) then
+                  if (VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
+     &              triggerNow = 1
+                else if (errorTriggerEqn .eq. 2) then
+                 if (tempMomtError     .ge. errorTolMomt * err_tri_f)
+     &               triggerNow = 1
+                else if (errorTriggerEqn .eq. 3) then
+                  if (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f)
+     &              triggerNow = 1
+                else if (errorTriggerEqn .eq. 4) then
+                  if((VMS_errorblk(i,1) .ge. errorTolMass * err_tri_f)
+     &          .or. (tempMomtError     .ge. errorTolMomt * err_tri_f)
+     &          .or. (VMS_errorblk(i,5) .ge. errorTolEngy * err_tri_f))
+     &              triggerNow = 1
+                endif ! end check if error larger than threshold
+              endif ! end check if auto trigger
             enddo
           endif
 c

@@ -291,6 +291,8 @@ c
 c
         deallocate(ifFlag)
 c
+        deallocate(err_tri_factor)
+c
         deallocate(rbIDs)
         deallocate(rbMTs)
         deallocate(rbFlags)

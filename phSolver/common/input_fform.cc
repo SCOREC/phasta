@@ -808,6 +808,15 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
 
+    if ((string)inp.GetValue("Include Time Term in Error Tau") == "True" ) {
+      meshquality.errorTimeTerm = 1;
+    } else if ((string)inp.GetValue("Include Time Term in Error Tau") == "False" ) {
+      meshquality.errorTimeTerm = 0;
+    } else {
+      cout << " Include Time Term in Error Tau: Only Legal Values ( True, False )" <<endl;
+      exit(1);
+    }
+
     if ((string)inp.GetValue("Error Trigger Equation Option") == "Mass" ) {
       meshquality.errorTriggerEqn = 1;
     } else if ((string)inp.GetValue("Error Trigger Equation Option") == "Momentum" ) {
@@ -821,9 +830,10 @@ int input_fform(phSolver::Input& inp)
       exit(1);
     }
 
-    meshquality.errorTolMass = inp.GetValue("Error Threshold for Mass Equation");
-    meshquality.errorTolMomt = inp.GetValue("Error Threshold for Momentum Equation");
-    meshquality.errorTolEngy = inp.GetValue("Error Threshold for Energy Equation");
+    meshquality.errorTriggerFactor = inp.GetValue("Error Trigger Buffer Factor");
+    meshquality.errorTolMass = inp.GetValue("Target Error for Mass Equation");
+    meshquality.errorTolMomt = inp.GetValue("Target Error for Momentum Equation");
+    meshquality.errorTolEngy = inp.GetValue("Target Error for Energy Equation");
 
 //for auto trigger mesh adaptation----------------------------
 

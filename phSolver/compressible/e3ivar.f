@@ -444,7 +444,14 @@ c
 
             enddo
          endif                  !end of idiff
-c     
+c
+c         do i = 1, npro
+c           do j = 1, 4
+c             write(*,*) "divqi,npro,eqn,xyz:",divqi(i,j),i,j,
+c     &                   xl(i,intp,1),xl(i,intp,2),xl(i,intp,3)
+c           enddo
+c         enddo
+c
          if (isurf .eq. 1) then   
 c .... divergence of normal calculation
           do n=1, nshl

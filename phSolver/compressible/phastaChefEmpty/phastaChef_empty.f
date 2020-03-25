@@ -14,7 +14,8 @@ c
      &                               px(numnp), py(numnp), pz(numnp)
         end subroutine
 c
-        subroutine core_is_in_closure(e_dim, e_tag, t_dim, t_tag, answer)
+        subroutine core_is_in_closure( e_dim, e_tag,
+     &                                 t_dim, t_tag, answer )
      &    bind(C, NAME='core_is_in_closure')
         use iso_c_binding
           integer(c_int),intent(in) :: e_dim, e_tag, t_dim, t_tag

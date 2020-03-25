@@ -199,7 +199,7 @@ void countfieldstowriterestart()
   }
 
   if(meshquality.errorEstimation >= 1) {
-    nfields++; /* VMS_error */
+    nfields+=2; /* VMS_error, err_tri_factor */
   }
 
   if(outpar.ivort == 1){
