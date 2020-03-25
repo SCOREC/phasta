@@ -30,7 +30,8 @@ c... Clausius-Clapeyron:
      &,                            mw_mix      ! mixture molecular weight
      &,                            vap_rate
      &,                            un0,un1     ! velocity in normal direction
-c
+c... VHBR
+        real*8, dimension(npro) :: scaled_p
 #define debug 0
         select case (vi_ramping)
         case (no_ramp)
@@ -133,6 +134,26 @@ c      vi(:,1) = nv1(:,1)*(min(vi_max,cprod*max(zero,pres0-pvap)))
 c      vi(:,2) = nv1(:,2)*(min(vi_max,cprod*max(zero,pres0-pvap)))
 c      vi(:,3) = nv1(:,3)*(min(vi_max,cprod*max(zero,pres0-pvap)))
 c
+c... adding the curve-fitted burning law for VHBR problem,
+c... burning rate r = 10^( a*(log10(p))^3 + b*(log10(p))^2 + c*(log10(p)) +d ) + e
+c... here a,b,c,d,e are the inputs
+        case(VHBR)
+          scaled_p = p/p_scale
+c
+          vi(:,1) = (10**( a_fit*dlog10(scaled_p)**3
+     &                   + b_fit*dlog10(scaled_p)**2 
+     &                   + c_fit*dlog10(scaled_p) 
+     &                   + d_fit) + e_fit) * nv0(:,1)
+          vi(:,2) = (10**( a_fit*dlog10(scaled_p)**3 
+     &                   + b_fit*dlog10(scaled_p)**2 
+     &                   + c_fit*dlog10(scaled_p) 
+     &                   + d_fit) + e_fit) * nv0(:,2)
+
+          vi(:,3) = (10**( a_fit*dlog10(scaled_p)**3 
+     &                   + b_fit*dlog10(scaled_p)**2 
+     &                   + c_fit*dlog10(scaled_p) 
+     &                   + d_fit) + e_fit) * nv0(:,3)
+c...
         case default
           call error ('ERROR in e3if_vi:',' phase_change_model is not supported.',phase_change_model)
         end select

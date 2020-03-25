@@ -50,6 +50,7 @@ void populate_dg_phaseChange_model
   this_map.insert(map<string,int>::value_type("Vieille's-Burning", idg_vieilles_burning));
   this_map.insert(map<string,int>::value_type("Clausius-Clapeyron", idg_clausius_clapeyron));
   this_map.insert(map<string,int>::value_type("Cavitation", idg_cavitation));
+  this_map.insert(map<string,int>::value_type("VHBR", idg_VHBR));
 }
 
 int input_fform(phSolver::Input& inp)
@@ -728,6 +729,13 @@ int input_fform(phSolver::Input& inp)
       dgifinp.hfg_liquid     = (double)inp.GetValue("Enthalpy of Vaporization");
       dgifinp.mw_liquid      = (double)inp.GetValue("Molecular Weight of Liquid");
       dgifinp.T_boil_liquid  = (double)inp.GetValue("Boiling Temperature");}
+    else if (sbuf == "VHBR") {
+      dgifinp.a_fit          = (double)inp.GetValue("Coefficient of 3rd Order Term for Log(pressure)");
+      dgifinp.b_fit          = (double)inp.GetValue("Coefficient of 2nd Order Term for Log(pressure)");
+      dgifinp.c_fit          = (double)inp.GetValue("Coefficient of 1st Order Term for Log(pressure)");
+      dgifinp.d_fit          = (double)inp.GetValue("Coefficient of zero Order Term for Log(Pressure)");
+      dgifinp.e_fit          = (double)inp.GetValue("Base Burning Rate");
+      dgifinp.p_scale        = (double)inp.GetValue("Pressure Scale");}
       
 // methods of interface normal calculation
     if((string)inp.GetValue("Interface Normal") == "Constant"){
