@@ -116,7 +116,10 @@ c... assigning material properties pointers
             iblk_solid = iblk 
             e3_malloc_ptr => e3_malloc_solid
             e3_mfree_ptr => e3_mfree_solid
-          case default
+          case (ieos_noble_abel)
+            getthm6_ptr => getthm6_noble_abel
+            getthm7_ptr => getthm7_noble_abel
+         case default
             call error ('getthm  ', 'wrong material', mater)
           end select
 c.. allocate arrays at element level
