@@ -100,9 +100,15 @@ c
             call calc_normal_vectors(nv1,area,WdetJif1,xl1,qwtif1,itpid,lcsyst1,intp1,npro)
 c
 c... replace the normal with the weighted normal if needed
+c... !AC
+c... Will use constant normals at the element level for surface tension
+c... applications. But at the solver.inp level specifying weighted
+c... normals is important as certain data structures are created when
+c... weighted normals are specified. These data structures are essential for
+c... the specification of interface velocity (vi) at the nodal level.
             if (i_w_normal .eq. 1) then
-              call get_weighted_normal(nv0, w_normal_l0, shp0, nshl0)                        
-              call get_weighted_normal(nv1, w_normal_l1, shp1, nshl1)
+              !call get_weighted_normal(nv0, w_normal_l0, shp0, nshl0)                        
+              !call get_weighted_normal(nv1, w_normal_l1, shp1, nshl1)
             endif
 c
 c... calculate the integration varibles
