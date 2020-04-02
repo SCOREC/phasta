@@ -312,8 +312,7 @@ c
         use weighted_normal_data_m !for weighted normal
         use interfaceflag ! for weighted normal
         use dgifinp_m, only: i_w_normal
-        use dc_lag_data_m
-        use interface_velocity_m, only:vi_normal_global     
+        use dc_lag_data_m     
 c
         include "common.h"
         include "mpif.h"
@@ -1078,15 +1077,6 @@ c
           deallocate (if_kappa)
           nullify(if_kappa)
         endif
-c... testing, getting the global normal for interface velocity calcuation
-        if (i_w_normal .eq. 1) then
-          do i = 1, nshg
-            vi_normal_global(i,:) = w_normal_global(i,:)
-          enddo
-        else
-          call error ('elm  ', 'only supporting test with weighted normal', i_w_normal)
-        endif
-c... end of testing        
 c... deallocation of the arrays used in weighted normal
         if (i_w_normal .eq. 1) then
           deallocate(w_normal_global)
