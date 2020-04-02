@@ -354,6 +354,7 @@ c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
 c... added
           real*8 :: f_mon_n0, f_mon_n1          
+          real*8 :: mom_jump_normal, mom_jump_exact        
 c
           element_loop: do iel = 1,npro
 c
@@ -408,10 +409,19 @@ c        write(*,11) 'f0n1:',iel,f0n1
 c      endif
 c... calculating the flux jump
             f_jump(iel,1:5) =  f1n1(1:5) + f0n0(1:5)
+            mom_jump_normal = dot_product(f_jump(iel,2:4),nv1(iel,:))
+            mom_jump_exact = 140.0d0
 c... calculating the L2 norm of flux jump
-            do iflow = 1,nflow
+              int_err_if_flux_blk(iel,1) = int_err_if_flux_blk(iel,1)
+     &                                       + f_jump(iel,1)**two
+     &                                       * WdetJif1(iel)
+               int_err_if_flux_blk(iel,5) = int_err_if_flux_blk(iel,5)
+     &                                       + f_jump(iel,5)**two
+     &                                       * WdetJif1(iel)
+ 
+            do iflow = 2,4
               int_err_if_flux_blk(iel,iflow) = int_err_if_flux_blk(iel,iflow)
-     &                                       + f_jump(iel,iflow)**two
+     &                                   +(mom_jump_normal - mom_jump_exact)**two
      &                                       * WdetJif1(iel)
             enddo
 c
@@ -419,7 +429,7 @@ c
      &                          + f1n1(1)
      &                          * WdetJif1(iel)
             int_flux_blk(iel,2:4) = int_flux_blk(iel,2:4)
-     &                            + f_mon_n1
+     &                            + mom_jump_exact
      &                            * WdetJif1(iel)
             int_flux_blk(iel,5) = int_flux_blk(iel,5)
      &                          + f1n1(5)

@@ -928,8 +928,8 @@ c
           endif
           if (associated(if_kappa)) then
             if (if_kappa(inode,nsd+1) > zero) 
-C     &        if_kappa(inode,1:nsd) = if_kappa(inode,1:nsd)/if_kappa(inode,nsd+1)
-     &        if_kappa(inode,1:nsd) = pt50*if_kappa(inode,1:nsd)/if_kappa(inode,nsd+1)
+     &        if_kappa(inode,1:nsd) = if_kappa(inode,1:nsd)/if_kappa(inode,nsd+1)
+c     &        if_kappa(inode,1:nsd) = pt50*if_kappa(inode,1:nsd)/if_kappa(inode,nsd+1)
           endif
         enddo
 c
