@@ -610,11 +610,6 @@ c                        write(*,*) 'lhs=',lhs
      &                       shpif,         shgif,
      &                       solinc,        rerr,          umesh)
 c
-                      call set_if_velocity (BC,     iBC,     umesh,
-     &                                      disp,   x,       Delt(1),
-     &                                      ilwork, nshg,    ndofBC,
-     &                                      nsd,    nelblif, nlwork,
-     &                                      ndof)
 c
                     endif
                       else if (mod(impl(1),100)/10 .eq. 2) then ! mfg solve
