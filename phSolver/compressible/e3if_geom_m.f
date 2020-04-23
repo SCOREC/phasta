@@ -216,7 +216,7 @@ c
             if_kappa_l(iel,3,1:nsd) = pt5*(cot0(1)*v2-cot0(2)*v3)
 c
             obtuse = any(cot0(:) < zero)
-      obtuse = .false.
+c      obtuse = .false.
 c
             if (.not. obtuse) then
               if_kappa_l(iel,1,nsd+1) = pt125*(cot0(3)*l1sq+cot0(2)*l3sq)
