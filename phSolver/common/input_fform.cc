@@ -769,7 +769,36 @@ int input_fform(phSolver::Input& inp)
     dgifinp.if_e_dc = (double)inp.GetValue("DG Interface DC Factor");
 // DG interface HEAT OF REACTION input parameters
     dgifinp.if_reaction_heat = (double)inp.GetValue("DG Interface Heat of Reaction (J/kg)");
+// Hacking the tangential mesh displacements(velocity) for the circular cross-section problem
+     if ( (string)inp.GetValue("Direction of the longer axis") == "No hack" ){
+           hackcir.cir_axis_flag = 0;
+          }
+     else if ( (string)inp.GetValue("Direction of the longer axis") == "X" ){
+           hackcir.cir_axis_flag = 1;
+          }
+     else if ( (string)inp.GetValue("Direction of the longer axis") == "Y" ){
+           hackcir.cir_axis_flag = 2;
+          }
+     else if ( (string)inp.GetValue("Direction of the longer axis") == "Z" ){
+           hackcir.cir_axis_flag = 3;
+          }
+     else {
+           cout << " Direction of the longer axis (No hack, X, Y, Z) ";
+           cout << endl;
+           exit(1);
+          }
 
+     hackcir.cir_num_face_tag = inp.GetValue("Number of hacked faces");
+     ivec = inp.GetValue("Hacked face tags");
+     for (i = 0; i < hackcir.cir_num_face_tag; ++i)
+       hackcir.cir_face_tag[i] = ivec[i];
+     ivec.erase(ivec.begin(),ivec.end());
+
+     hackcir.cir_num_edge_tag = inp.GetValue("Number of hacked edges");
+     ivec = inp.GetValue("Hacked edge tags");
+     for (i = 0; i < hackcir.cir_num_edge_tag; ++i)
+       hackcir.cir_edge_tag[i] = ivec[i];
+     ivec.erase(ivec.begin(),ivec.end());
 //for mesh-elastic--------------------------------------------
     if((string)inp.GetValue("Mesh Elastic Youngs Modulus Volume Option") == "True"){
       matdat.datelas_volume_YM = 1;

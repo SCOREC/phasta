@@ -498,6 +498,26 @@ c
      &                   a_fit, b_fit, c_fit, d_fit, e_fit, p_scale
       end module dgifinp_m
 c
+c---------------------------------------------------------------------
+c
+c....hack the tangential mesh displacements(velocity) for the circular
+c....cross-section problem
+c     
+      module hackcir_m
+        use iso_c_binding
+        use global_const_m    
+        implicit none
+        integer(c_int), target :: cir_axis_flag,  cir_num_face_tag,
+     &                            cir_num_edge_tag
+        integer(c_int), target, dimension(MAXTS) :: cir_face_tag,
+     &                                              cir_edge_tag
+        common /hackcir/ cir_axis_flag, cir_num_face_tag,
+     &                   cir_num_edge_tag, cir_face_tag,
+     &                   cir_edge_tag
+      end module hackcir_m
+c     
+c----------------------------------------------------------------------
+c
 c----------------------------------------------------------------------
 c
 c.... common /outpar/   : output parameters

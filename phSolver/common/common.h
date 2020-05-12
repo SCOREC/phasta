@@ -38,6 +38,7 @@ c
       use sclrs_m
       use precis_m
       use solpar_m
+      use hackcir_m
 
 	IMPLICIT REAL*8 (a-h,o-z)
 c

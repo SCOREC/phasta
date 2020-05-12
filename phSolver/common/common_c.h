@@ -42,6 +42,7 @@
 #define itrpnt FortranCInterface_GLOBAL_(itrpnt,ITRPNT)
 #define matdat FortranCInterface_GLOBAL_(matdat,MATDAT)
 #define dgifinp FortranCInterface_GLOBAL_(dgifinp,DGIFINP)
+#define hackcir FortranCInterface_GLOBAL_(hackcir,HACKCIR)
 #define mmatpar FortranCInterface_GLOBAL_(mmatpar,MMATPAR)
 #define outpar FortranCInterface_GLOBAL_(outpar,OUTPAR)
 #define point FortranCInterface_GLOBAL_(point,POINT)
@@ -592,6 +593,14 @@ extern "C" {
     double a_fit, b_fit, c_fit, d_fit, e_fit, p_scale;
   } dgifinp;
 
+  extern struct{
+    int cir_axis_flag;
+    int cir_num_face_tag;
+    int cir_num_edge_tag;
+    int cir_face_tag[MAXTS];
+    int cir_edge_tag[MAXTS];
+  } hackcir;    
+  
   extern struct { 
     double Rgas, gamma, gamma1, mw, coVolume;
     double pr;
