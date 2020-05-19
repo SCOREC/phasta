@@ -48,7 +48,7 @@ c
       use post_param_m
       use resourceBoundFactor
       use hackcir_m, only: cir_axis_flag
-      use hack_cir_tan_dir_m
+      use hack_cir_mesh_m
 c
         include "common.h"
         include "mpif.h"
@@ -756,7 +756,7 @@ c
 c
 c... hack for the circular cross-section case
                     if (cir_axis_flag .gt. 0) then
-                      call enfore_cir_tan(disp, umesh)
+                      call enfore_cir_mesh(disp, umesh)
                     endif 
 c
 c.... call to SolGMRElas ... For mesh-elastic solve
@@ -867,7 +867,7 @@ c... else normal update
      &                                iper,   ilwork        )
 c... hack for the circular cross-section case
                        if (cir_axis_flag .gt. 0) then
-                         call enfore_cir_tan(disp, umesh)
+                         call enfore_cir_mesh(disp, umesh)
                        endif 
 c
                      endif
