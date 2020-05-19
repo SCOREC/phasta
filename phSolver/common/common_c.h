@@ -593,7 +593,7 @@ extern "C" {
     double a_fit, b_fit, c_fit, d_fit, e_fit, p_scale;
   } dgifinp;
 
-  extern struct{
+  extern struct { 
     int cir_axis_flag;
     int cir_num_face_tag;
     int cir_num_edge_tag;
