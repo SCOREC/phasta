@@ -18,7 +18,9 @@ c
         use pointer_data
         use wallData            ! give access to wnorm, findWallNOrm
         use genshp_m
-
+        use hackcir_m, only: cir_axis_flag
+        use hack_cir_mesh_m
+c
         include "common.h"
         include "mpif.h"
 
@@ -117,7 +119,12 @@ c
         call genBC  (iBC,   BC,   point2x,
      &               point2ilwork, point2iper)
         deallocate(nBC)
-
+c... hack the problem for the circular cross-section problem
+        if (cir_axis_flag .gt. 0) then
+          call enfore_cir_mesh(iBC, BC)
+        endif 
+c       
+c... end of the hack
 c=========================================================================================
 c Yi Chen 
 c Duct geometry8

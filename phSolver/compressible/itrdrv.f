@@ -47,8 +47,6 @@ c
       use dc_lag_data_m
       use post_param_m
       use resourceBoundFactor
-      use hackcir_m, only: cir_axis_flag
-      use hack_cir_mesh_m
 c
         include "common.h"
         include "mpif.h"
@@ -754,11 +752,6 @@ c
      &                              BC(:,ndof+2:ndof+5),
      &                              iper,   ilwork)
 c
-c... hack for the circular cross-section case
-                    if (cir_axis_flag .gt. 0) then
-                      call enfore_cir_mesh(disp, umesh)
-                    endif 
-c
 c.... call to SolGMRElas ... For mesh-elastic solve
 c
                      call SolGMRElas (x,        disp,    iBC,    BC,
@@ -865,10 +858,6 @@ c... else normal update
                        call itrBCElas(umesh,  disp,  iBC,
      &                                BC(:,ndof+2:ndof+5),
      &                                iper,   ilwork        )
-c... hack for the circular cross-section case
-                       if (cir_axis_flag .gt. 0) then
-                         call enfore_cir_mesh(disp, umesh)
-                       endif 
 c
                      endif
 c
