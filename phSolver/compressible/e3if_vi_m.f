@@ -140,19 +140,40 @@ c... here a,b,c,d,e are the inputs
         case(VHBR)
           scaled_p = p/p_scale
 c
-          vi(:,1) = (10**( a_fit*dlog10(scaled_p)**3
-     &                   + b_fit*dlog10(scaled_p)**2 
-     &                   + c_fit*dlog10(scaled_p) 
-     &                   + d_fit) + e_fit) * nv0(:,1)
-          vi(:,2) = (10**( a_fit*dlog10(scaled_p)**3 
-     &                   + b_fit*dlog10(scaled_p)**2 
-     &                   + c_fit*dlog10(scaled_p) 
-     &                   + d_fit) + e_fit) * nv0(:,2)
+          do iel = 1, npro
+          if (scaled_p(iel) .lt. 91.2d0) then
+          vi(iel,1) = (10**( a_fit*dlog10(scaled_p(iel))**3
+     &                   + b_fit*dlog10(scaled_p(iel))**2 
+     &                   + c_fit*dlog10(scaled_p(iel)) 
+     &                   + d_fit) + e_fit) * nv0(iel,1)
+          vi(iel,2) = (10**( a_fit*dlog10(scaled_p(iel))**3 
+     &                   + b_fit*dlog10(scaled_p(iel))**2 
+     &                   + c_fit*dlog10(scaled_p(iel)) 
+     &                   + d_fit) + e_fit) * nv0(iel,2)
 
-          vi(:,3) = (10**( a_fit*dlog10(scaled_p)**3 
-     &                   + b_fit*dlog10(scaled_p)**2 
-     &                   + c_fit*dlog10(scaled_p) 
-     &                   + d_fit) + e_fit) * nv0(:,3)
+          vi(iel,3) = (10**( a_fit*dlog10(scaled_p(iel))**3 
+     &                   + b_fit*dlog10(scaled_p(iel))**2 
+     &                   + c_fit*dlog10(scaled_p(iel)) 
+     &                   + d_fit) + e_fit) * nv0(iel,3)
+          else if (scaled_p(iel) .lt. 150.0d0) then
+          vi(iel,1) = (-1.8055d2 +
+     &                 5.7262034d0*scaled_p(iel) - 
+     &                 4.87287d-2*scaled_p(iel)**2 +
+     &                 1.317395d-4*scaled_p(iel)**3)*nv0(iel,1)
+          vi(iel,2) = (-1.8055d2 + 
+     &                 5.7262034d0*scaled_p(iel) -
+     &                 4.87287d-2*scaled_p(iel)**2 +
+     &                 1.317395d-4*scaled_p(iel)**3)*nv0(iel,2)
+          vi(iel,3) = (-1.8055d2 + 
+     &                 5.7262034d0*scaled_p(iel) - 
+     &                 4.87287d-2*scaled_p(iel)**2 +
+     &                 1.317395d-4*scaled_p(iel)**3)*nv0(iel,3)
+          else
+          vi(iel,1) = 26.6d0*nv0(iel,1)
+          vi(iel,2) = 26.6d0*nv0(iel,2)
+          vi(iel,3) = 26.6d0*nv0(iel,3)
+          end if
+          end do 
 c...
         case default
           call error ('ERROR in e3if_vi:',' phase_change_model is not supported.',phase_change_model)
