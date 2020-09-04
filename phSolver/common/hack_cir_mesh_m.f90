@@ -98,8 +98,8 @@ c... change the ibc and bc array value for the flow
                     select case(cir_axis_flag)
                     case(1) ! long axis aligned with x
 c... change the ibc and bc array value for the flow
-                      if ( (ibits(iBC(i),3,3) .eq. 2) .or.
-     &                     (ibits(iBC(i),3,3) .eq. 4) ) then
+                      if ( (ibits(iBC(i),4,1) .eq. 1) .or.
+     &                     (ibits(iBC(i),5,1) .eq. 1) ) then
                          iBC(i) = ibset(iBC(i),4) !turn on the y,z components
                          iBC(i) = ibset(iBC(i),5) ! of the mesh
                          BC(i,3:6) = zero !change the bc value to make
@@ -107,8 +107,8 @@ c... change the ibc and bc array value for the flow
                       endif
                    case(2) ! long axis aligned with y
 c... change the ibc and bc array value for the flow
-                      if ( (ibits(iBC(i),3,3) .eq. 1) .or.
-     &                     (ibits(iBC(i),3,3) .eq. 4) ) then
+                      if ( (ibits(iBC(i),3,1) .eq. 1) .or.
+     &                     (ibits(iBC(i),5,1) .eq. 1) ) then
                          iBC(i) = ibset(iBC(i),3) !turn on the x,z components
                          iBC(i) = ibset(iBC(i),5) ! of the mesh
                          BC(i,3:6) = zero !change the bc value to make
@@ -116,8 +116,8 @@ c... change the ibc and bc array value for the flow
                       endif
                     case(3) ! long axis aligned with z
 c... change the ibc and bc array value for the flow
-                      if ( (ibits(iBC(i),3,3) .eq. 1) .or.
-     &                     (ibits(iBC(i),3,3) .eq. 2) ) then
+                      if ( (ibits(iBC(i),3,1) .eq. 1) .or.
+     &                     (ibits(iBC(i),4,1) .eq. 1) ) then
                          iBC(i) = ibset(iBC(i),3) !turn on the x,y components
                          iBC(i) = ibset(iBC(i),4) ! of the mesh
                          BC(i,3:6) = zero !change the bc value to make
