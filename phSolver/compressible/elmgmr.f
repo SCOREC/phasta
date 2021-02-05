@@ -314,9 +314,11 @@ c
         use dgifinp_m, only: i_w_normal
         use dc_lag_data_m
         use interface_velocity_m, only:vi_normal_global     
+        use print_interface_error_data_m ! interface error
 c
         include "common.h"
         include "mpif.h"
+        include "auxmpi.h"
 #define debug 0
 c
 #if debug==1 
@@ -745,6 +747,19 @@ c
       ttim(80) = ttim(80) + secs(0.0)
 c
 c.... -------------------->   interface elements   <--------------------
+c... initialize the global date for interface error
+        int_err_if_flux = zero
+        int_err_if_tan = zero
+        int_area = zero
+        int_flux = zero
+        int_y = zero
+c
+        if (nelblif .gt. zero) then ! if there is interface element in this rank
+          err_flag = 1
+        else
+          err_flag = -1
+        endif
+c...
 c
 c... loop over the interface element blocks
 c    The first loop is for interface outward normal vector calculations on the interface
@@ -957,6 +972,21 @@ c
             ienif0 => mienif0(iblk)%p
             ienif1 => mienif1(iblk)%p
 c
+c... allocate and initialize the date for interface error at blk level
+        if (err_flag .eq. 1) then ! if there is interface element in this rank
+          allocate(int_err_if_flux_blk(npro,nflow))
+          allocate(int_err_if_tan_blk(npro,nflow-2))
+          allocate(int_area_blk(npro))
+          allocate(int_flux_blk(npro,nflow))
+          allocate(int_y_blk(npro,nflow-2))
+c
+          int_err_if_flux_blk = zero
+          int_err_if_tan_blk = zero
+          int_area_blk = zero
+          int_flux_blk = zero
+          int_y_blk = zero          
+        endif
+c...
 c... set equations of state
 c
           get_vap_frac0 => e3if_empty
@@ -1056,6 +1086,25 @@ c
 c
           endif
 c
+c... sum up the interface error from each interface element
+          if (err_flag .eq. 1) then
+            do iel = 1, npro
+              do iflow = 1, nflow
+                int_err_if_flux(iflow) = int_err_if_flux(iflow) 
+     &                                 + int_err_if_flux_blk(iel,iflow)
+                int_flux(iflow) = int_flux(iflow)
+     &                          + int_flux_blk(iel,iflow)       
+              enddo
+              do i = 1, (nflow-2)
+                int_err_if_tan(i) = int_err_if_tan(i) 
+     &                                + int_err_if_tan_blk(iel,i)
+                int_y(i) = int_y(i) + int_y_blk(iel,i)
+              enddo  
+              int_area = int_area 
+     &                 + int_area_blk(iel)
+            enddo
+          endif
+c...
           call e3if_geom_mfree
           call e3if_mfree
 c
@@ -1067,12 +1116,68 @@ c... deallocation for weighted normal
           if (i_w_normal .eq. 1) then
             deallocate(w_normal_l0, w_normal_l1)
           endif          
+c... deallocate the date for interface error at blk level
+          if(err_flag .eq. 1) then
+            deallocate(int_err_if_flux_blk)
+            deallocate(int_err_if_tan_blk)
+            deallocate(int_area_blk)
+            deallocate(int_flux_blk)
+            deallocate(int_y_blk)
+          endif
+c...          
 c
         enddo if_blocks
 c
 #if debug==1
       write(*,'(a22,i6,5e24.16)') 'ELMGMR: after interface',idbg,res(idbg,:)
 #endif
+c... sum up the error from all ranks
+        if (numpe > 1) then
+            call MPI_REDUCE ( int_err_if_flux(1),  int_err_if_flux_rank(1), 
+     &                        5, MPI_DOUBLE_PRECISION,
+     &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+            call MPI_REDUCE ( int_flux(1),  int_flux_rank(1), 
+     &                        5, MPI_DOUBLE_PRECISION,
+     &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+            call MPI_REDUCE ( int_err_if_tan(1),  int_err_if_tan_rank(1), 
+     &                        3, MPI_DOUBLE_PRECISION,
+     &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+            call MPI_REDUCE ( int_y(1),  int_y_rank(1), 
+     &                        3, MPI_DOUBLE_PRECISION,
+     &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+            call MPI_REDUCE ( int_area,  int_area_rank, 
+     &                        1, MPI_DOUBLE_PRECISION,
+     &                        MPI_SUM, master, MPI_COMM_WORLD,ierr)
+        endif
+c... calculate the surface avg. interface error on master rank
+        if (myrank .eq. master) then
+          if (int_area_rank .gt. zero) then
+            do iflow = 1, nflow
+              error_if_flux(iflow) = sqrt(int_err_if_flux_rank(iflow)
+     &                                    /int_area_rank)
+              error_flux_nomalized(iflow) = error_if_flux(iflow)
+     &                                    / ( int_flux_rank(iflow) 
+     &                                    /  int_area_rank )
+            enddo            
+            do i = 1, (nflow-2)
+              error_if_tan(i)  = sqrt(int_err_if_tan_rank(i)
+     &                                    /int_area_rank)
+              error_tan_nomalized(i) = error_if_tan(i)
+     &                               / ( int_y_rank(i)
+     &                               /   int_area_rank )
+            enddo
+c... printouts
+            write(*,*) 'error of flux:',error_if_flux
+            write(*,*) 'error of tangential quantities:',error_if_tan
+            write(*,*) '--------------------normalized error------------------'
+            write(*,*) 'flux:',error_flux_nomalized
+            write(*,*) 'tangential quantities:',error_tan_nomalized            
+          else
+            write(*,*) 'error, no interface'
+          endif
+c
+        endif
+c...               
 c
         if (associated(if_kappa)) then
           deallocate (if_kappa)
