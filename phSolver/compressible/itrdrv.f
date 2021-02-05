@@ -722,13 +722,13 @@ c
 c.... update interface mesh bc based on umesh
 c.... we should have correct umesh at this point
 c... hack when to update the interface velocity
-c                     call set_if_velocity (BC,  iBC, 
-c     &                                umesh,    disp, x,  Delt(1),   ilwork,
-c     &                                nshg,  ndofBC,
-c     &                                nsd,   nelblif, nlwork, ndof )
+                     call set_if_velocity (BC,  iBC, 
+     &                                umesh,    disp, x,  Delt(1),   ilwork,
+     &                                nshg,  ndofBC,
+     &                                nsd,   nelblif, nlwork, ndof )
 c... testing calculating the interface velocity direction at global level
-                    call set_interface_velocity(umesh,  y,    BC, iBC,
-     &                                          ilwork, nlwork)
+c                    call set_interface_velocity(umesh,  y,    BC, iBC,
+c     &                                          ilwork, nlwork)
 c... end of testing
 c
                     do inode = 1, nshg

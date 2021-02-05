@@ -52,18 +52,17 @@ c
         case (no_vi)
           vi = zero
         case (const_vi)
-          vi(:,1) = c1 * (vi_mag * nv0(:,1) + u1(:,1))
-          vi(:,2) = c1 * (vi_mag * nv0(:,2) + u1(:,2))
-          vi(:,3) = c1 * (vi_mag * nv0(:,3) + u1(:,3))
-c          vi(:,1) = vi_mag * nv0(:,1)
-c          vi(:,2) = vi_mag * nv0(:,2)
-c          vi(:,3) = vi_mag * nv0(:,3)
+c          vi(:,1) = c1 * (vi_mag * nv0(:,1) + u1(:,1))
+c          vi(:,2) = c1 * (vi_mag * nv0(:,2) + u1(:,2))
+c          vi(:,3) = c1 * (vi_mag * nv0(:,3) + u1(:,3))
+          vi(:,1) = vi_mag * nv0(:,1)
+          vi(:,2) = vi_mag * nv0(:,2)
+          vi(:,3) = vi_mag * nv0(:,3)
 c      write(*,100) 'vi_mag: ',vi_mag
 c      write(*,100) 'vi    : ',vi(:,1)
 c      write(*,100) 'nv0   : ',nv0(:,1)
 c      write(*,100) 'u1    : ',u1(:,1)
 100   format(a,8e16.5)
-          return
         case (vieilles_burning)
 c
           vi(:,1) = burn_rate_coeff*(p/burn_rate_pref)**burn_rate_exp * nv0(:,1)
@@ -139,9 +138,9 @@ c
 c
 c... add flow velocity
 c
-        vi(:,1) = c1*(vi(:,1) + u(:,1))
-        vi(:,2) = c1*(vi(:,2) + u(:,2))
-        vi(:,3) = c1*(vi(:,3) + u(:,3))
+        vi(:,1) = vi(:,1) + (u(:,1)*nv1(:,1) + u(:,2)*nv1(:,2) + u(:,3)*nv1(:,3))*nv1(:,1)
+        vi(:,2) = vi(:,2) + (u(:,1)*nv1(:,1) + u(:,2)*nv1(:,2) + u(:,3)*nv1(:,3))*nv1(:,2)
+        vi(:,3) = vi(:,3) + (u(:,1)*nv1(:,1) + u(:,2)*nv1(:,2) + u(:,3)*nv1(:,3))*nv1(:,3)
 c
       end subroutine calc_vi
 c
