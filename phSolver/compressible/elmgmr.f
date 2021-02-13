@@ -1154,17 +1154,17 @@ c... calculate the surface avg. interface error on master rank
           if (int_area_rank .gt. zero) then
             do iflow = 1, nflow
               error_if_flux(iflow) = sqrt(int_err_if_flux_rank(iflow)
-     &                                    /int_area_rank)
+     &                                    )
               error_flux_nomalized(iflow) = error_if_flux(iflow)
      &                                    / ( int_flux_rank(iflow) 
-     &                                    /  int_area_rank )
+     &                                    )
             enddo            
             do i = 1, (nflow-2)
               error_if_tan(i)  = sqrt(int_err_if_tan_rank(i)
-     &                                    /int_area_rank)
+     &                                    )
               error_tan_nomalized(i) = error_if_tan(i)
      &                               / ( int_y_rank(i)
-     &                               /   int_area_rank )
+     &                                 )
             enddo
 c... printouts
             write(*,*) 'error of flux:',error_if_flux

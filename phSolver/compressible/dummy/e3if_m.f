@@ -41,6 +41,7 @@ c
           real*8 ::sum0,sumg0
           real*8, allocatable :: tmpmu0(:,:),tmpmu1(:,:)
           real*8, dimension(npro,nflow,nsd) :: cy_jump_0, cy_jump_1
+          real*8 :: kappa1_errCalc(nsd), kappa1_abs_errCalc ! mean curvature
 #define debug 0
 c
 c      write(*,*) 'In e3if...'
@@ -144,11 +145,21 @@ c
 c... calculate the L2 norm of tangential condition in x,y,z direction,
 c... then taking the L2 norm of the three velocity components
            do i = 1, npro
-             do isd = 1, nsd
+           ! kappa error calc in the first slot of the kinematic
+           ! condition err
+               
+              kappa1_errCalc = zero
+              do n = 1,3
+                kappa1_errCalc = kappa1_errCalc + shp1(i,n)*if_kappa_l1(i,n,1:nsd)
+              enddo
+             kappa1_abs_errCalc =sqrt(dot_product(kappa1_errCalc,kappa1_errCalc))  
+
                int_err_if_tan_blk(i,1) = int_err_if_tan_blk(i,1)
-     &                                 + cy_jump_0(i,1,isd)**two
+     &                                 + (kappa1_abs_errCalc-2000.d0)**two
      &                                 * WdetJif0(i)
 c
+             do isd = 1, nsd
+
                int_err_if_tan_blk(i,2) = int_err_if_tan_blk(i,2)
      &                                 + ( cy_jump_0(i,2,isd)**two
      &                                 +   cy_jump_0(i,3,isd)**two
@@ -162,7 +173,7 @@ c
              enddo
 c             
              int_y_blk(i,1) = int_y_blk(i,1)
-     &                      + y0(i,1)* WdetJif0(i)
+     &                      + ((2000.0)**two)* WdetJif0(i)
              int_y_blk(i,2) = int_y_blk(i,2)
      &                      + sqrt( y0(i,2)**two +y0(i,3)**two 
      &                      +       y0(i,4)**two )
@@ -354,7 +365,7 @@ c
           real*8 :: alpha,jump_u(5),climit,jump_y(5),A0_jump_y(5)
 c... added
           real*8 :: f_mon_n0, f_mon_n1          
-          real*8 :: mom_jump_normal, mom_jump_exact
+          real*8 :: mom_jump_normal, mom_jump_exact        
 c
           element_loop: do iel = 1,npro
 c
@@ -418,13 +429,12 @@ c... calculating the L2 norm of flux jump
                int_err_if_flux_blk(iel,5) = int_err_if_flux_blk(iel,5)
      &                                       + f_jump(iel,5)**two
      &                                       * WdetJif1(iel)
-
+ 
             do iflow = 2,4
               int_err_if_flux_blk(iel,iflow) = int_err_if_flux_blk(iel,iflow)
      &                                   +(mom_jump_normal - mom_jump_exact)**two
      &                                       * WdetJif1(iel)
             enddo
-
 c
             int_flux_blk(iel,1) = int_flux_blk(iel,1)
      &                          + f1n1(1)
@@ -510,6 +520,7 @@ c              ri1(iel,17:19) = ri1(iel,17:19) + pt50 * surface_tension_coeff * 
               ri0(iel,17:19) = ri0(iel,17:19) + pt50 * surface_tension_coeff * kappa0
               ri1(iel,17:19) = ri1(iel,17:19) + pt50 * surface_tension_coeff * kappa1
 c
+              !write (*,*) sqrt(dot_product(kappa0(:),kappa0(:)))
             endif
 c
           enddo element_loop
